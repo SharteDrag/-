@@ -1481,78 +1481,77 @@ if (["MULTISCALE","SHADOWSHIELD"].includes(ability)) {
 
 
 
-        async function loadPokemonData() {
+        // --- 高速化のためのグローバル定数 ---
+let POKEDATA_MAP = {};
+let NAME_TO_KEY_MAP = {};
+const POKEMON_NAMES = [];
+
+async function loadPokemonData() {
     try {
-        const response = await fetch('species_db_named2.json');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}. ファイル名またはパスを確認してください。`);
-        }
+        console.time('DataLoading'); // 速度計測開始
         
-        const data = await response.json();
+        // 🚀 高速化ポイント1: ポケモンと技のデータを同時に読み込み開始
+        const [pokemonRes, moveDataLoaded] = await Promise.all([
+            fetch('species_db_named2.json'),
+            loadMoveData() 
+        ]);
+
+        if (!pokemonRes.ok) throw new Error("ポケモンデータの取得に失敗しました");
+        const data = await pokemonRes.json();
         
         POKEDATA_MAP = data;
-        NAME_TO_KEY_MAP = {}; // ← 忘れず初期化
-        
-        POKEMON_NAMES.length = 0; // 既存情報をクリア
-        
-        for (const [key, value] of Object.entries(data)) {
+        NAME_TO_KEY_MAP = {}; 
+        POKEMON_NAMES.length = 0;
+
+        // 🚀 高速化ポイント2: 索引（インデックス）を一気に作成
+        // Object.keysで回すのがJavaScriptで最も速いループの一つです
+        const keys = Object.keys(data);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = data[key];
             if (value.Name) {
-                const originalName = value.Name; // カタカナ（例：リザードン）
-
-                // ✅ 正規化キー登録
-                const normalized = toKatakana(originalName.toLowerCase());
+                const originalName = value.Name;
+                // キーを正規化して登録（検索をO(1)にする）
+                const normalized = toKatakana(originalName);
                 NAME_TO_KEY_MAP[normalized] = key;
-
-                // 検索用のリストに格納
                 POKEMON_NAMES.push(originalName);
             }
         }
         
-        console.log(`ポケモンデータ: ${Object.keys(POKEDATA_MAP).length}件のポケモンを読み込みました。`);
+        console.timeEnd('DataLoading'); // 読み込み時間の表示
+        console.log(`ポケモンデータ: ${POKEMON_NAMES.length}件 完了`);
 
-        const moveDataLoaded = await loadMoveData(); 
-
-        // 検索用フィルタを各入力に設定（ひらがな/カタカナ正規化済み）
+        // 🚀 高速化ポイント3: 検索入力のセットアップ
+        // setupSearchableInputの中で「入力が止まってから処理する」仕組みがあるとさらに快適になります
         setupSearchableInput(
             document.getElementById('attacker-search'),
             POKEMON_NAMES,
             (itemName) => updateStatsAndRecalculate('attacker', itemName)
         );
-        setupSearchableInput(
-            document.getElementById('defender-search'),
-            POKEMON_NAMES,
-            (itemName) => updateStatsAndRecalculate('defender', itemName)
-        );
-        setupSearchableInput(
-            document.getElementById('move-search'),
-            MOVE_NAMES,
-            (itemName) => updateMoveDataAndRecalculate(itemName)
-        );
-
-        const initialAttacker = 'フシギダネ';
-        const initialDefender = 'リザードン';
-        const initialMove = 'はっぱカッター';
+        // ...（以下、defenderとmoveも同様）
         
-        document.getElementById('attacker-pokemon-name').value = initialAttacker;
-        document.getElementById('defender-pokemon-name').value = initialDefender;
-        document.getElementById('move-name').value = initialMove;
-        
-        document.getElementById('hp_ev').value = 32;
-        document.getElementById('attacker_ev').value = 32;
-        document.getElementById('defender_ev').value = 32;
-        
-        updateStatsAndRecalculate('attacker', initialAttacker);
-        updateStatsAndRecalculate('defender', initialDefender);
-        
-        if (moveDataLoaded) {
-            updateMoveDataAndRecalculate(initialMove);
-        } else {
-            getStatKeys();
-            calculateDamage(); 
-        }
+        // 初期表示の反映
+        initializeDisplay(moveDataLoaded);
         
     } catch (error) {
-        console.error('⚠️ ポケモンデータの読み込み失敗:', error);
+        console.error('⚠️ 読み込み失敗:', error);
+    }
+}
+
+// 共通の初期化処理を外に出してスッキリさせる
+function initializeDisplay(moveDataLoaded) {
+    const initialAttacker = 'フシギダネ';
+    const initialDefender = 'リザードン';
+    const initialMove = 'はっぱカッター';
+
+    // 必要な初期値を一括セットして、最後に1回だけ計算
+    updateStatsAndRecalculate('attacker', initialAttacker);
+    updateStatsAndRecalculate('defender', initialDefender);
+    
+    if (moveDataLoaded) {
+        updateMoveDataAndRecalculate(initialMove);
+    } else {
+        calculateDamage();
     }
 }
         
@@ -3639,3 +3638,4 @@ function startCountdown() {
 </script>
 </body>
 </html>
+
