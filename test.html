@@ -3244,7 +3244,6 @@ moveNameInput.addEventListener('input', (e) => handleMoveUpdate(e.target)); // i
                     calculateDamage(); // 念のため再計算
                 });
             });
-
 // EV入力欄が変更されたら能力値とダメージ計算を再実行
     document.getElementById('hp_ev').addEventListener('change', (e) => updateStatsAndRecalculate('defender', document.getElementById('defender-pokemon-name').value));
     document.getElementById('attacker_ev').addEventListener('change', (e) => updateStatsAndRecalculate('attacker', document.getElementById('attacker-pokemon-name').value));
@@ -3258,7 +3257,6 @@ moveNameInput.addEventListener('input', (e) => handleMoveUpdate(e.target)); // i
             element.addEventListener('change', calculateDamage);
         }
     });
-    
 // 技名が入力・選択されたときに実行
 document.getElementById('move-name').addEventListener('input', () => {
     // 1. ラベル（AやB）の更新
@@ -3585,10 +3583,27 @@ forceSyncPokemonNames();
 setTimeout(forceSyncPokemonNames, 1000); 
 
 // 4. 読み込みボタンを押した時にも名前を更新するようにフック
-const btnAttacker = document.querySelector("button[onclick*='attacker']");
-const btnDefender = document.querySelector("button[onclick*='defender']");
-if(btnAttacker) btnAttacker.addEventListener('click', () => setTimeout(forceSyncPokemonNames, 100));
-if(btnDefender) btnDefender.addEventListener('click', () => setTimeout(forceSyncPokemonNames, 100));
+// 読み込みボタンをより正確に特定
+const btnAttacker = document.querySelector("button[onclick*='loadFromPartyMemo'][onclick*='attacker']");
+const btnDefender = document.querySelector("button[onclick*='loadFromPartyMemo'][onclick*='defender']");
+
+// ボタンが存在する場合のみイベントを登録
+if (btnAttacker) {
+    btnAttacker.addEventListener('click', () => {
+        setTimeout(() => {
+            forceSyncPokemonNames();
+            calculateDamage(); // 数値を強制再計算
+        }, 200);
+    });
+}
+if (btnDefender) {
+    btnDefender.addEventListener('click', () => {
+        setTimeout(() => {
+            forceSyncPokemonNames();
+            calculateDamage(); // 数値を強制再計算
+        }, 200);
+    });
+}
 </script>
 <script>
     let countdownInterval;
