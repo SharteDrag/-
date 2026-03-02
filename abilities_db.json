@@ -1,0 +1,1558 @@
+{
+  "STENCH": {
+    "name": "あくしゅう",
+    "description": "くさい においを はなつことによって こうげきした ときに あいてを ひるませることが ある。",
+    "flags": []
+  },
+  "DRIZZLE": {
+    "name": "あめふらし",
+    "description": "とうじょう したときに てんきを あめに する。",
+    "flags": []
+  },
+  "SPEEDBOOST": {
+    "name": "かそく",
+    "description": "まいターン すばやさが あがる。",
+    "flags": []
+  },
+  "BATTLEARMOR": {
+    "name": "カブトアーマー",
+    "description": "かたい こうらに まもられて あいての こうげきが きゅうしょに あたらない。",
+    "flags": []
+  },
+  "STURDY": {
+    "name": "がんじょう",
+    "description": "あいての わざを うけても いちげきで たおされることが ない。 いちげきひっさつわざも きかない。",
+    "flags": []
+  },
+  "DAMP": {
+    "name": "しめりけ",
+    "description": "あたりを しめらせることに よって じばく などの ばくはつする わざを だれも つかえなくなる。",
+    "flags": []
+  },
+  "LIMBER": {
+    "name": "じゅうなん",
+    "description": "じゅうなんな からだによって まひ じょうたいに ならない。",
+    "flags": []
+  },
+  "SANDVEIL": {
+    "name": "すながくれ",
+    "description": "すなあらしの とき かいひりつが あがる。",
+    "flags": []
+  },
+  "STATIC": {
+    "name": "せいでんき",
+    "description": "せいでんきを からだに まとい さわった あいてを まひさせる ことがある。",
+    "flags": []
+  },
+  "VOLTABSORB": {
+    "name": "ちくでん",
+    "description": "でんきタイプの わざを うけると ダメージを うけずに かいふくする。",
+    "flags": []
+  },
+  "WATERABSORB": {
+    "name": "ちょすい",
+    "description": "みずタイプの わざを うけると ダメージを うけずに かいふくする。",
+    "flags": []
+  },
+  "OBLIVIOUS": {
+    "name": "どんかん",
+    "description": "どんかん なので メロメロや ちょうはつ じょうたいに ならない。いかくにも どうじない。",
+    "flags": []
+  },
+  "CLOUDNINE": {
+    "name": "ノーてんき",
+    "description": "あらゆる てんきの えいきょうが なくなって しまう。",
+    "flags": []
+  },
+  "COMPOUNDEYES": {
+    "name": "ふくがん",
+    "description": "ふくがんを もっているため わざの めいちゅうりつが あがる。",
+    "flags": []
+  },
+  "INSOMNIA": {
+    "name": "ふみん",
+    "description": "ねむれない たいしつ なので ねむり じょうたいに ならない。",
+    "flags": []
+  },
+  "COLORCHANGE": {
+    "name": "へんしょく",
+    "description": "あいてから うけた わざの タイプに じぶんの タイプが へんか する。",
+    "flags": []
+  },
+  "IMMUNITY": {
+    "name": "めんえき",
+    "description": "たいないに めんえきを もっているため どく じょうたいに ならない。",
+    "flags": []
+  },
+  "FLASHFIRE": {
+    "name": "もらいび",
+    "description": "ほのおタイプの わざを うけると ほのおを もらい じぶんが だす ほのおタイプの わざが つよくなる。",
+    "flags": []
+  },
+  "SHIELDDUST": {
+    "name": "りんぷん",
+    "description": "りんぷんに まもられて わざの ついかこうかを うけなくなる。",
+    "flags": []
+  },
+  "OWNTEMPO": {
+    "name": "マイペース",
+    "description": "マイペースなので こんらん じょうたいに ならない。いかくにも どうじない。",
+    "flags": []
+  },
+  "SUCTIONCUPS": {
+    "name": "きゅうばん",
+    "description": "きゅうばんで じめんに はりつき ポケモンを いれかえさせる わざや どうぐが きかなくなる。",
+    "flags": []
+  },
+  "INTIMIDATE": {
+    "name": "いかく",
+    "description": "とうじょう したとき いかくして あいてを いしゅくさせ あいての こうげきを さげて しまう。",
+    "flags": []
+  },
+  "SHADOWTAG": {
+    "name": "かげふみ",
+    "description": "あいての かげを ふみ にげたり こうたい できなくする。",
+    "flags": []
+  },
+  "ROUGHSKIN": {
+    "name": "さめはだ",
+    "description": "こうげきを うけたとき じぶんに ふれた あいてを ざらざらの はだで キズつける。",
+    "flags": []
+  },
+  "WONDERGUARD": {
+    "name": "ふしぎなまもり",
+    "description": "こうかばつぐんの わざしか あたらない ふしぎな ちから。",
+    "flags": []
+  },
+  "LEVITATE": {
+    "name": "ふゆう",
+    "description": "じめんから うくことによって じめんタイプの わざを うけない。",
+    "flags": []
+  },
+  "EFFECTSPORE": {
+    "name": "ほうし",
+    "description": "こうげきで じぶんに ふれた あいてを どくや まひや ねむり じょうたいに する ことがある。",
+    "flags": []
+  },
+  "SYNCHRONIZE": {
+    "name": "シンクロ",
+    "description": "じぶんが なってしまった どくや まひや やけどを あいてに うつす。",
+    "flags": []
+  },
+  "CLEARBODY": {
+    "name": "クリアボディ",
+    "description": "あいての わざや とくせいで のうりょくを さげられない。",
+    "flags": []
+  },
+  "NATURALCURE": {
+    "name": "しぜんかいふく",
+    "description": "てもちに ひっこむと じょうたい いじょうが なおる。",
+    "flags": []
+  },
+  "LIGHTNINGROD": {
+    "name": "ひらいしん",
+    "description": "でんきタイプの わざを じぶんに よせつけ ダメージを うけずに とくこうが あがる。",
+    "flags": []
+  },
+  "SERENEGRACE": {
+    "name": "てんのめぐみ",
+    "description": "てんのめぐみの おかげで わざの ついかこうかが でやすい。",
+    "flags": []
+  },
+  "SWIFTSWIM": {
+    "name": "すいすい",
+    "description": "てんきが あめのとき すばやさが あがる。",
+    "flags": []
+  },
+  "CHLOROPHYLL": {
+    "name": "ようりょくそ",
+    "description": "てんきが はれのとき すばやさが あがる。",
+    "flags": []
+  },
+  "ILLUMINATE": {
+    "name": "はっこう",
+    "description": "あたりを あかるくする ことで やせいの ポケモンに そうぐう しやすくなる。",
+    "flags": []
+  },
+  "TRACE": {
+    "name": "トレース",
+    "description": "とうじょうしたとき あいての とくせいを トレースして おなじ とくせいに なる。",
+    "flags": []
+  },
+  "HUGEPOWER": {
+    "name": "ちからもち",
+    "description": "ぶつり こうげきの いりょくが 2ばいに なる。",
+    "flags": []
+  },
+  "POISONPOINT": {
+    "name": "どくのトゲ",
+    "description": "じぶんに さわった あいてを どく じょうたいに する ことがある。",
+    "flags": []
+  },
+  "INNERFOCUS": {
+    "name": "せいしんりょく",
+    "description": "きたえられた せいしんに よって あいての こうげきに ひるまない。いかくにも どうじない。",
+    "flags": []
+  },
+  "MAGMAARMOR": {
+    "name": "マグマのよろい",
+    "description": "あつい マグマを みにまとい こおり じょうたいに ならない。",
+    "flags": [
+      "FasterEggHatching"
+    ]
+  },
+  "WATERVEIL": {
+    "name": "みずのベール",
+    "description": "みずのベールを みにまとい やけど じょうたいに ならない。",
+    "flags": []
+  },
+  "MAGNETPULL": {
+    "name": "じりょく",
+    "description": "はがねタイプの ポケモンを じりょくで ひきつけて にげられなくする。",
+    "flags": []
+  },
+  "SOUNDPROOF": {
+    "name": "ぼうおん",
+    "description": "おとを しゃだん することに よって おとの こうげきを うけない。",
+    "flags": []
+  },
+  "RAINDISH": {
+    "name": "あめうけざら",
+    "description": "てんきが あめの とき すこしずつ HPを かいふくする。",
+    "flags": []
+  },
+  "SANDSTREAM": {
+    "name": "すなおこし",
+    "description": "とうじょう したとき てんきを すなあらしに する。",
+    "flags": []
+  },
+  "PRESSURE": {
+    "name": "プレッシャー",
+    "description": "プレッシャーを あたえて あいての つかう わざの PPを おおく へらす。",
+    "flags": []
+  },
+  "THICKFAT": {
+    "name": "あついしぼう",
+    "description": "あつい しぼうで まもられているので ほのおタイプと こおりタイプの わざの ダメージを はんげんさせる。",
+    "flags": []
+  },
+  "EARLYBIRD": {
+    "name": "はやおき",
+    "description": "ねむり じょうたいに なっても 2ばいの はやさで めざめる ことが できる。",
+    "flags": []
+  },
+  "FLAMEBODY": {
+    "name": "ほのおのからだ",
+    "description": "じぶんに さわった あいてを やけど じょうたいに する ことがある。",
+    "flags": [
+      "FasterEggHatching"
+    ]
+  },
+  "RUNAWAY": {
+    "name": "にげあし",
+    "description": "やせいの ポケモンから かならず にげられる。",
+    "flags": []
+  },
+  "KEENEYE": {
+    "name": "するどいめ",
+    "description": "するどい めの おかげで めいちゅうりつを さげられない。",
+    "flags": []
+  },
+  "HYPERCUTTER": {
+    "name": "かいりきバサミ",
+    "description": "ちからじまんの ハサミを もっているので あいてに こうげきを さげられない。",
+    "flags": []
+  },
+  "PICKUP": {
+    "name": "ものひろい",
+    "description": "あいての つかった どうぐを ひろってくることが ある。 ぼうけんちゅうも ひろってくる。",
+    "flags": []
+  },
+  "TRUANT": {
+    "name": "なまけ",
+    "description": "わざを だすと つぎの ターンは やすんでしまう。",
+    "flags": []
+  },
+  "HUSTLE": {
+    "name": "はりきり",
+    "description": "じぶんの こうげきが たかくなるが めいちゅうりつが さがる。",
+    "flags": []
+  },
+  "CUTECHARM": {
+    "name": "メロメロボディ",
+    "description": "じぶんに さわった あいてを メロメロに することが ある。",
+    "flags": []
+  },
+  "PLUS": {
+    "name": "プラス",
+    "description": "プラスか マイナスの とくせいを もつ ポケモンが なかまに いると じぶんの とくこうが あがる。",
+    "flags": []
+  },
+  "MINUS": {
+    "name": "マイナス",
+    "description": "プラスか マイナスの とくせいを もつ ポケモンが なかまに いると じぶんの とくこうが あがる。",
+    "flags": []
+  },
+  "FORECAST": {
+    "name": "てんきや",
+    "description": "てんきの えいきょうを うけて みずタイプ ほのおタイプ こおりタイプの どれかに へんかする。",
+    "flags": []
+  },
+  "STICKYHOLD": {
+    "name": "ねんちゃく",
+    "description": "ねんちゃくしつの からだに どうぐが くっついているため あいてに どうぐを うばわれない。",
+    "flags": []
+  },
+  "SHEDSKIN": {
+    "name": "だっぴ",
+    "description": "からだの かわを ぬぎすてることで じょうたい いじょうを なおすことが ある。",
+    "flags": []
+  },
+  "GUTS": {
+    "name": "こんじょう",
+    "description": "じょうたい いじょうに なると こんじょうを だして こうげきが あがる。",
+    "flags": []
+  },
+  "MARVELSCALE": {
+    "name": "ふしぎなうろこ",
+    "description": "じょうたいい いじょうに なると ふしぎなうろこが はんのうして ぼうぎょが あがる。",
+    "flags": []
+  },
+  "LIQUIDOOZE": {
+    "name": "ヘドロえき",
+    "description": "ヘドロえきを すいとった あいては きょうれつな あくしゅうで ダメージを うけて HPを へらす。",
+    "flags": []
+  },
+  "OVERGROW": {
+    "name": "しんりょく",
+    "description": "HPが へったとき くさタイプの わざの いりょくが あがる。",
+    "flags": []
+  },
+  "BLAZE": {
+    "name": "もうか",
+    "description": "HPが へったとき ほのおタイプの わざの いりょくが あがる。",
+    "flags": []
+  },
+  "TORRENT": {
+    "name": "げきりゅう",
+    "description": "HPが へったとき みずタイプの わざの いりょくが あがる。",
+    "flags": []
+  },
+  "SWARM": {
+    "name": "むしのしらせ",
+    "description": "HPが へったとき むしタイプの わざの いりょくが あがる。",
+    "flags": []
+  },
+  "ROCKHEAD": {
+    "name": "いしあたま",
+    "description": "はんどうを うける わざを だしても HPが へらない。",
+    "flags": []
+  },
+  "DROUGHT": {
+    "name": "ひでり",
+    "description": "とうじょう したときに てんきを はれに する。",
+    "flags": []
+  },
+  "ARENATRAP": {
+    "name": "ありじごく",
+    "description": "せんとうで あいてを にげられなくする。",
+    "flags": []
+  },
+  "VITALSPIRIT": {
+    "name": "やるき",
+    "description": "やるきを だすことに よって ねむり じょうたいに ならない。",
+    "flags": []
+  },
+  "WHITESMOKE": {
+    "name": "しろいけむり",
+    "description": "しろいけむりに まもられて あいてに のうりょくを さげられない。",
+    "flags": []
+  },
+  "PUREPOWER": {
+    "name": "ヨガパワー",
+    "description": "ヨガの ちからで ぶつり こうげきの いりょくが 2ばいに なる。",
+    "flags": []
+  },
+  "SHELLARMOR": {
+    "name": "シェルアーマー",
+    "description": "かたい からに まもられ あいての こうげきが きゅうしょに あたらない。",
+    "flags": []
+  },
+  "AIRLOCK": {
+    "name": "エアロック",
+    "description": "あらゆる てんきの えいきょうが きえて しまう。",
+    "flags": []
+  },
+  "TANGLEDFEET": {
+    "name": "ちどりあし",
+    "description": "こんらん じょうたいの ときは かいひりつが アップする。",
+    "flags": []
+  },
+  "MOTORDRIVE": {
+    "name": "でんきエンジン",
+    "description": "でんきタイプの わざを うけると ダメージを うけずに すばやさが 上がる。",
+    "flags": []
+  },
+  "RIVALRY": {
+    "name": "とうそうしん",
+    "description": "せいべつが おなじだと とうそうしんを もやして つよくなる せいべつが ちがうと よわくなる",
+    "flags": []
+  },
+  "STEADFAST": {
+    "name": "ふくつのこころ",
+    "description": "ひるむ たびに ふくつのこころを もやして すばやさが あがる。",
+    "flags": []
+  },
+  "SNOWCLOAK": {
+    "name": "ゆきがくれ",
+    "description": "てんきが あられのとき かいひりつが あがる。",
+    "flags": []
+  },
+  "GLUTTONY": {
+    "name": "くいしんぼう",
+    "description": "HPが すくなくなったら たべる きのみを HP はんぶんの ときに たべてしまう。",
+    "flags": []
+  },
+  "ANGERPOINT": {
+    "name": "いかりのつぼ",
+    "description": "きゅうしょに こうげきが あたると いかりくるって こうげきりょくが さいだいに なる。",
+    "flags": []
+  },
+  "UNBURDEN": {
+    "name": "かるわざ",
+    "description": "もっていた どうぐが なくなると すばやさが あがる。",
+    "flags": []
+  },
+  "HEATPROOF": {
+    "name": "たいねつ",
+    "description": "たいねつの からだに よって ほのおタイプの わざの ダメージを はんげんさせる。",
+    "flags": []
+  },
+  "SIMPLE": {
+    "name": "たんじゅん",
+    "description": "のうりょく へんかが いつもの 2ばいに なる。",
+    "flags": []
+  },
+  "DRYSKIN": {
+    "name": "かんそうはだ",
+    "description": "てんきが あめのときや みずタイプの わざで HPが かいふくし はれのときや ほのおタイプの わざで へってしまう。",
+    "flags": []
+  },
+  "DOWNLOAD": {
+    "name": "ダウンロード",
+    "description": "あいての ぼうぎょと とくぼうを くらべて ひくい ほうの のうりょくに あわせて じぶんの こうげきか とくこうを あげる。",
+    "flags": []
+  },
+  "IRONFIST": {
+    "name": "てつのこぶし",
+    "description": "パンチを つかう わざの いりょくが あがる。",
+    "flags": []
+  },
+  "POISONHEAL": {
+    "name": "ポイズンヒール",
+    "description": "どくじょうたいに なると HPが へらずに ふえていく。",
+    "flags": []
+  },
+  "ADAPTABILITY": {
+    "name": "てきおうりょく",
+    "description": "じぶんと おなじ タイプの わざの いりょくが あがる。",
+    "flags": []
+  },
+  "SKILLLINK": {
+    "name": "スキルリンク",
+    "description": "れんぞくわざを つかうと いつも さいこう かいすう だすことが できる。",
+    "flags": []
+  },
+  "HYDRATION": {
+    "name": "うるおいボディ",
+    "description": "てんきが あめのとき じょうたい いじょうが なおる。",
+    "flags": []
+  },
+  "SOLARPOWER": {
+    "name": "サンパワー",
+    "description": "てんきが はれると とくこうが あがるが まいターン HPが へる。",
+    "flags": []
+  },
+  "QUICKFEET": {
+    "name": "はやあし",
+    "description": "じょうたい いじょうに なると すばやさが あがる。",
+    "flags": []
+  },
+  "NORMALIZE": {
+    "name": "ノーマルスキン",
+    "description": "どんな タイプの わざでも すべて ノーマルタイプに なる。 いりょくが すこし あがる。",
+    "flags": []
+  },
+  "SNIPER": {
+    "name": "スナイパー",
+    "description": "こうげきを きゅうしょに あてると いりょくが さらに あがる。",
+    "flags": []
+  },
+  "MAGICGUARD": {
+    "name": "マジックガード",
+    "description": "こうげき いがいでは ダメージを うけない。",
+    "flags": []
+  },
+  "NOGUARD": {
+    "name": "ノーガード",
+    "description": "ノーガード せんぽうに よって おたがいの だす わざが かならず あたる ようになる。",
+    "flags": []
+  },
+  "STALL": {
+    "name": "あとだし",
+    "description": "わざを だす じゅんばんが かならず さいごに なる。",
+    "flags": []
+  },
+  "TECHNICIAN": {
+    "name": "テクニシャン",
+    "description": "いりょくが ひくい わざの いりょくを たかくして こうげきできる。",
+    "flags": []
+  },
+  "LEAFGUARD": {
+    "name": "リーフガード",
+    "description": "てんきが はれのときは じょうたい いじょうに ならない。",
+    "flags": []
+  },
+  "KLUTZ": {
+    "name": "ぶきよう",
+    "description": "もっている どうぐを つかうことが できない。",
+    "flags": []
+  },
+  "MOLDBREAKER": {
+    "name": "かたやぶり",
+    "description": "あいての とくせいに じゃまされる ことなく あいてに わざを だすことが できる。",
+    "flags": []
+  },
+  "SUPERLUCK": {
+    "name": "きょううん",
+    "description": "きょううんを もっているため あいての きゅうしょに こうげきが あたりやすい。",
+    "flags": []
+  },
+  "AFTERMATH": {
+    "name": "ゆうばく",
+    "description": "ひんしに なったとき さわった あいてに ダメージを あたえる。",
+    "flags": []
+  },
+  "ANTICIPATION": {
+    "name": "きけんよち",
+    "description": "あいての もつ きけんな わざを さっちする ことができる。",
+    "flags": []
+  },
+  "FOREWARN": {
+    "name": "よちむ",
+    "description": "とうじょう したとき あいての もつ わざを ひとつだけ よみとる。",
+    "flags": []
+  },
+  "UNAWARE": {
+    "name": "てんねん",
+    "description": "あいての のうりょくの へんかを むしして こうげきが できる。",
+    "flags": []
+  },
+  "TINTEDLENS": {
+    "name": "いろめがね",
+    "description": "こうかが いまひとつの わざを つうじょうの いりょくで だすことが できる。",
+    "flags": []
+  },
+  "FILTER": {
+    "name": "フィルター",
+    "description": "こうかばつぐんに なってしまう こうげきの いりょくを よわめる ことが できる。",
+    "flags": []
+  },
+  "SLOWSTART": {
+    "name": "スロースタート",
+    "description": "5ターンの あいだ こうげきと すばやさが はんぶんになる。",
+    "flags": []
+  },
+  "SCRAPPY": {
+    "name": "きもったま",
+    "description": "ゴーストタイプの ポケモンに ノーマルタイプと かくとうタイプの わざを あてることが できる。いかくにも どうじない。",
+    "flags": []
+  },
+  "STORMDRAIN": {
+    "name": "よびみず",
+    "description": "みずタイプの わざを じぶんに よせつけ ダメージは うけずに とくこうが あがる。",
+    "flags": []
+  },
+  "ICEBODY": {
+    "name": "アイスボディ",
+    "description": "てんきが あられのとき HPを すこしずつ かいふく する。",
+    "flags": []
+  },
+  "SOLIDROCK": {
+    "name": "ハードロック",
+    "description": "こうかばつぐんに なってしまう こうげきの いりょくを よわめる ことが できる。",
+    "flags": []
+  },
+  "SNOWWARNING": {
+    "name": "ゆきふらし",
+    "description": "とうじょう したときに てんきを ゆきに する。",
+    "flags": []
+  },
+  "HONEYGATHER": {
+    "name": "みつあつめ",
+    "description": "せんとうが おわったとき あまいミツを ひろうことが ある。",
+    "flags": []
+  },
+  "FRISK": {
+    "name": "おみとおし",
+    "description": "とうじょう したとき あいての もちものを みとおすことが できる。",
+    "flags": []
+  },
+  "RECKLESS": {
+    "name": "すてみ",
+    "description": "はんどうで ダメージを うける わざの いりょくが あがる。",
+    "flags": []
+  },
+  "MULTITYPE": {
+    "name": "マルチタイプ",
+    "description": "もっている プレートや Zクリスタルの タイプによって じぶんの タイプが かわる。",
+    "flags": []
+  },
+  "FLOWERGIFT": {
+    "name": "フラワーギフト",
+    "description": "てんきが はれのとき じぶんと みかたの こうげきと とくぼうの のうりょくが あがる。",
+    "flags": []
+  },
+  "BADDREAMS": {
+    "name": "ナイトメア",
+    "description": "ねむり じょうたいの あいてに ダメージを あたえる。",
+    "flags": []
+  },
+  "PICKPOCKET": {
+    "name": "わるいてぐせ",
+    "description": "さわられた あいての どうぐを ぬすんで しまう。",
+    "flags": []
+  },
+  "SHEERFORCE": {
+    "name": "ちからずく",
+    "description": "わざの ついか こうかは なくなるが そのぶん たかい いりょくで わざを だすことが できる。",
+    "flags": []
+  },
+  "CONTRARY": {
+    "name": "あまのじゃく",
+    "description": "のうりょくの へんかが ぎゃくてんして あがるときに さがり さがるときに あがる。",
+    "flags": []
+  },
+  "UNNERVE": {
+    "name": "きんちょうかん",
+    "description": "あいてを きんちょうさせて きのみを たべられなく させる。",
+    "flags": []
+  },
+  "DEFIANT": {
+    "name": "まけんき",
+    "description": "のうりょくを さげられると こうげきが ぐーんと あがる。",
+    "flags": []
+  },
+  "DEFEATIST": {
+    "name": "よわき",
+    "description": "HPが はんぶんに なると よわきに なって こうげきと とくこうが はんげんする。",
+    "flags": []
+  },
+  "CURSEDBODY": {
+    "name": "のろわれボディ",
+    "description": "こうげきを うけると あいての わざを かなしばり じょうたいに することが ある。",
+    "flags": []
+  },
+  "HEALER": {
+    "name": "いやしのこころ",
+    "description": "じょうたい いじょうの みかたを たまに なおしてあげる。",
+    "flags": []
+  },
+  "FRIENDGUARD": {
+    "name": "フレンドガード",
+    "description": "みかたの ダメージを へらすことが できる。",
+    "flags": []
+  },
+  "WEAKARMOR": {
+    "name": "くだけるよろい",
+    "description": "ぶつりわざで ダメージを うけると ぼうぎょが さがり すばやさが ぐーんと あがる。",
+    "flags": []
+  },
+  "HEAVYMETAL": {
+    "name": "ヘヴィメタル",
+    "description": "じぶんの おもさが 2ばいに なる。",
+    "flags": []
+  },
+  "LIGHTMETAL": {
+    "name": "ライトメタル",
+    "description": "じぶんの おもさが はんぶんに なる。",
+    "flags": []
+  },
+  "MULTISCALE": {
+    "name": "マルチスケイル",
+    "description": "HPが まんたんの ときに うける ダメージが すくなくなる。",
+    "flags": []
+  },
+  "TOXICBOOST": {
+    "name": "どくぼうそう",
+    "description": "どく じょうたいに なったとき ぶつりわざの いりょくが あがる。",
+    "flags": []
+  },
+  "FLAREBOOST": {
+    "name": "ねつぼうそう",
+    "description": "やけど じょうたいに なったとき とくしゅわざの いりょくが あがる。",
+    "flags": []
+  },
+  "HARVEST": {
+    "name": "しゅうかく",
+    "description": "つかった きのみを なんかいも つくりだす。",
+    "flags": []
+  },
+  "TELEPATHY": {
+    "name": "テレパシー",
+    "description": "みかたの こうげきを よみとって わざを かいひする。",
+    "flags": []
+  },
+  "MOODY": {
+    "name": "ムラっけ",
+    "description": "まいターン のうりょくの どれかが ぐーんと あがって どれかが さがる。",
+    "flags": []
+  },
+  "OVERCOAT": {
+    "name": "ぼうじん",
+    "description": "すなあらしや あられなどの ダメージを うけない。 こなの わざを うけない。",
+    "flags": []
+  },
+  "POISONTOUCH": {
+    "name": "どくしゅ",
+    "description": "さわる だけで あいてを どく じょうたいに することがある。",
+    "flags": []
+  },
+  "REGENERATOR": {
+    "name": "さいせいりょく",
+    "description": "てもちに ひっこむと HPが すこし かいふくする。",
+    "flags": []
+  },
+  "BIGPECKS": {
+    "name": "はとむね",
+    "description": "ぼうぎょを さげる こうかを うけない。",
+    "flags": []
+  },
+  "SANDRUSH": {
+    "name": "すなかき",
+    "description": "てんきが すなあらし のとき すばやさが あがる。",
+    "flags": []
+  },
+  "WONDERSKIN": {
+    "name": "ミラクルスキン",
+    "description": "へんかわざを うけにくい からだに なっている。",
+    "flags": []
+  },
+  "ANALYTIC": {
+    "name": "アナライズ",
+    "description": "いちばん さいごに わざを だすと わざの いりょくが あがる。",
+    "flags": []
+  },
+  "ILLUSION": {
+    "name": "イリュージョン",
+    "description": "てもちの いちばん うしろに いる ポケモンに なりきって とうじょうして あいてを ばかす。",
+    "flags": []
+  },
+  "IMPOSTER": {
+    "name": "かわりもの",
+    "description": "めのまえの ポケモンに へんしん してしまう。",
+    "flags": []
+  },
+  "INFILTRATOR": {
+    "name": "すりぬけ",
+    "description": "あいての かべや みがわりを すりぬけて こうげき できる",
+    "flags": []
+  },
+  "MUMMY": {
+    "name": "ミイラ",
+    "description": "あいてに さわられると あいてを ミイラに してしまう。",
+    "flags": []
+  },
+  "MOXIE": {
+    "name": "じしんかじょう",
+    "description": "あいてを たおすと じしんが ついて こうげきが あがる。",
+    "flags": []
+  },
+  "JUSTIFIED": {
+    "name": "せいぎのこころ",
+    "description": "あくタイプの こうげきを うけると せいぎかんで こうげきが あがる。",
+    "flags": []
+  },
+  "RATTLED": {
+    "name": "びびり",
+    "description": "あくタイプと ゴーストタイプと むしタイプの わざを うけると びびって すばやさが あがる。",
+    "flags": []
+  },
+  "MAGICBOUNCE": {
+    "name": "マジックミラー",
+    "description": "あいてに だされた へんかわざを うけずに そのまま かえす ことが できる。",
+    "flags": []
+  },
+  "SAPSIPPER": {
+    "name": "そうしょく",
+    "description": "くさタイプの わざを うけると ダメージを うけずに こうげきが あがる。",
+    "flags": []
+  },
+  "PRANKSTER": {
+    "name": "いたずらごころ",
+    "description": "へんかわざを せんせいで だすことが できる。",
+    "flags": []
+  },
+  "SANDFORCE": {
+    "name": "すなのちから",
+    "description": "てんきが すなあらしの とき いわタイプと じめんタイプと はがねタイプの いりょくが あがる。",
+    "flags": []
+  },
+  "IRONBARBS": {
+    "name": "てつのトゲ",
+    "description": "じぶんに さわった あいてに てつのトゲで ダメージを あたえる。",
+    "flags": []
+  },
+  "ZENMODE": {
+    "name": "ダルマモード",
+    "description": "HPが はんぶん いかに なると すがたが へんかする。",
+    "flags": []
+  },
+  "VICTORYSTAR": {
+    "name": "しょうりのほし",
+    "description": "じぶんや みかたの めいちゅうりつが あがる。",
+    "flags": []
+  },
+  "TURBOBLAZE": {
+    "name": "ターボブレイズ",
+    "description": "あいての とくせいに じゃまされず あいてに わざを だすことが できる。",
+    "flags": []
+  },
+  "TERAVOLT": {
+    "name": "テラボルテージ",
+    "description": "あいての とくせいに じゃまされず あいてに わざを だすことが できる。",
+    "flags": []
+  },
+  "AROMAVEIL": {
+    "name": "アロマベール",
+    "description": "じぶんと みかたへの メンタル こうげきを ふせぐことが できる。",
+    "flags": []
+  },
+  "FLOWERVEIL": {
+    "name": "フラワーベール",
+    "description": "みかたの くさポケモンは のうりょくが さがらず じょうたい いじょうにも ならない。",
+    "flags": []
+  },
+  "CHEEKPOUCH": {
+    "name": "ほおぶくろ",
+    "description": "どんな きのみでも たべると HPも かいふくする。",
+    "flags": []
+  },
+  "PROTEAN": {
+    "name": "へんげんじざい",
+    "description": "じぶんが だす わざと おなじ タイプに へんかする。",
+    "flags": []
+  },
+  "FURCOAT": {
+    "name": "ファーコート",
+    "description": "あいてから うける ぶつりわざの ダメージが はんぶんに なる。",
+    "flags": []
+  },
+  "MAGICIAN": {
+    "name": "マジシャン",
+    "description": "わざを あてた あいての どうぐを うばってしまう。",
+    "flags": []
+  },
+  "BULLETPROOF": {
+    "name": "ぼうだん",
+    "description": "あいての たまや ばくだんなどの わざを ふせぐことが できる。",
+    "flags": []
+  },
+  "COMPETITIVE": {
+    "name": "かちき",
+    "description": "のうりょくを さげられると とくこうが ぐーんと あがる。",
+    "flags": []
+  },
+  "STRONGJAW": {
+    "name": "がんじょうあご",
+    "description": "あごが　がんじょうで かむ わざの いりょくが たかくなる。",
+    "flags": []
+  },
+  "REFRIGERATE": {
+    "name": "フリーズスキン",
+    "description": "ノーマルタイプの わざが こおりタイプになる。 いりょくが すこし あがる。",
+    "flags": []
+  },
+  "SWEETVEIL": {
+    "name": "スイートベール",
+    "description": "みかたの ポケモンは ねむらなくなる。",
+    "flags": []
+  },
+  "STANCECHANGE": {
+    "name": "バトルスイッチ",
+    "description": "こうげきわざを だすと ブレードフォルムに わざ キングシールドを だすと シールドフォルムに へんかする。",
+    "flags": []
+  },
+  "GALEWINGS": {
+    "name": "はやてのつばさ",
+    "description": "ひこうタイプの わざを せんせいで だすことが できる。",
+    "flags": []
+  },
+  "MEGALAUNCHER": {
+    "name": "メガランチャー",
+    "description": "はどうの わざの いりょくが たかくなる。",
+    "flags": []
+  },
+  "GRASSPELT": {
+    "name": "くさのけがわ",
+    "description": "グラスフィールドのとき ぼうぎょが あがる。",
+    "flags": []
+  },
+  "SYMBIOSIS": {
+    "name": "きょうせい",
+    "description": "みかたが どうぐを つかうと じぶんの もっている どうぐを みかたに わたす。",
+    "flags": []
+  },
+  "TOUGHCLAWS": {
+    "name": "かたいツメ",
+    "description": "あいてに せっしょくする わざの いりょくが たかくなる。",
+    "flags": []
+  },
+  "PIXILATE": {
+    "name": "フェアリースキン",
+    "description": "ノーマルタイプの わざが フェアリータイプになる。 いりょくが すこし あがる。",
+    "flags": []
+  },
+  "GOOEY": {
+    "name": "ぬめぬめ",
+    "description": "こうげきで じぶんに ふれた あいての すばやさを さげる。",
+    "flags": []
+  },
+  "AERILATE": {
+    "name": "スカイスキン",
+    "description": "ノーマルタイプの わざが ひこうタイプになる。 いりょくが すこし あがる。",
+    "flags": []
+  },
+  "PARENTALBOND": {
+    "name": "おやこあい",
+    "description": "おやこ 2ひきで 2かい こうげきする ことが できる。",
+    "flags": []
+  },
+  "DARKAURA": {
+    "name": "ダークオーラ",
+    "description": "ぜんいんの あくタイプの わざが つよくなる。",
+    "flags": []
+  },
+  "FAIRYAURA": {
+    "name": "フェアリーオーラ",
+    "description": "ぜんいんの フェアリータイプの わざが つよくなる。",
+    "flags": []
+  },
+  "AURABREAK": {
+    "name": "オーラブレイク",
+    "description": "オーラの こうかを ぎゃくてんさせて いりょくを さげる。",
+    "flags": []
+  },
+  "PRIMORDIALSEA": {
+    "name": "はじまりのうみ",
+    "description": "ほのおタイプの こうげきを うけない てんきにする。",
+    "flags": []
+  },
+  "DESOLATELAND": {
+    "name": "おわりのだいち",
+    "description": "みずタイプの こうげきを うけない てんきにする。",
+    "flags": []
+  },
+  "DELTASTREAM": {
+    "name": "デルタストリーム",
+    "description": "ひこうタイプの じゃくてんが なくなる てんきにする。",
+    "flags": []
+  },
+  "STAMINA": {
+    "name": "じきゅうりょく",
+    "description": "こうげきを うけると ぼうぎょが あがる。",
+    "flags": []
+  },
+  "WIMPOUT": {
+    "name": "にげごし",
+    "description": "HPが はんぶんに なると あわてて にげだして てもちに ひっこんで しまう。",
+    "flags": []
+  },
+  "EMERGENCYEXIT": {
+    "name": "ききかいひ",
+    "description": "HPが はんぶんに なると きけんを かいひするため てもちに ひっこんで しまう。",
+    "flags": []
+  },
+  "WATERCOMPACTION": {
+    "name": "みずがため",
+    "description": "みずタイプの わざを うけると ぼうぎょが ぐーんと あがる。",
+    "flags": []
+  },
+  "MERCILESS": {
+    "name": "ひとでなし",
+    "description": "どく じょうたいの あいてを こうげきすると かならず きゅうしょに あたる。",
+    "flags": []
+  },
+  "SHIELDSDOWN": {
+    "name": "リミットシールド",
+    "description": "HPが はんぶんに なると からが こわれて こうげきてきに なる。",
+    "flags": []
+  },
+  "STAKEOUT": {
+    "name": "はりこみ",
+    "description": "こうたいで でてきた あいてに 2ばいの ダメージで こうげき できる。",
+    "flags": []
+  },
+  "WATERBUBBLE": {
+    "name": "すいほう",
+    "description": "じぶんに たいする ほのおタイプの わざの いりょくを さげる。 やけど しない。",
+    "flags": []
+  },
+  "STEELWORKER": {
+    "name": "はがねつかい",
+    "description": "はがねタイプの わざの いりょくが あがる。",
+    "flags": []
+  },
+  "BERSERK": {
+    "name": "ぎゃくじょう",
+    "description": "あいての こうげきで HPが はんぶんに なると とくこうが あがる。",
+    "flags": []
+  },
+  "SLUSHRUSH": {
+    "name": "ゆきかき",
+    "description": "てんきが あられの とき すばやさが あがる。",
+    "flags": []
+  },
+  "LONGREACH": {
+    "name": "えんかく",
+    "description": "すべての わざを あいてに せっしょく しないで だすことが できる。",
+    "flags": []
+  },
+  "LIQUIDVOICE": {
+    "name": "うるおいボイス",
+    "description": "すべての おとわざが みずタイプに なる。",
+    "flags": []
+  },
+  "TRIAGE": {
+    "name": "ヒーリングシフト",
+    "description": "かいふくわざを せんせいで だすことが できる。",
+    "flags": []
+  },
+  "GALVANIZE": {
+    "name": "エレキスキン",
+    "description": "ノーマルタイプの わざが でんきタイプになる。 いりょくが すこし あがる。",
+    "flags": []
+  },
+  "SURGESURFER": {
+    "name": "サーフテール",
+    "description": "エレキフィールド のとき すばやさが 2ばいに なる。",
+    "flags": []
+  },
+  "SCHOOLING": {
+    "name": "ぎょぐん",
+    "description": "HPが おおいときは むれて つよくなる。 HPの のこりが すくなくなると むれは ちりぢりに なってしまう。",
+    "flags": []
+  },
+  "DISGUISE": {
+    "name": "ばけのかわ",
+    "description": "からだを おおう ばけのかわで 1かい こうげきを ふせぐことが できる。",
+    "flags": []
+  },
+  "BATTLEBOND": {
+    "name": "きずなへんげ",
+    "description": "あいてを たおすと トレーナーとの きずなが ふかまり サトシゲッコウガに へんげする。みずしゅりけんが つよくなる。",
+    "flags": []
+  },
+  "POWERCONSTRUCT": {
+    "name": "スワームチェンジ",
+    "description": "HPが はんぶんに なると セルたちが おうえんに かけつけ パーフェクトフォルムに すがたを かえる。",
+    "flags": []
+  },
+  "CORROSION": {
+    "name": "ふしょく",
+    "description": "はがねタイプや どくタイプも どく じょうたいに することが できる。",
+    "flags": []
+  },
+  "COMATOSE": {
+    "name": "ぜったいねむり",
+    "description": "つねに ゆめうつつの じょうたいで ぜったいに めざめない。 ねむったまま こうげきが できる。",
+    "flags": []
+  },
+  "QUEENLYMAJESTY": {
+    "name": "じょおうのいげん",
+    "description": "あいてに いあつかんを あたえ こちらに むかって せんせいわざを だせない ようにする。",
+    "flags": []
+  },
+  "INNARDSOUT": {
+    "name": "とびだすなかみ",
+    "description": "あいてに たおされたとき HPの のこりの ぶんだけ あいてに ダメージを あたえる。",
+    "flags": []
+  },
+  "DANCER": {
+    "name": "おどりこ",
+    "description": "だれかが おどりわざを つかうと じぶんも それにつづいて おどりわざを だすことが できる。",
+    "flags": []
+  },
+  "BATTERY": {
+    "name": "バッテリー",
+    "description": "みかたの とくしゅわざの いりょくを あげる。",
+    "flags": []
+  },
+  "FLUFFY": {
+    "name": "もふもふ",
+    "description": "あいてから うけた せっしょくする わざの ダメージを はんげんするが ほのおタイプの わざの ダメージは 2ばいになる。",
+    "flags": []
+  },
+  "DAZZLING": {
+    "name": "ビビッドボディ",
+    "description": "あいてを びっくり させて こちらに むかって せんせいわざを だせない ようにする。",
+    "flags": []
+  },
+  "SOULHEART": {
+    "name": "ソウルハート",
+    "description": "ポケモンが ひんしに なるたびに とくこうが あがる。",
+    "flags": []
+  },
+  "TANGLINGHAIR": {
+    "name": "カーリーヘアー",
+    "description": "こうげきで じぶんに ふれた あいての すばやさを さげる。",
+    "flags": []
+  },
+  "RECEIVER": {
+    "name": "レシーバー",
+    "description": "たおされた みかたの とくせいを うけついで おなじ とくせいに なる。",
+    "flags": []
+  },
+  "POWEROFALCHEMY": {
+    "name": "かがくのちから",
+    "description": "たおされた みかたの とくせいを うけつぎ おなじ とくせいに かわる。",
+    "flags": []
+  },
+  "BEASTBOOST": {
+    "name": "ビーストブースト",
+    "description": "あいてを たおしたとき じぶんの いちばん たかい のうりょくが あがる。",
+    "flags": []
+  },
+  "RKSSYSTEM": {
+    "name": "ARシステム",
+    "description": "もっている メモリで じぶんの タイプが かわる。",
+    "flags": []
+  },
+  "ELECTRICSURGE": {
+    "name": "エレキメイカー",
+    "description": "とうじょう したときに エレキフィールドを はりめぐらせる。",
+    "flags": []
+  },
+  "PSYCHICSURGE": {
+    "name": "サイコメイカー",
+    "description": "とうじょう したときに サイコフィールドを はりめぐらせる。",
+    "flags": []
+  },
+  "MISTYSURGE": {
+    "name": "ミストメイカー",
+    "description": "とうじょう したときに ミストフィールドを はりめぐらせる。",
+    "flags": []
+  },
+  "GRASSYSURGE": {
+    "name": "グラスメイカー",
+    "description": "とうじょう したときに グラスフィールドを はりめぐらせる。",
+    "flags": []
+  },
+  "FULLMETALBODY": {
+    "name": "メタルプロテクト",
+    "description": "あいての わざや とくせいで のうりょくを さげられない。",
+    "flags": []
+  },
+  "SHADOWSHIELD": {
+    "name": "ファントムガード",
+    "description": "HPが まんたんの ときに うける ダメージが すくなくなる。",
+    "flags": []
+  },
+  "PRISMARMOR": {
+    "name": "プリズムアーマー",
+    "description": "こうかばつぐんに なってしまう こうげきの いりょくを よわめる ことが できる。",
+    "flags": []
+  },
+  "NEUROFORCE": {
+    "name": "ブレインフォース",
+    "description": "こうかばつぐんの こうげきで いりょくが さらに あがる。",
+    "flags": []
+  },
+  "INTREPIDSWORD": {
+    "name": "ふとうのけん",
+    "description": "さいしょに とうじょう したときに こうげきが あがる。",
+    "flags": []
+  },
+  "DAUNTLESSSHIELD": {
+    "name": "ふくつのたて",
+    "description": "さいしょに とうじょう したときに ぼうぎょが あがる。",
+    "flags": []
+  },
+  "LIBERO": {
+    "name": "リベロ",
+    "description": "じぶんが だす わざと おなじ タイプに へんかする。",
+    "flags": []
+  },
+  "BALLFETCH": {
+    "name": "たまひろい",
+    "description": "どうぐを もっていない ばあい 1かいめに なげて しっぱい した モンスターボールを ひろってくる。",
+    "flags": []
+  },
+  "COTTONDOWN": {
+    "name": "わたげ",
+    "description": "こうげきを うけると わたげを ばらまいて じぶんいがいの ポケモン すべての すばやさを さげる。",
+    "flags": []
+  },
+  "PROPELLERTAIL": {
+    "name": "スクリューおびれ",
+    "description": "あいての わざを ひきうける とくせいや わざの えいきょうを むし できる。",
+    "flags": []
+  },
+  "MIRRORARMOR": {
+    "name": "ミラーアーマー",
+    "description": "じぶんが うけた のうりょくダウンの こうか だけを はねかえす。",
+    "flags": []
+  },
+  "GULPMISSILE": {
+    "name": "うのミサイル",
+    "description": "なみのりか ダイビングを すると えものを くわえてくる。 ダメージを うけると えものを はきだして こうげき。",
+    "flags": []
+  },
+  "STALWART": {
+    "name": "すじがねいり",
+    "description": "あいての わざを ひきうける とくせいや わざの えいきょうを むし できる。",
+    "flags": []
+  },
+  "STEAMENGINE": {
+    "name": "じょうききかん",
+    "description": "みずタイプ ほのおタイプの わざを うけると すばやさが ぐぐーんと あがる。",
+    "flags": [
+      "FasterEggHatching"
+    ]
+  },
+  "PUNKROCK": {
+    "name": "パンクロック",
+    "description": "おとわざの いりょくが あがる。 うけた おとわざの ダメージは はんぶんに なる。",
+    "flags": []
+  },
+  "SANDSPIT": {
+    "name": "すなはき",
+    "description": "こうげきを うけると すなあらしを おこす。",
+    "flags": []
+  },
+  "ICESCALES": {
+    "name": "こおりのりんぷん",
+    "description": "こおりのりんぷんに まもられて とくしゅこうげきで うける ダメージが はんげん する。",
+    "flags": []
+  },
+  "RIPEN": {
+    "name": "じゅくせい",
+    "description": "じゅくせい させることで きのみの こうかが ばいに なる。",
+    "flags": []
+  },
+  "ICEFACE": {
+    "name": "アイスフェイス",
+    "description": "ぶつりこうげきは あたまの こおりが みがわりに なるが すがたも かわる。こおりは あられが ふると もとにもどる。",
+    "flags": []
+  },
+  "POWERSPOT": {
+    "name": "パワースポット",
+    "description": "となりに いるだけで わざの いりょくが あがる。",
+    "flags": []
+  },
+  "MIMICRY": {
+    "name": "ぎたい",
+    "description": "フィールドの じょうたいに あわせて ポケモンの タイプが かわる。",
+    "flags": []
+  },
+  "SCREENCLEANER": {
+    "name": "バリアフリー",
+    "description": "とうじょう したときに てきと みかたの ひかりのかべ リフレクター オーロラベールの こうかが きえる。",
+    "flags": []
+  },
+  "STEELYSPIRIT": {
+    "name": "はがねのせいしん",
+    "description": "みかたの はがねタイプの こうげきの いりょくが あがる。",
+    "flags": []
+  },
+  "PERISHBODY": {
+    "name": "ほろびのボディ",
+    "description": "せっしょくする わざを うけると おたがい 3ターン たつと ひんしになる。こうたいすると こうかは なくなる。",
+    "flags": []
+  },
+  "WANDERINGSPIRIT": {
+    "name": "さまようたましい",
+    "description": "せっしょくする わざで こうげき してきた ポケモンと とくせいを いれかえる。",
+    "flags": []
+  },
+  "GORILLATACTICS": {
+    "name": "ごりむちゅう",
+    "description": "こうげきは あがるが さいしょに えらんだ わざしか だせなくなる。",
+    "flags": []
+  },
+  "NEUTRALIZINGGAS": {
+    "name": "かがくへんかガス",
+    "description": "かがくへんかガスの ポケモンが ばにいると すべての ポケモンの とくせいの こうかが きえたり はつどう しなくなる。",
+    "flags": []
+  },
+  "PASTELVEIL": {
+    "name": "パステルベール",
+    "description": "じぶんも みかたも どくの じょうたいいじょうを うけなくなる。",
+    "flags": []
+  },
+  "HUNGERSWITCH": {
+    "name": "はらぺこスイッチ",
+    "description": "ターンのおわりに まんぷくもよう はらぺこもよう まんぷくもよう……と こうごに すがたを かえる。",
+    "flags": []
+  },
+  "QUICKDRAW": {
+    "name": "クイックドロウ",
+    "description": "あいてより さきに こうどう できることが ある。",
+    "flags": []
+  },
+  "UNSEENFIST": {
+    "name": "ふかしのこぶし",
+    "description": "あいてに せっしょくする わざなら まもりの こうかを むしして こうげき することが できる。",
+    "flags": []
+  },
+  "CURIOUSMEDICINE": {
+    "name": "きみょうなくすり",
+    "description": "とうじょう したときに かいがらから くすりを ふりまいて みかたの のうりょくへんかを もとにもどす。",
+    "flags": []
+  },
+  "TRANSISTOR": {
+    "name": "トランジスタ",
+    "description": "でんきタイプの わざの いりょくが あがる。",
+    "flags": []
+  },
+  "DRAGONSMAW": {
+    "name": "りゅうのあぎと",
+    "description": "ドラゴンタイプの わざの いりょくが あがる。",
+    "flags": []
+  },
+  "CHILLINGNEIGH": {
+    "name": "しろのいななき",
+    "description": "あいてを たおすと つめたい こえで いなないて こうげきが あがる。",
+    "flags": []
+  },
+  "GRIMNEIGH": {
+    "name": "くろのいななき",
+    "description": "あいてを たおすと おそろしい こえで いなないて とくこうが あがる。",
+    "flags": []
+  },
+  "ASONECHILLINGNEIGH": {
+    "name": "じんばいったい",
+    "description": "バドレックスの きんちょうかんと ブリザポスの しろのいななきの ふたつの とくせいを あわせもつ。",
+    "flags": []
+  },
+  "ASONEGRIMNEIGH": {
+    "name": "じんばいったい",
+    "description": "バドレックスの きんちょうかんと レイスポスの くろのいななきの ふたつの とくせいを あわせもつ。",
+    "flags": []
+  },
+  "ANGERSHELL": {
+    "name": "いかりのこうら",
+    "description": "あいてのこうげきで HPが はんぶんに なると いかりで ぼうぎょと とくぼうが さがるが こうげき とくこう すばやさが あがる。",
+    "flags": []
+  },
+  "ARMORTAIL": {
+    "name": "テイルアーマー",
+    "description": "あたまをつつむ なぞのしっぽが こちらに むかって せんせいわざを だせない ようにする。",
+    "flags": []
+  },
+  "BEADSOFRUIN": {
+    "name": "わざわいのたま",
+    "description": "さいやくを よぶ まがたまのちからで じぶんいがいの とくぼうが よわくなる。",
+    "flags": []
+  },
+  "COMMANDER": {
+    "name": "しれいとう",
+    "description": "とうじょうしたとき みかたに ヘイラッシャが いると くちのなかに はいって そこから しれいを だす。",
+    "flags": []
+  },
+  "COSTAR": {
+    "name": "きょうえん",
+    "description": "とうじょう したときに みかたの のうりょくへんかを コピーする。",
+    "flags": []
+  },
+  "CUDCHEW": {
+    "name": "はんすう",
+    "description": "きのみを たべると つぎのターンの おわりに いから だして もう1かいだけ たべる。",
+    "flags": []
+  },
+  "EARTHEATER": {
+    "name": "どしょく",
+    "description": "じめんタイプの わざを うけると ダメージを うけずに かいふくする。",
+    "flags": []
+  },
+  "ELECTROMORPHOSIS": {
+    "name": "でんきにかえる",
+    "description": "ダメージを うけると じゅうでん じょうたいに なる。",
+    "flags": []
+  },
+  "GOODASGOLD": {
+    "name": "おうごんのからだ",
+    "description": "さんかせず じょうぶな おうごんのからだは あいてからの へんかわざを うけない。",
+    "flags": []
+  },
+  "GUARDDOG": {
+    "name": "ばんけん",
+    "description": "いかく されると こうげきが あがる。 ポケモンを いれかえさせる わざや どうぐが きかない。",
+    "flags": []
+  },
+  "HADRONENGINE": {
+    "name": "ハドロンエンジン",
+    "description": "とうじょうしたとき エレキフィールドを はる。 エレキフィールドだと みらいの きかんにより とくこうが たかまる。",
+    "flags": []
+  },
+  "LINGERINGAROMA": {
+    "name": "とれないにおい",
+    "description": "あいてに ふれられると とれないにおいが あいてに うつってしまう。",
+    "flags": []
+  },
+  "MYCELIUMMIGHT": {
+    "name": "きんしのちから",
+    "description": "へんかわざを だすとき かならず こうどうが おそくなるが あいての とくせいに ジャマされない。",
+    "flags": []
+  },
+  "OPPORTUNIST": {
+    "name": "びんじょう",
+    "description": "あいての のうりょくが あがったとき じぶんも びんじょうして おなじように のうりょくを あげる。",
+    "flags": []
+  },
+  "ORICHALCUMPULSE": {
+    "name": "ひひいろのこどう",
+    "description": "とうじょうしたとき てんきを はれにする。 ひざしが つよいと こだいの こどうにより こうげきが たかまる。",
+    "flags": []
+  },
+  "PROTOSYNTHESIS": {
+    "name": "こだいかっせい",
+    "description": "ブーストエナジーを もたせるか てんきが はれのとき いちばん たかいのうりょくが あがる。",
+    "flags": []
+  },
+  "PURIFYINGSALT": {
+    "name": "きよめのしお",
+    "description": "きよらかなしおで じょうたいいじょうに ならない。 ゴーストタイプの わざの ダメージを はんげんさせる。",
+    "flags": []
+  },
+  "QUARKDRIVE": {
+    "name": "クォークチャージ",
+    "description": "ブーストエナジーを もたせるか エレキフィールドのとき いちばん たかいのうりょくが あがる。",
+    "flags": []
+  },
+  "ROCKYPAYLOAD": {
+    "name": "いわはこび",
+    "description": "いわタイプの わざの いりょくが あがる。",
+    "flags": []
+  },
+  "SEEDSOWER": {
+    "name": "こぼれダネ",
+    "description": "こうげきを うけると グラスフィールドに する。",
+    "flags": []
+  },
+  "SHARPNESS": {
+    "name": "きれあじ",
+    "description": "あいてを きるわざの いりょくが あがる。",
+    "flags": []
+  },
+  "SUPREMEOVERLORD": {
+    "name": "そうだいしょう",
+    "description": "とうじょうしたとき いままで たおされた みかたの かずが おおいほど すこしずつ こうげきと とくこうが あがる。",
+    "flags": []
+  },
+  "SWORDOFRUIN": {
+    "name": "わざわいのつるぎ",
+    "description": "さいやくを よぶ つるぎのちからで じぶんいがいの ぼうぎょが よわくなる。",
+    "flags": []
+  },
+  "TABLETSOFRUIN": {
+    "name": "わざわいのおふだ",
+    "description": "さいやくを よぶ きふだのちからで じぶんいがいの こうげきが よわくなる。",
+    "flags": []
+  },
+  "THERMALEXCHANGE": {
+    "name": "ねつこうかん",
+    "description": "ほのおタイプの わざを うけると こうげきが あがる。 やけどじょうたいに ならない。",
+    "flags": []
+  },
+  "TOXICDEBRIS": {
+    "name": "どくげしょう",
+    "description": "ぶつりわざで ダメージを うけると あいての あしもとに どくびしが ちらばる。",
+    "flags": []
+  },
+  "VESSELOFRUIN": {
+    "name": "わざわいのうつわ",
+    "description": "さいやくを よぶ うつわのちからで じぶんいがいの とくこうが よわくなる。",
+    "flags": []
+  },
+  "WELLBAKEDBODY": {
+    "name": "こんがりボディ",
+    "description": "ほのおタイプの わざを うけると ダメージを うけずに ぼうぎょが ぐーんと あがる。",
+    "flags": []
+  },
+  "WINDPOWER": {
+    "name": "ふうりょくでんき",
+    "description": "かぜわざを うけると じゅうでん じょうたいに なる。.",
+    "flags": []
+  },
+  "WINDRIDER": {
+    "name": "かぜのり",
+    "description": "おいかぜが ふいたり かぜわざを うけると ダメージを うけずに こうげきが あがる。",
+    "flags": []
+  },
+  "ZEROTOHERO": {
+    "name": "マイティチェンジ",
+    "description": "てもちに ひっこむと マイティフォルムに へんかする。",
+    "flags": []
+  },
+  "SUPERSWEETSYRUP": {
+    "name": "かんろなミツ",
+    "description": "さいしょに とうじょう したとき あまったるい みつのかおりを ふりまいて あいての かいひりつを さげる。",
+    "flags": []
+  },
+  "HOSPITALITY": {
+    "name": "おもてなし",
+    "description": "とうじょうしたとき みかたを もてなして HPを すこしだけ かいふくしてあげる。",
+    "flags": []
+  },
+  "TOXICCHAIN": {
+    "name": "どくのくさり",
+    "description": "どくそを ふくんだ くさりのちからで わざを あてた あいてを もうどくのじょうたいに することが ある。",
+    "flags": []
+  },
+  "MINDSEYE": {
+    "name": "しんがん",
+    "description": "ノーマル かくとうタイプのわざを ゴーストタイプに あてることが できる。 あいての かいひりつの へんかを むしし めいちゅうりつも さげられない。",
+    "flags": []
+  },
+  "EMBODYASPECT": {
+    "name": "おもかげやどし",
+    "description": "おもいでを こころに やどすことで みどりのめんを かがやかせ じぶんの すばやさを あげる。",
+    "flags": []
+  },
+  "EMBODYASPECT_1": {
+    "name": "おもかげやどし",
+    "description": "",
+    "flags": []
+  },
+  "EMBODYASPECT_2": {
+    "name": "おもかげやどし",
+    "description": "おもいでを こころに やどすことで かまどのめんを かがやかせ じぶんの こうげきを あげる。",
+    "flags": []
+  },
+  "EMBODYASPECT_3": {
+    "name": "おもかげやどし",
+    "description": "おもいでを こころに やどすことで いしずえのめんを かがやかせ じぶんの ぼうぎょを あげる。",
+    "flags": []
+  },
+  "POISONPUPPETEER": {
+    "name": "どくくぐつ",
+    "description": "モモワロウの わざによって どくじょうたいに なった あいては こんらんじょうたいにも なってしまう。",
+    "flags": []
+  },
+  "TERASHIFT": {
+    "name": "テラスチェンジ",
+    "description": "とうじょうしたとき しゅういの エネルギーを きゅうしゅうし テラスタルフォルムに へんかする。",
+    "flags": []
+  },
+  "TERASHELL": {
+    "name": "テラスシェル",
+    "description": "ぜんタイプのちからを ひめたこうらは HPが まんタンの ときに うける ダメージを すべて いまひとつに する。",
+    "flags": []
+  },
+  "TERAFORMZERO": {
+    "name": "ゼロフォーミング",
+    "description": "テラパゴスが ステラフォルムに なったとき ひめられたちからで てんきと フィールドの えいきょうを すべて ゼロにする。",
+    "flags": []
+  }
+}

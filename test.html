@@ -1,0 +1,3626 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ポケモン ダメージ計算ツール (技データ連携版)</title>
+    <style>
+        body { font-family: sans-serif; max-width: 850px; margin: 0 auto; padding: 20px; }
+        h2 { border-bottom: 2px solid #007bff; padding-bottom: 5px; color: #007bff; }
+        h3 { border-left: 5px solid #007bff; padding-left: 10px; margin-top: 25px; }
+        h4 { color: #007bff; border-bottom: 1px solid #ccc; padding-bottom: 3px; margin-top: 20px; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input[type="number"], input[type="text"], select { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; }
+        .fixed-level, .fixed-value { background-color: #f0f0f0; color: #555; font-style: italic; }
+        .input-group { display: flex; gap: 20px; }
+        .input-group > div { flex: 1; }
+        
+        .checkbox-group { display: flex; align-items: center; margin-top: 10px; }
+        .checkbox-group label { margin-top: 0; margin-right: 15px; display: inline-block; font-weight: bold; }
+        .checkbox-group input[type="checkbox"], .checkbox-group input[type="radio"] { width: auto; margin-right: 5px; transform: scale(1.5); }
+        .checkbox-section { margin-top: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        
+        .quick-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85em; }
+        .quick-table th, .quick-table td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+        .quick-table th { background-color: #f2f2f2; position: sticky; top: 0; }
+        .quick-table tr:nth-child(even) { background-color: #fafafa; }
+        .quick-table .power-cell { font-weight: bold; background-color: #eee; }
+        .quick-table .damage-val { font-weight: bold; }
+        .quick-table .percent-val { color: #666; font-size: 0.9em; }
+
+        button { padding: 10px 20px; margin-top: 20px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        button:hover { background-color: #0056b3; }
+        
+        /* New style for EV buttons */
+        .ev-button {
+            padding: 5px 10px;
+            margin-right: 10px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        .ev-button:hover {
+            background-color: #449d44;
+        }
+
+        #result { margin-top: 20px; padding: 15px; border: 2px solid #007bff; background-color: #eaf3ff; border-radius: 4px; }
+        .result-min { color: #0000ff; font-weight: bold; }
+        .result-max { color: #ff0000; font-weight: bold; }
+        .percentage { margin-top: 10px; padding: 5px; background-color: #fff; border: 1px dashed #ccc; }
+        .ko-prob { font-weight: bold; color: #d9534f; margin-top: 5px; }
+        .substitute-info { margin-top: 5px; color: #cc5500; font-weight: bold; border-top: 1px dashed #ffa07a; padding-top: 5px; }
+        .note { margin-top: 15px; font-size: 0.9em; color: #555; border-top: 1px dashed #ccc; padding-top: 10px; }
+
+        .pokemon-select-group { display: flex; gap: 20px; margin-bottom: 20px; }
+        .pokemon-select-group > div { flex: 1; }
+        
+        .error { color: red; font-weight: bold; margin-top: 10px; padding: 10px; border: 1px solid red; background-color: #fff0f0; }
+        
+        /* 検索コンテナ・候補リストスタイル */
+        .search-container {
+            position: relative;
+        }
+        .search-container input {
+            width: 100%;
+        }
+        .suggestion-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        .suggestion-item:hover {
+            background-color: #f0f0f0;
+        }
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* ハンバーガーメニュー */
+        .hamburger-menu { position: fixed; top: 20px; left: 20px; z-index: 10000; }
+        .hamburger-btn {
+            width: 50px;
+            height: 50px;
+            background: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            padding: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .hamburger-btn:hover { background: #0056b3; }
+        .hamburger-btn span {
+            width: 25px;
+            height: 3px;
+            background: white;
+            display: block;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        .hamburger-btn.active span:nth-child(1) { transform: rotate(45deg) translate(8px, 8px); }
+        .hamburger-btn.active span:nth-child(2) { opacity: 0; }
+        .hamburger-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(7px, -7px); }
+        
+        .nav-menu {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            flex-direction: column;
+            min-width: 180px;
+            z-index: 9999;
+        }
+        .nav-menu.open { display: flex; }
+        .nav-link {
+            padding: 12px 16px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+            display: block;
+        }
+        .nav-link:last-child { border-bottom: none; }
+        .nav-link:hover { background: #f0f0f0; color: #007bff; }
+    </style>
+</head>
+<script>
+function toggleMenu() {
+    const btn = document.querySelector('.hamburger-btn');
+    const menu = document.getElementById('navMenu');
+    btn.classList.toggle('active');
+    menu.classList.toggle('open');
+}
+
+// メニュー外をクリックしたら閉じる
+document.addEventListener('click', function(event) {
+    const hamburger = document.getElementById('hamburgerMenu');
+    if (!hamburger.contains(event.target)) {
+        document.querySelector('.hamburger-btn').classList.remove('active');
+        document.getElementById('navMenu').classList.remove('open');
+    }
+});
+</script>
+<body>
+<!-- ハンバーガーメニュー -->
+<div id="hamburgerMenu" class="hamburger-menu">
+    <div class="hamburger-btn" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <nav id="navMenu" class="nav-menu">
+        <a href="party_memo.html" class="nav-link">📋 構築メモ</a>
+        <a href="test.html" class="nav-link">⚡ ダメージ計算</a>
+    </nav>
+</div>
+
+<div style="background: #f0f4f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d1d9e0;">
+    <h4 style="margin-top:0;">📂 パーティメモから読み込み</h4>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <select id="import-slot" style="width: 150px;">
+            <script>
+                for(let i=1; i<=50; i++) {
+                    document.write(`<option value="${i}">スロット ${i}</option>`);
+                }
+            </script>
+        </select>
+        <button type="button" onclick="loadFromPartyMemo('attacker')" style="background-color: #007bff; color:white;">攻撃側に読み込み</button>
+        <button type="button" onclick="loadFromPartyMemo('defender')" style="background-color: #6c757d; color:white;">防御側に読み込み</button>
+        <button type="button" id="timer-start-btn" onclick="startCountdown()" style="background-color: #ff5722; margin-left: 10px;">タイマー</button>
+    </div>
+    <select id="import-pokemon-idx" style="margin-top:10px;">
+        <option value="0">ポケモン 1</option>
+        <option value="1">ポケモン 2</option>
+        <option value="2">ポケモン 3</option>
+        <option value="3">ポケモン 4</option>
+        <option value="4">ポケモン 5</option>
+        <option value="5">ポケモン 6</option>
+    </select>
+</div>
+
+<div id="timer-display" style="display: none; position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: #00ff00; padding: 10px 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 24px; z-index: 1000; border: 2px solid #00ff00; box-shadow: 0 0 10px rgba(0,255,0,0.5);">
+    残り時間: <span id="time-left">20:00</span>
+</div>
+    <h2>ポケモン ダメージ計算ツール (技データ連携版)</h2>
+    <p>※ ポケモン名・技名を選択/入力確定すると、**能力値・威力・相性補正**が自動入力されます。</p>
+
+    <form id="damageForm">
+        
+        <div class="pokemon-select-group">
+            <div>
+                <label for="attacker-pokemon-name">⚔️ 攻撃側ポケモン名:</label>
+                <div class="search-container" id="attacker-search">
+                    <input type="text" id="attacker-pokemon-name" placeholder="例: フシギダネ (ひらがな・カタカナ混在OK)">
+                    <div class="suggestion-list"></div>
+                </div>
+            </div>
+　　　　　　<div>
+           <label>攻撃側 特性</label>
+　　　　　　<select id="attacker-ability">
+    　　　　<option value="">（特性なし）</option>
+　　　　　　</select>
+        　 </div>
+        <div style="flex: 0; display: flex; align-items: flex-end; padding-bottom: 5px;">
+        <button type="button" onclick="swapAttackerDefender()" style="padding: 5px 10px; margin: 0; background-color: #6c757d;">⇄</button>
+        </div>
+            <div>
+                <label for="defender-pokemon-name">🛡️ 防御側ポケモン名:</label>
+                <div class="search-container" id="defender-search">
+                    <input type="text" id="defender-pokemon-name" placeholder="例: リザードン (ひらがな・カタカナ混在OK)">
+                    <div class="suggestion-list"></div>
+                </div>
+            </div>
+　　　　　　<div>
+           <label>防御側 特性</label>
+　　　　　　<select id="defender-ability">
+    　　　　<option value="">（特性なし）</option>
+　　　　　　</select>
+　　　　　　</div>
+        </div>
+        
+        <div class="pokemon-select-group">
+            <div>
+                <label for="move-name">💥 技名:</label>
+                <div class="search-container" id="move-search">
+                    <input type="text" id="move-name" placeholder="例: はっぱカッター (ひらがな・カタカナ混在OK)">
+                    <div class="suggestion-list"></div>
+                </div>
+            </div>
+        </div>
+        <div id="gyro-ball-ui" style="display: none; background-color: #eef9ff; padding: 15px; border: 1px solid #b8daff; border-radius: 4px; margin-top: 10px;">
+    <h4 style="margin-top: 0; font-size: 0.9em; color: #004085;">⚙️ ジャイロボール威力計算（素早さ詳細）</h4>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div style="font-size: 0.85em;">
+            <label>自分のS種族値 / 個体値 / 努力値</label>
+            <div style="display: flex; gap: 5px;">
+                <input type="number" id="s-base-atk" value="20" style="width: 60px;">
+                <input type="number" id="s-iv-atk" value="0" style="width: 50px;">
+                <input type="number" id="s-ev-atk" value="0" style="width: 60px;">
+            </div>
+            <label>性格補正 / ランク</label>
+            <div style="display: flex; gap: 5px;">
+                <select id="s-nature-atk" style="width: 70px;"><option value="0.9" selected>0.9</option><option value="1.0">1.0</option><option value="1.1">1.1</option></select>
+                <select id="s-rank-atk" style="width: 70px;"><option value="0">±0</option><option value="1">+1</option><option value="-1">-1</option></select>
+            </div>
+            <div style="margin-top:5px;">計算後の実数値: <strong id="real-s-atk">22</strong></div>
+        </div>
+
+        <div style="font-size: 0.85em;">
+            <label>相手のS種族値 / 個体値 / 努力値</label>
+            <div style="display: flex; gap: 5px;">
+                <input type="number" id="s-base-def" value="100" style="width: 60px;">
+                <input type="number" id="s-iv-def" value="31" style="width: 50px;">
+                <input type="number" id="s-ev-def" value="0" style="width: 60px;">
+            </div>
+            <label>性格補正 / ランク</label>
+            <div style="display: flex; gap: 5px;">
+                <select id="s-nature-def" style="width: 70px;"><option value="0.9">0.9</option><option value="1.0" selected>1.0</option><option value="1.1">1.1</option></select>
+                <select id="s-rank-def" style="width: 70px;"><option value="0">±0</option><option value="1">+1</option><option value="-1">-1</option></select>
+            </div>
+            <div style="margin-top:5px;">計算後の実数値: <strong id="real-s-def">121</strong></div>
+        </div>
+    </div>
+    <div style="text-align: center; margin-top: 10px; border-top: 1px solid #b8daff; padding-top: 10px;">
+        <strong>算出威力: <span id="gyro-calculated-power" style="color: red; font-size: 1.2em;">--</span></strong>
+    </div>
+</div>
+<div id="stored-power-ui" style="display: none; background-color: #fff0f5; padding: 15px; border: 1px solid #ffb6c1; border-radius: 4px; margin-top: 10px;">
+    <h4 style="margin-top: 0; font-size: 0.9em; color: #d02090;">📈 能力上昇の合計</h4>
+    <p style="font-size: 0.8em; color: #666;">上昇したランクの合計値を入力してください（最大42）。下降分（マイナス）は含みません。</p>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <label for="rank-sum-total" style="margin-top:0;">上昇ランク合計:</label>
+        <input type="number" id="rank-sum-total" value="0" min="0" max="42" style="width: 80px;" 
+       oninput="updateStoredPower()" 
+       onchange="updateStoredPower()">
+    </div>
+    <div style="text-align: center; margin-top: 10px; border-top: 1px solid #ffb6c1; padding-top: 10px;">
+        <strong>算出威力: <span id="stored-calculated-power" style="color: #d02090; font-size: 1.2em;">20</span></strong>
+    </div>
+</div>
+<div id="rage-fist-ui" style="display: none; background-color: #fff0f0; padding: 10px; border: 1px solid #ffcccc; border-radius: 5px; margin-top: 10px;">
+    <label style="color: #d9534f;">💢 被弾回数 (ふんどのこぶし):</label>
+    <input type="number" id="rage-fist-count" value="0" min="0" max="6" step="1" style="width: 80px;">
+    <p style="font-size: 0.9em; margin-top: 5px;">算出威力: <strong id="rage-fist-calculated-power">50</strong></p>
+</div>
+<div id="last-respects-ui" style="display: none; background-color: #fff0f0; padding: 10px; border: 1px solid #ffcccc; border-radius: 5px; margin-top: 10px;">
+    <label style="color: #d9534f;">👻 死亡回数 (おはかまいり):</label>
+    <input type="number" id="last-respects-count" value="0" min="0" max="10" step="1" style="width: 80px;">
+    <p style="font-size: 0.9em; margin-top: 5px;">算出威力: <strong id="last-respects-calculated-power">50</strong></p>
+</div>
+<div id="hp-dependent-move-ui" style="display: none; background-color: #e0ffe0; padding: 15px; border: 1px solid #90ee90; border-radius: 4px; margin-top: 10px;">
+    <h4 style="margin-top: 0; font-size: 0.9em; color: #006400;">🧪 残りHPによる威力変化</h4>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div>
+            <label>最大HP:</label>
+            <input type="number" id="attacker-max-hp-input" value="150" min="1" oninput="updateHPDependentPower()">
+        </div>
+        <div>
+            <label>現在HP:</label>
+            <input type="number" id="attacker-current-hp-input" value="150" min="0" oninput="updateHPDependentPower()">
+        </div>
+    </div>
+    <div style="text-align: center; margin-top: 10px; border-top: 1px solid #90ee90; padding-top: 10px;">
+        <strong>算出威力: <span id="hp-calculated-power-display" style="color: #006400; font-size: 1.2em;">150</span></strong>
+    </div>
+</div>
+<div id="conditional-power-ui" style="display: none; margin-top: 10px; padding: 10px; border: 1px solid #4caf50; background-color: #f0fff0; border-radius: 4px;">
+    <h4 id="conditional-move-title" style="margin-top: 0; color: #2e7d32;">技の威力倍増条件</h4>
+    <label style="display: inline-flex; align-items: center; cursor: pointer;">
+        <input type="checkbox" id="power-multiplier-check" style="width: auto; margin-right: 8px;">
+        <span id="power-multiplier-label">条件を満たしている（威力アップ）</span>
+    </label>
+    <div style="font-size: 0.85em; color: #666; margin-top: 5px;">
+        ※チェックを入れると威力が <span id="power-multiplier-value">---</span> 倍になります。
+    </div>
+</div>
+        <hr>
+
+        <div class="input-group">
+            <div>
+                <h3>1. 基本情報</h3>
+                <label for="level">攻撃側レベル (固定)</label>
+                <input type="number" id="level" value="50" disabled class="fixed-level">
+                
+                <label for="hp">防御側最大HP</label>
+<div style="display: flex; gap: 10px; align-items: center;">
+    <input type="number" id="hp" value="150" min="1" oninput="updateHPByPercent()" style="flex: 2;">
+    <span>/</span>
+    <div style="flex: 3; display: flex; align-items: center; gap: 5px;">
+        <input type="number" id="hp_percent" value="100.0" min="0.1" max="100.0" step="0.1" oninput="updateHPByPercent()">
+        <span>%</span>
+    </div>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+    <div id="hp_status_display" style="font-size: 0.9em; color: #666;">
+        計算対象HP: <span id="current_hp_val" style="font-weight: bold; color: #d9534f;">150</span>
+    </div>
+    <button type="button" onclick="applyCurrentHPAsMax()" style="font-size: 0.8em; padding: 2px 8px; cursor: pointer;">
+        この数値を最大HPに設定
+    </button>
+</div>
+                
+                <label for="hp_ev">防御側 HP 努力値 (EV: 0-32)</label>
+                <input type="number" id="hp_ev" value="32" min="0" max="32" step="1">
+                <div class="checkbox-group">
+                    <button type="button" class="ev-button" data-stat="hp" data-ev="0">HP 0振り</button>
+                    <button type="button" class="ev-button" data-stat="hp" data-ev="32">HP ぶっぱ</button>
+                </div>
+                <label for="move_type">技の分類 (自動選択)</label>
+                <div class="checkbox-group">
+                    <label>
+                        <input type="radio" name="move_type" value="physical" id="move_type_physical" checked> 物理
+                    </label>
+                    <label>
+                        <input type="radio" name="move_type" value="special" id="move_type_special"> 特殊
+                    </label>
+                </div>
+                
+                <label for="power">技の威力 (自動入力)</label>
+                <input type="number" id="power" value="100" min="1" class="fixed-value">
+                <label for="affinity">タイプ相性補正 (自動入力) - **切り捨て**</label>
+                <input type="number" id="affinity" value="1.0" step="0.1" min="0.0" class="fixed-value">
+                <label for="stab">タイプ一致補正 (自動入力) - 五捨五超入</label>
+                <input type="number" id="stab" value="1.5" step="0.5" min="1.0" class="fixed-value">
+            </div>
+
+            <div>
+                <h3>2. 能力値・ランク補正</h3>
+                <p>※ 入力は「こうげき」/「ぼうぎょ」の**実数値**</p>
+                
+                <label for="base_attack" id="label_base_attack">攻撃側能力値 (A,C) (自動入力)</label>
+                <input type="number" id="base_attack" value="100" min="1" class="fixed-value">
+                
+                <label for="attacker_ev">攻撃側 努力値 (EV: 0-32)</label>
+                <input type="number" id="attacker_ev" value="32" min="0" max="32" step="1">
+                <div class="checkbox-group">
+                    <button type="button" class="ev-button" data-stat="attacker" data-ev="0">0振り</button>
+                    <button type="button" class="ev-button" data-stat="attacker" data-ev="32">ぶっぱ</button>
+                </div>
+                <label for="nature_attack">攻撃側 性格補正 (実数値に適用)</label>
+                <select id="nature_attack">
+                    <option value="1.1">上昇 (1.1倍)</option>
+                    <option value="1.0" selected>補正なし (1.0倍)</option>
+                    <option value="0.9">下降 (0.9倍)</option>
+                </select>
+
+                <label for="rank_attack">攻撃ランク (A+D)</label>
+                <select id="rank_attack">
+                    <option value="4.0">+6 (4.0倍)</option>
+                    <option value="3.5">+5 (3.5倍)</option>
+                    <option value="3.0">+4 (3.0倍)</option>
+                    <option value="2.5">+3 (2.5倍)</option>
+                    <option value="2.0">+2 (2.0倍)</option>
+                    <option value="1.5">+1 (1.5倍)</option>
+                    <option value="1.0" selected>±0 (1.0倍)</option>
+                    <option value="0.66666">-1 (2/3倍)</option>
+                    <option value="0.5">-2 (1/2倍)</option>
+                    <option value="0.4">-3 (2/5倍)</option>
+                    <option value="0.33333">-4 (1/3倍)</option>
+                    <option value="0.28571">-5 (2/7倍)</option>
+                    <option value="0.25">-6 (1/4倍)</option>
+                </select>
+                
+                <label for="base_defense" id="label_base_defense">防御側能力値 (B,D) (自動入力)</label>
+                <input type="number" id="base_defense" value="100" min="1" class="fixed-value">
+                
+                <label for="defender_ev">防御側 努力値 (EV: 0-32)</label>
+                <input type="number" id="defender_ev" value="32" min="0" max="32" step="1">
+                <div class="checkbox-group">
+                    <button type="button" class="ev-button" data-stat="defender" data-ev="0">0振り</button>
+                    <button type="button" class="ev-button" data-stat="defender" data-ev="32">ぶっぱ</button>
+                </div>
+                <label for="nature_defense">防御側 性格補正 (実数値に適用)</label>
+                <select id="nature_defense">
+                    <option value="1.1">上昇 (1.1倍)</option>
+                    <option value="1.0" selected>補正なし (1.0倍)</option>
+                    <option value="0.9">下降 (0.9倍)</option>
+                </select>
+
+                <label for="rank_defense">防御ランク (B+D)</label>
+                <select id="rank_defense">
+                    <option value="4.0">+6 (4.0倍)</option>
+                    <option value="3.5">+5 (3.5倍)</option>
+                    <option value="3.0">+4 (3.0倍)</option>
+                    <option value="2.5">+3 (2.5倍)</option>
+                    <option value="2.0">+2 (2.0倍)</option>
+                    <option value="1.5">+1 (1.5倍)</option>
+                    <option value="1.0" selected>±0 (1.0倍)</option>
+                    <option value="0.66666">-1 (2/3倍)</option>
+                    <option value="0.5">-2 (1/2倍)</option>
+                    <option value="0.4">-3 (2/5倍)</option>
+                    <option value="0.33333">-4 (1/3倍)</option>
+                    <option value="0.28571">-5 (2/7倍)</option>
+                    <option value="0.25">-6 (1/4倍)</option>
+                </select>
+            </div>
+        </div>
+
+        <h3>3. ダメージ補正 (M)</h3>
+        <div class="input-group">
+            <div>
+                <h4>攻撃側補正 (五捨五超入)</h4>
+                <label for="item_m_atk">攻撃側 持ち物補正</label>
+    <select id="item_m_atk">
+    <option value="4096">なし (1.0x)</option>
+    <option value="4505">1.1</option>
+    <option value="4915">1.2倍 (プレート/おこう等)</option>
+    <option value="5324">1.3倍 (いのちのたま等)</option>
+    <option value="6144">1.5倍 (こだわりハチマキ/メガネ等)</option>
+    </select>
+                <label for="ability_m_atk">攻撃側 特性補正</label>
+                <input type="number" id="ability_m_atk" value="4096" step="0.0001" min="0.0">
+            </div>
+            <div>
+                <h4>防御側補正 (五捨五超入)</h4>
+                <label for="item_m_def_select">防御側 持ち物</label>
+<select id="item_m_def_select" onchange="calculateDamage()">
+    <option value="none">なし</option>
+    <option value="shinka">しんかのきせき (B/D 1.5倍)</option>
+    <option value="chokki">とつげきチョッキ (D 1.5倍)</option>
+    <option value="hangen">半減実 (0.5倍)</option>
+    <option value="obon">オボンのみ (1/4回復)</option>
+    <option value="konran">混乱実 (1/3回復)</option>
+    <option value="tabenokoshi">たべのこし (1/16回復)</option>
+    <option value="tabenokoshi2">たべのこし2 (2/16回復)</option>
+    <option value="tabenokoshi3">たべのこし3 (3/16回復)</option>
+    <option value="tabenokoshi4">たべのこし4 (4/16回復)</option>
+    <option value="tabenokoshi5">たべのこし5 (5/16回復)</option>
+    <option value="tabenokoshi6">たべのこし6 (6/16回復)</option>
+    <option value="tabenokoshi7">たべのこし7 (7/16回復)</option>
+    <option value="tabenokoshi8">たべのこし8 (8/16回復)</option>
+</select>
+<input type="hidden" id="item_m_def" value="4096">
+                
+                <label for="ability_m_def">防御側 特性補正 (場合による)</label>
+                <input type="number" id="ability_m_def" value="1.0" step="0.0001" min="0.0">
+            </div>
+<div id="other-multiplier-group">
+    <h3>その他の補正 (O) / 味方・フィールド特性補正 (M)</h3>
+    <div class="input-group">
+        <div>
+            <h4>オーラ/属性補正</h4>
+            <label class="checkbox-group"><input type="checkbox" id="dark_aura"> ダークオーラ</label>
+            <label class="checkbox-group"><input type="checkbox" id="fairy_aura"> フェアリーオーラ</label>
+            <label class="checkbox-group"><input type="checkbox" id="steely_spirit"> はがねのせいしん</label>
+        </div>
+        <div>
+            <h4>汎用/集中補正</h4>
+            <label class="checkbox-group"><input type="checkbox" id="power_spot"> パワースポット</label>
+            <label class="checkbox-group"><input type="checkbox" id="battery"> バッテリー</label>
+            <label class="checkbox-group"><input type="checkbox" id="charge"> じゅうでん</label>
+        </div>
+    </div>
+</div>
+
+<div class="checkbox-section" style="margin-top: 20px;">
+    <p>場に出た時のダメージ (固定ダメージ)</p>
+    
+    <label for="stealth_rock_check" class="checkbox-group">
+        <input type="checkbox" id="stealth_rock_check"> 
+        ステルスロック
+        <span id="stealth_rock_display" style="margin-left: 10px; font-weight: normal; color: #cc5500;">(岩相性: 1.0倍)</span>
+    </label>
+
+    <label for="spikes_layer" style="margin-top: 10px;">まきびし層数:</label>
+    <select id="spikes_layer">
+        <option value="0">0層 (0%)</option>
+        <option value="1">1層 (1/16)</option>
+        <option value="2">2層 (1/8)</option>
+        <option value="3">3層 (1/4)</option>
+    </select>
+</div>
+            <div>
+                <h4>環境・状態補正</h4>
+                
+                <div class="checkbox-group">
+                    <label for="critical_m_check">✅ 急所に当たる (1.5倍)</label>
+                    <input type="checkbox" id="critical_m_check">
+                </div>
+
+    <div>
+    <label>ヒット数
+        <select id="hit_count">
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+    </label>
+    <label>急所回数: 
+        <select id="crit_hit_count"><option value="0">0</option></select>
+    </label>
+    <label for="conditions_m_check">
+        <input type="checkbox" id="conditions_m_check"> 条件達成
+    </label>
+</div>
+
+<div id="result-area"></div>
+                
+                <div class="checkbox-group">
+                    <label for="burn_m_check">🔥 やけど状態 (0.5倍)</label>
+                    <input type="checkbox" id="burn_m_check">
+                </div>
+                
+                <div class="checkbox-group">
+                    <label for="substitute_check">👤 みがわり状態 (HP: 1/4)</label>
+                    <input type="checkbox" id="substitute_check">
+                </div>
+                
+                <label for="environment_m_select">天候/フィールド補正 (M) - **自動適用**</label>
+                <select id="environment_m_select" name="environment_m_select">
+                    <option value="None">補正なし (1.0)</option>
+                    <optgroup label="--- 天候 ---">
+                        <option value="Rain">☔ 雨 (水1.5倍 / 炎0.5倍)</option>
+                        <option value="Sun">☀️ 晴れ (炎1.5倍 / 水0.5倍)</option>
+                        <option value="Sandstorm">🌪️ 砂嵐 (岩タイプ特防1.5倍)</option>
+                        <option value="Snow">❄️ 霰/雪 (氷タイプ防御1.5倍)</option>
+                    </optgroup>
+                    <optgroup label="--- フィールド (1.3倍) ---">
+                        <option value="ElectricTerrain">⚡ エレキフィールド (電1.3倍)</option>
+                        <option value="GrassyTerrain">🌱 グラスフィールド (草1.3倍)</option>
+                        <option value="MistyTerrain">🌫️ ミストフィールド (竜0.5倍)</option>
+                        <option value="PsychicTerrain">🧠 サイコフィールド (超1.3倍)</option>
+                    </optgroup>
+                </select>
+
+    <div id="ruin-group">
+    <label><input type="checkbox" id="ruin_def"> わざわいのつるぎ (B 3/4)</label>
+    <label><input type="checkbox" id="ruin_spdef"> わざわいのたま (D 3/4)</label>
+    <label><input type="checkbox" id="ruin_atk"> わざわいのつるぎ (A 3/4)</label>
+    <label><input type="checkbox" id="ruin_spatk"> わざわいのたま (C 3/4)</label>
+    </div>
+                
+                <div class="checkbox-section">
+                    <p>特殊な補正</p>
+                    <div class="checkbox-group">
+                        <label for="wall_single_check">🛡️ 壁補正 (シングル 0.5)</label>
+                        <input type="checkbox" id="wall_single_check">
+                    </div>
+                    <div class="checkbox-group">
+                        <label for="wall_double_check">🛡️ 壁補正 (ダブル 0.66...)</label>
+                        <input type="checkbox" id="wall_double_check">
+                    </div>
+                    <div class="checkbox-group">
+                        <label for="range_m_check">👥 範囲補正 (複数対象 0.75)</label>
+                        <input type="checkbox" id="range_m_check">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+        <button type="button" onclick="calculateDamage()">ダメージ計算実行</button>
+        <button type="button" onclick="generateQuickTable()" style="background-color: #28a745; margin-left: 10px;">ダメージ早見表を作成</button>
+        <div id="quick-table-container" style="margin-top: 30px; overflow-x: auto;">
+    </div>
+    </form>
+
+    <div id="result">
+        **計算結果**<br>
+        ここにダメージ範囲とHP割合、KO判定が表示されます。
+    </div>
+
+    <div class="note">
+        **補正適用順序**: 範囲 → 急所 → 天候/フィールド → 壁 → **乱数** → タイプ一致 → 相性 → やけど → 攻撃側持ち物 → 攻撃側特性 → 防御側持ち物 → 防御側特性。各ステップで指定の丸め処理 (**五捨五超入/切り捨て**) を行っています。
+        <br>
+        **能力値計算**: レベル50固定、**個体値は31で固定**としています。努力値は手動入力した値が適用されます。
+    </div>
+
+    <script>
+        const floor = Math.floor;
+        const ceil = Math.ceil;
+        const Q12_BASE = 4096;
+        const LEVEL = 50;
+        const MIN_RANDOM = 85;
+        const MAX_RANDOM = 100;
+        const RANDOM_RANGE_SIZE = MAX_RANDOM - MIN_RANDOM + 1;
+        const MAX_KO_PROBABILITY_CALC = 6;
+        let abilityAtkMult = 1.0;
+        let abilityDefMult = 1.0;
+        let defenderDefMult = 1.0;
+        let defenderSpDefMult = 1.0;
+        let defenderAtkMult = 1.0;
+        let defenderSpAtkMult = 1.0;
+        
+        let POKEDATA_MAP = {}; 
+        // lists used for search filtering
+        let POKEMON_NAMES = [];
+        let MOVE_NAMES = [];
+        let MOVEDATA_MAP = {}; 
+        let NAME_TO_KEY_MAP = {}; 
+        let HIRAGANA_TO_KATAKANA_MAP = {}; 
+        let ABILITIES_DB = {};
+
+        // タイプ相性表
+        const TYPE_EFFECTIVENESS = {
+            'NORMAL': { 'ROCK': 0.5, 'GHOST': 0, 'STEEL': 0.5 },
+            'FIRE': { 'GRASS': 2, 'ICE': 2, 'BUG': 2, 'STEEL': 2, 'FIRE': 0.5, 'WATER': 0.5, 'ROCK': 0.5, 'DRAGON': 0.5 },
+            'WATER': { 'FIRE': 2, 'GROUND': 2, 'ROCK': 2, 'WATER': 0.5, 'GRASS': 0.5, 'DRAGON': 0.5 },
+            'GRASS': { 'WATER': 2, 'GROUND': 2, 'ROCK': 2, 'FIRE': 0.5, 'GRASS': 0.5, 'POISON': 0.5, 'FLYING': 0.5, 'BUG': 0.5, 'DRAGON': 0.5, 'STEEL': 0.5 },
+            'ELECTRIC': { 'WATER': 2, 'FLYING': 2, 'GRASS': 0.5, 'ELECTRIC': 0.5, 'DRAGON': 0.5, 'GROUND': 0 },
+            'ICE': { 'GRASS': 2, 'GROUND': 2, 'FLYING': 2, 'DRAGON': 2, 'FIRE': 0.5, 'WATER': 0.5, 'ICE': 0.5, 'STEEL': 0.5 },
+            'FIGHTING': { 'NORMAL': 2, 'ROCK': 2, 'STEEL': 2, 'ICE': 2, 'DARK': 2, 'POISON': 0.5, 'FLYING': 0.5, 'PSYCHIC': 0.5, 'BUG': 0.5, 'FAIRY': 0.5, 'GHOST': 0 },
+            'POISON': { 'GRASS': 2, 'FAIRY': 2, 'POISON': 0.5, 'GROUND': 0.5, 'ROCK': 0.5, 'GHOST': 0.5, 'STEEL': 0 },
+            'GROUND': { 'FIRE': 2, 'ELECTRIC': 2, 'POISON': 2, 'ROCK': 2, 'STEEL': 2, 'GRASS': 0.5, 'BUG': 0.5, 'FLYING': 0 },
+            'FLYING': { 'GRASS': 2, 'FIGHTING': 2, 'BUG': 2, 'ELECTRIC': 0.5, 'ROCK': 0.5, 'STEEL': 0.5 },
+            'PSYCHIC': { 'FIGHTING': 2, 'POISON': 2, 'PSYCHIC': 0.5, 'STEEL': 0.5, 'DARK': 0 },
+            'BUG': { 'GRASS': 2, 'PSYCHIC': 2, 'DARK': 2, 'FIRE': 0.5, 'FIGHTING': 0.5, 'POISON': 0.5, 'FLYING': 0.5, 'GHOST': 0.5, 'STEEL': 0.5, 'FAIRY': 0.5 },
+            'ROCK': { 'FIRE': 2, 'ICE': 2, 'FLYING': 2, 'BUG': 2, 'FIGHTING': 0.5, 'GROUND': 0.5, 'STEEL': 0.5 },
+            'GHOST': { 'PSYCHIC': 2, 'GHOST': 2, 'NORMAL': 0, 'DARK': 0.5 },
+            'DRAGON': { 'DRAGON': 2, 'STEEL': 0.5, 'FAIRY': 0 },
+            'STEEL': { 'ICE': 2, 'ROCK': 2, 'FAIRY': 2, 'FIRE': 0.5, 'WATER': 0.5, 'ELECTRIC': 0.5, 'STEEL': 0.5 },
+            'DARK': { 'PSYCHIC': 2, 'GHOST': 2, 'FIGHTING': 0.5, 'DARK': 0.5, 'FAIRY': 0.5 },
+            'FAIRY': { 'FIGHTING': 2, 'DRAGON': 2, 'DARK': 2, 'POISON': 0.5, 'STEEL': 0.5, 'FIRE': 0.5 },
+        };
+        
+        // ひらがなをカタカナに変換する関数
+function toKatakana(str) {
+    return str.replace(/[ぁ-ん]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60));
+}
+        // ===============================================
+        // A. JSONファイルの読み込みとデータ初期化
+        // ===============================================
+
+        // party_memo.htmlと同じtoKatakana関数
+        function toKatakana(str) {
+            return str.replace(/[ぁ-ん]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60));
+        }
+
+        function hiraganaToKatakana(str) {
+            if (!str) return '';
+            return str.replace(/[\u3041-\u3096]/g, function(match) {
+                return String.fromCharCode(match.charCodeAt(0) + 0x60);
+            });
+        }
+
+        // party_memo.htmlと同じ検索機能
+        function setupSearchableInput(container, dataList, onSelectCallback) {
+            const input = container.querySelector('input');
+            const list = container.querySelector('.suggestion-list');
+
+            input.addEventListener('input', () => {
+                const query = toKatakana(input.value.toLowerCase());
+                list.innerHTML = '';
+                if (!query) { list.style.display = 'none'; return; }
+                const filtered = dataList.filter(item => toKatakana(item.toLowerCase()).includes(query)).slice(0, 20);
+                if (filtered.length > 0) {
+                    filtered.forEach(itemName => {
+                        const div = document.createElement('div');
+                        div.className = 'suggestion-item';
+                        div.textContent = itemName;
+                        div.onclick = () => {
+                            input.value = itemName;
+                            list.style.display = 'none';
+                            // Dispatch input event to trigger any listeners
+                            input.dispatchEvent(new Event('input', { bubbles: true }));
+                            if (onSelectCallback) onSelectCallback(itemName);
+                        };
+                        list.appendChild(div);
+                    });
+                    list.style.display = 'block';
+                } else { list.style.display = 'none'; }
+            });
+            input.addEventListener('blur', () => setTimeout(() => list.style.display = 'none', 200));
+        }
+
+        /**
+ * 特定の入力欄にカタカナ自動変換を適用する共通関数
+ */
+function applyKatakanaConversion(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    // 入力確定時（変換してEnterを押したときなど）に実行
+    el.addEventListener('compositionend', function(e) {
+        const converted = hiraganaToKatakana(e.target.value);
+        if (e.target.value !== converted) {
+            e.target.value = converted;
+            // 必要に応じてここで再計算やデータ更新を呼ぶ
+            // updateStatsAndRecalculate('attacker', e.target.value); 
+            // ⭐ これを追加
+            e.target.dispatchEvent(new Event('change'));
+        }
+    });
+
+    // フォーカスが外れた時にも念のため変換（コピペ対策など）
+    el.addEventListener('blur', function(e) {
+        const converted = hiraganaToKatakana(e.target.value);
+        if (e.target.value !== converted) {
+            e.target.value = converted;
+
+            e.target.dispatchEvent(new Event('change'));
+        }
+    });
+}
+
+// 実行（ポケモン名のみ自動変換。技名は検索時の内部正規化で十分）
+applyKatakanaConversion('attacker-pokemon-name');
+applyKatakanaConversion('defender-pokemon-name');
+
+        /**
+ * 現在計算されている残りHP実数値を、最大HPの入力欄に上書き反映する
+ */
+function applyCurrentHPAsMax() {
+    // 現在の計算結果（実数値）を取得
+    const currentVal = parseInt(document.getElementById('current_hp_val').innerText);
+    
+    if (currentVal > 0) {
+        // 1. 最大HPの入力欄を上書き
+        document.getElementById('hp').value = currentVal;
+        
+        // 2. 割合を 100.0% に戻す
+        document.getElementById('hp_percent').value = "100.0";
+        
+        // 3. 画面表示とダメージ計算を更新
+        updateHPByPercent();
+        
+        alert("最大HPを " + currentVal + " に更新しました。");
+    }
+}
+
+/**
+ * 既存の updateHPByPercent も、current_hp_val を確実に更新するように調整
+ */
+function updateHPByPercent() {
+    const hpInput = document.getElementById('hp');
+    const percentInput = document.getElementById('hp_percent');
+    
+    const maxHP = parseInt(hpInput.value) || 1;
+    const percent = parseFloat(percentInput.value) || 0;
+    
+    // 実数値の計算
+    const currentHP = Math.floor(maxHP * (percent / 100));
+    
+    // 表示の更新
+    document.getElementById('current_hp_val').innerText = currentHP;
+    
+    // ダメージ計算の実行（この関数が定義されている前提）
+    if (typeof calculateDamage === "function") {
+        calculateDamage();
+    }
+}
+/**
+ * 攻撃側と防御側の情報を入れ替える関数 (修正版)
+ */
+function swapAttackerDefender() {
+    // 1. 入れ替えるデータのペアを定義
+    // [攻撃側要素ID, 防御側要素ID]
+    const swapPairs = [
+        ['attacker-pokemon-name', 'defender-pokemon-name'],
+        ['attacker_ev', 'defender_ev'],
+        ['attacker_iv', 'defender_iv'],
+        ['nature_attack', 'nature_defense'],
+        ['rank_attack', 'rank_defense'],
+        ['attacker-ability', 'defender-ability'], // 特性は最後に処理
+        ['attacker-item', 'defender-item']
+    ];
+
+    // 2. 値の退避と入れ替え
+    const tempData = {};
+    swapPairs.forEach(pair => {
+        const el = document.getElementById(pair[0]);
+        tempData[pair[0]] = el ? el.value : "";
+    });
+
+    swapPairs.forEach(pair => {
+        const elAtk = document.getElementById(pair[0]);
+        const elDef = document.getElementById(pair[1]);
+        if (elAtk && elDef) {
+            elAtk.value = elDef.value;
+            elAtk.value = elDef.value;
+            elDef.value = tempData[pair[0]];
+        }
+    });
+
+    // 3. 特殊な入れ替え（HPと実数値の物理・特殊判定などはシステムに任せるため、イベントを発火）
+    
+    // 4. 重要：ポケモン名が変わったことをシステムに通知する
+    // これにより、それぞれのポケモンの種族値や「特性リスト」が再生成されます
+    const event = new Event('change');
+    document.getElementById('attacker-pokemon-name').dispatchEvent(event);
+    document.getElementById('defender-pokemon-name').dispatchEvent(event);
+
+    // 5. 特性と持ち物を改めてセット（ポケモン名の変更でリストがリセットされる場合があるため）
+    setTimeout(() => {
+        const atkAbility = document.getElementById('attacker-ability');
+        const defAbility = document.getElementById('defender-ability');
+        if (atkAbility) atkAbility.value = document.getElementById('defender-ability').value; // 前の値を再セット
+        
+        // 最終的な再計算
+        updateStatsAndRecalculate();
+    }, 50); // リスト生成を待つために僅かなディレイを入れる
+
+    console.log("攻守を入れ替えました。");
+}
+
+// 既存の calculateDamage 関数内の、HP割合計算部分を以下のように修正・活用します
+function calculateDamage() {
+    // ...（既存の変数取得処理）...
+    const maxHP = parseInt(document.getElementById('hp').value) || 1;
+    const percent = parseFloat(document.getElementById('hp_percent').value) || 100;
+    const currentHP = Math.floor(maxHP * (percent / 100));
+    document.getElementById('current_hp_val').innerText = currentHP;
+    // 計算結果の表示にも反映させるため、ダメージ計算を再実行
+
+    // 結果表示部分で、現在の残りHPに基づいた「確定数」などを表示するように調整
+    // 例: res.minResult や res.maxResult を用いた計算
+    const minP = ((res.minResult / maxHP) * 100).toFixed(1);
+    const maxP = ((res.maxResult / maxHP) * 100).toFixed(1);
+    
+    // 結果エリアの更新（既存のコードに合わせて調整してください）
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = `
+        <strong>計算結果</strong><br>
+        ダメージ: ${res.minResult} ～ ${res.maxResult}<br>
+        割合: ${minP}% ～ ${maxP}%<br>
+        (現在の残りHP: ${currentHP} / ${maxHP} [${percent.toFixed(1)}%])
+    `;
+}
+
+        
+    function getStatKeys() {
+    const isPhysical = document.getElementById('move_type_physical').checked;
+    const attackerLabel = document.getElementById('label_base_attack');
+    const defenderLabel = document.getElementById('label_base_defense');
+
+    // 技名を取得
+    const moveInput = document.getElementById('move-name').value;
+    const moveNameKatakana = toKatakana(moveInput.toLowerCase());
+    const moveData = MOVEDATA_MAP[moveNameKatakana] || {};
+
+    let attackerStatKey, defenderStatKey;
+
+    // --- 例外処理 ---
+    if (moveData.FunctionCode === "UseUserDefenseInsteadOfUserAttack" || moveNameKatakana === "ボディプレス") {
+        attackerLabel.innerHTML = '攻撃側能力値 (自分のBを参照) (自動入力)';
+        defenderLabel.innerHTML = '防御側能力値 (B) (自動入力)';
+        attackerStatKey = 'Def'; defenderStatKey = 'Def';
+    } 
+    else if (moveNameKatakana === "イカサマ") {
+        attackerLabel.innerHTML = '攻撃側能力値 (相手のAを参照) (自動入力)';
+        defenderLabel.innerHTML = '防御側能力値 (B) (自動入力)';
+        attackerStatKey = 'OpponentAtk'; // 特殊なキーを返す
+        defenderStatKey = 'Def';
+    } 
+    else if (moveData.FunctionCode === "UseTargetDefenseInsteadOfTargetSpecialDefense" || ["サイコショック", "サイコブレイク", "シンピノツルギ"].includes(moveNameKatakana)) {
+        attackerLabel.innerHTML = '攻撃側能力値 (C) (自動入力)';
+        defenderLabel.innerHTML = '防御側能力値 (相手のBを参照) (自動入力)';
+        attackerStatKey = 'SpAtk'; defenderStatKey = 'Def';
+    } 
+    // --- 通常処理 ---
+    else if (isPhysical) {
+        attackerLabel.innerHTML = '攻撃側能力値 (A) (自動入力)';
+        defenderLabel.innerHTML = '防御側能力値 (B) (自動入力)';
+        attackerStatKey = 'Atk'; defenderStatKey = 'Def';
+    } else {
+        attackerLabel.innerHTML = '攻撃側能力値 (C) (自動入力)';
+        defenderLabel.innerHTML = '防御側能力値 (D) (自動入力)';
+        attackerStatKey = 'SpAtk'; defenderStatKey = 'SpDef';
+    }
+
+    return { attackerStatKey, defenderStatKey };
+}
+
+        let MOVE_DATALIST_INITIALIZED = false;
+
+async function loadMoveData() {
+    try {
+        const response = await fetch('moves_extracted2.json'); 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}. ファイル名またはパスを確認してください。`);
+        }
+        
+        const data = await response.json();
+        
+        MOVEDATA_MAP = {}; // ← 重要：初期化
+        
+        // 毎回配列をリセットしておく
+        MOVE_NAMES.length = 0;
+
+        data.forEach(move => {
+            if (move.Name && move.Category !== 'Status') {
+                const originalName = move.Name; // カタカナ（例：はっぱカッター）
+
+                // ✅ 正規化キーで登録（内部処理用）
+                const normalized = toKatakana(originalName.toLowerCase());
+                MOVEDATA_MAP[normalized] = move;
+
+                // 検索リストに追加
+                MOVE_NAMES.push(originalName);
+            }
+        });
+
+        console.log(`技データ: ${Object.keys(MOVEDATA_MAP).length}件の技を読み込みました。`);
+        return true;
+        
+    } catch (error) {
+        console.error('⚠️ 技データ読み込み失敗:', error);
+        return false;
+    }
+}
+
+        /**
+ * 体重依存技の威力を計算する補助関数
+ */
+function calculateWeightBasedPower(moveData, atkWeight, defWeight) {
+    const moveID = moveData.ID; // JSONのID（例: "LOWKICK"）
+    
+    // けたぐり / くさむすび (相手の体重のみ参照)
+    if (moveID === "LOWKICK" || moveID === "GRASSKNOT") {
+        if (defWeight >= 200.0) return 120;
+        if (defWeight >= 100.0) return 100;
+        if (defWeight >= 50.0)  return 80;
+        if (defWeight >= 25.0)  return 60;
+        if (defWeight >= 10.0)  return 40;
+        return 20;
+    }
+
+    // ヘビーボンバー / ヒートスタンプ (自分と相手の体重比)
+    if (moveID === "HEAVYSLAM" || moveID === "HEATCRASH") {
+        if (atkWeight <= 0) return 40; // 自分の体重が取得できない場合は最低威力
+        const ratio = defWeight / atkWeight;
+        if (ratio <= 1/5) return 120;
+        if (ratio <= 1/4) return 100;
+        if (ratio <= 1/3) return 80;
+        if (ratio <= 1/2) return 60;
+        return 40;
+    }
+
+    return null; // 体重依存技ではない場合
+}
+//特性
+async function loadAbilityData() {
+    try {
+        const res = await fetch("abilities_db.json");
+        if (!res.ok) throw new Error("abilities_db.json 読み込み失敗");
+
+        ABILITIES_DB = await res.json();
+        console.log("特性データ読み込み:", Object.keys(ABILITIES_DB).length);
+    } catch (e) {
+        console.error("特性データ読み込みエラー:", e);
+    }
+}
+
+        function updateAbilitySelector(pokemonInputId, abilitySelectId) {
+    const pokeName = document.getElementById(pokemonInputId).value;
+    const key = NAME_TO_KEY_MAP[hiraganaToKatakana(pokeName)] || NAME_TO_KEY_MAP[pokeName.toUpperCase()];
+    const sel = document.getElementById(abilitySelectId);
+
+    // ★修正：現在選択されている値を一時保存
+    const currentSelected = sel.value;
+
+    sel.innerHTML = '<option value="">（特性なし）</option>';
+
+    if (!key || !POKEDATA_MAP[key]) return;
+
+    const data = POKEDATA_MAP[key];
+    let list = [];
+    if (Array.isArray(data.Abilities)) list.push(...data.Abilities);
+    if (Array.isArray(data.HiddenAbilities)) list.push(...data.HiddenAbilities);
+
+    list.forEach(abID => {
+        const opt = document.createElement("option");
+        opt.value = abID;
+        opt.textContent = ABILITIES_DB[abID]?.name || abID;
+        
+        // ★修正：もし保存していた値と同じIDなら、それを選択状態にする
+        if (abID === currentSelected) {
+            opt.selected = true;
+        }
+        
+        sel.appendChild(opt);
+    });
+}
+
+// ポケモン変更時に特性欄を更新
+document.getElementById("attacker-pokemon-name").addEventListener("change", () => {
+    updateAbilitySelector("attacker-pokemon-name", "attacker-ability");
+});
+
+document.getElementById("defender-pokemon-name").addEventListener("change", () => {
+    updateAbilitySelector("defender-pokemon-name", "defender-ability");
+});
+
+document.getElementById("attacker-ability").addEventListener("change", () => {
+    const ability = document.getElementById("attacker-ability").value;
+    const moveName = document.getElementById("move-name").value;
+    const move = MOVEDATA_MAP[hiraganaToKatakana(moveName)] || MOVEDATA_MAP[moveName];
+
+    // 天候情報を取得
+    const environment = document.getElementById('environment_m_select').value;
+    const isSun = environment === "Sun";
+    const isSandstorm = environment === "Sandstorm";
+    const isElectricTerrain = environment === "ElectricTerrain";
+    const moveType = move?.Type?.toUpperCase();
+
+    // 特性補正を初期化
+    abilityAtkMult = 1.0;
+    document.getElementById("ability_m_atk").value = "4096";
+
+    // ⭐ 防御側の実数値補正を初期化
+    defenderDefMult = 1.0;
+    defenderSpDefMult = 1.0;
+    defenderAtkMult = 1.0;
+    defenderSpAtkMult = 1.0;
+
+    // --- ⭐ わざわい系特性の補正 (攻撃側特性 または チェックボックス) ---
+    const ruin_def_checked = document.getElementById("ruin_def")?.checked;
+    const ruin_spdef_checked = document.getElementById("ruin_spdef")?.checked;
+    const ruin_atk_checked = document.getElementById("ruin_atk")?.checked;
+    const ruin_spatk_checked = document.getElementById("ruin_spatk")?.checked;
+
+    // わざわいのつるぎ (相手の防御 3/4)
+    if (ability === "SWORDOFRUIN" || ruin_def_checked) { 
+        defenderDefMult = 3 / 4; 
+    }
+    
+    // わざわいのたま (相手の特防 3/4)
+    if (ability === "BEADSOFRUIN" || ruin_spdef_checked) {
+        defenderSpDefMult = 3 / 4; 
+    }
+
+        // こだいかっせい、クォークチャージ
+    if (ability === "PROTOSYNTHESIS" || ability === "QUARKDRIVE") {
+        abilityAtkMult = 1.3;
+    }
+
+        // はりこみ
+    if (ability === "STAKEOUT") {
+        abilityAtkMult = 2.0;
+    }
+
+        // よわき
+    if (ability === "DEFEATIST") {
+        abilityAtkMult = 2.0;
+    }
+
+    // こんじょう
+    if ((ability === "GUTS") && move?.Category === "Physical") {
+        abilityAtkMult = 1.5;
+    }
+
+        // ごりむちゅう
+    if ((ability === "GORILLATACTICS") && move?.Category === "Physical") {
+        abilityAtkMult = 1.5;
+    }
+        // はりきり
+    if ((ability === "HUSTLE") && move?.Category === "Physical") {
+        abilityAtkMult = 1.5;
+    }
+
+        //どくぼうそう
+    if ((ability === "TOXICBOOST") && move?.Category === "Physical") {
+        document.getElementById("ability_m_atk").value = "6144";
+    }
+
+        //ねつぼうそう
+    if ((ability === "FLAREBOOST") && move?.Category === "Special") {
+        document.getElementById("ability_m_atk").value = "6144";
+    }
+
+    // がんじょうあご（噛みつく技）
+    if (ability === "STRONGJAW" && move?.Flags?.includes("Biting")) {
+        document.getElementById("ability_m_atk").value = "6144";
+    }
+
+    // かたいツメ
+    if (ability === "TOUGHCLAWS" && move?.Flags?.includes("Contact")) {
+        document.getElementById("ability_m_atk").value = "5325";
+    }
+
+    // きれあじ（斬撃）
+    if (ability === "SHARPNESS" && move?.Flags?.includes("Slicing")) {
+        document.getElementById("ability_m_atk").value = "6144";
+    }
+
+     // すてみ
+    if (ability === "RECKLESS" && move?.Flags?.includes("Recoil")) {
+        document.getElementById("ability_m_atk").value = "4915";
+    }
+
+     // メガランチャー
+    if (ability === "MEGALAUNCHER" && move?.Flags?.includes("Pulse")) {
+        document.getElementById("ability_m_atk").value = "6144";
+    }
+
+     // ちからずく
+    if (ability === "SHEERFORCE") {
+        document.getElementById("ability_m_atk").value = "5325";
+    }
+
+     // アナライズ
+    if (ability === "ANALYTIC") {
+        document.getElementById("ability_m_atk").value = "5325";
+    }
+
+    // てつのこぶし（パンチ技）
+    if (ability === "IRONFIST" && move?.Flags?.includes("Punching")) {
+        document.getElementById("ability_m_atk").value = "4915";
+    }
+
+        // パンクロック
+    if (ability === "PUNKROCK" && move?.Flags?.includes("Sound")) {
+        document.getElementById("ability_m_atk").value = "5325";
+    }
+
+        // ちからもち / ヨガパワー（攻撃実数値2倍）
+    if ((ability === "HUGEPOWER" || ability === "PUREPOWER") && move?.Category === "Physical") {
+        document.getElementById("ability_m_atk").value = "8192";
+    }
+
+        //いろめがね
+    if (ability === "TINTEDLENS" && document.getElementById('affinity').value < 1.0) {
+        document.getElementById('affinity').value *= 2.0;
+    }
+    // ▼ ブレインフォース (Neuroforce)
+    // 効果バツグン (affinity > 1.0)
+    if (ability === "NEUROFORCE" && document.getElementById('affinity').value > 1.0) {
+        document.getElementById('affinity').value *= 1.25;
+    }
+
+    // ⭐【修正版】きもったま・しんがんの処理
+    if (ability === "SCRAPPY" || ability === "MINDSEYE") {
+        const moveTypeUpper = move?.Type?.toUpperCase();
+        // ノーマル・格闘技のみ対象
+        if (moveTypeUpper === "NORMAL" || moveTypeUpper === "FIGHTING") {
+            const dName = document.getElementById('defender-pokemon-name').value;
+            const dKey = NAME_TO_KEY_MAP[hiraganaToKatakana(dName)];
+            const dTypes = POKEDATA_MAP[dKey]?.Types || [];
+            
+            // 相手にゴーストが含まれている場合のみ再計算
+            if (dTypes.some(t => t?.toUpperCase() === "GHOST")) {
+                let newAffinity = 1.0;
+                dTypes.forEach(defType => {
+                    if (!defType) return;
+                    const typeEffectiveness = TYPE_EFFECTIVENESS[moveTypeUpper];
+                    let multiplier = typeEffectiveness && typeEffectiveness.hasOwnProperty(defType) 
+                                        ? typeEffectiveness[defType] 
+                                        : 1.0;
+
+                    // ⭐ ゴーストによる 0倍 だけを 1.0倍 に置き換える
+                    if (defType.toUpperCase() === "GHOST" && multiplier === 0) {
+                        multiplier = 1.0;
+                    }
+                    newAffinity *= multiplier;
+                });
+                // 計算した相性をUIの隠しパラメータ/表示に反映
+                document.getElementById('affinity').value = newAffinity.toFixed(2);
+            }
+        }
+    }
+
+    // てきおうりょく (Adaptability) の処理 (STABを2.0に上書き)
+    let isAdaptabilityApplied = false;
+    if (ability === "ADAPTABILITY") {
+        if (move && move.Type) { 
+            const attackerName = document.getElementById('attacker-pokemon-name').value;
+            const normalizedAttackerName = hiraganaToKatakana(attackerName);
+            const attackerKey = NAME_TO_KEY_MAP[normalizedAttackerName];
+            
+            if (attackerKey) {
+                const attackerTypes = POKEDATA_MAP[attackerKey].Types.filter(t => t !== null && t).map(t => t.toUpperCase());
+                const moveTypeUpper = move.Type.toUpperCase();
+
+                // タイプ一致の場合のみSTABを2.0に設定
+                if (attackerTypes.includes(moveTypeUpper)) {
+                    document.getElementById("stab").value = "2.0"; 
+                    isAdaptabilityApplied = true;
+                }
+            }
+        }
+    }
+    // もしてきおうりょくが適用されなかった場合は、通常のSTAB計算ロジック（1.5または1.0）に戻す
+    if (!isAdaptabilityApplied) {
+         // 通常のSTAB計算を再度実行し、DOMに値をセット
+         const attackerName = document.getElementById('attacker-pokemon-name').value;
+         const defenderName = document.getElementById('defender-pokemon-name').value;
+         const { affinity, stab } = calculateEffectiveness(attackerName, defenderName, moveName);
+         document.getElementById('stab').value = stab.toFixed(1); 
+    }
+                //へんげんじざい / リベロ
+    if (ability === "PROTEAN" || ability === "LIBERO") {
+        document.getElementById("stab").value = "1.5"; 
+    }
+
+// ノーマルスキン (Normalize) の処理 (全ての技をノーマルタイプに変更し、威力1.2倍)
+// ※ 技のタイプを一時的に変更する処理は、スキン特性の処理と競合しないように注意が必要です。
+if (ability === "NORMALIZE") {
+    // moveNameから元の技データを取得（MOVEDATA_MAPが破壊されないことを前提）
+    const originalMove = MOVEDATA_MAP[hiraganaToKatakana(moveName)] || MOVEDATA_MAP[moveName];
+    
+    if (originalMove) {
+        // MOVEDATA_MAP内のデータを直接変更せず、一時的に新しいオブジェクトでタイプを上書きします。
+        // ただし、既存のコードがMOVEDATA_MAPの値を変更している可能性があるため、
+        // ここでは一旦、既存のスキン特性の処理を模倣し、updateMoveDataAndRecalculateに任せる形にします。
+
+        // ⭐ 技のタイプを強制的に「NORMAL」に設定
+        // moveオブジェクト自体を変更する（または、次の updateMoveDataAndRecalculate で再評価させる）
+        move.Type = "NORMAL";
+        
+        // ⭐ M補正を1.2倍に設定
+        document.getElementById("ability_m_atk").value = "4915";
+        
+        // ⭐ タイプが変更されたことを反映させるために再計算をトリガー
+        // updateMoveDataAndRecalculateが、技の威力、STAB、相性、その他の補正を再計算します。
+        // updateMoveDataAndRecalculate が内部で calculateDamage() を呼ぶため、returnします。
+        updateMoveDataAndRecalculate(moveName);
+        return; 
+    }
+}
+    // スキン特性（タイプ変換+1.2倍）
+    if (["PIXILATE","REFRIGERATE","AERILATE","GALVANIZE"].includes(ability)) {
+        if (move?.Type === "NORMAL") {
+            let newType = {
+                PIXILATE: "FAIRY",
+                REFRIGERATE: "ICE",
+                AERILATE: "FLYING",
+                GALVANIZE: "ELECTRIC"
+            }[ability];
+            move.Type = newType;
+            document.getElementById("ability_m_atk").value = "4915";
+            updateMoveDataAndRecalculate(moveName);
+            return;
+        }
+    }
+
+    // すなのちから (Sand Force) の処理 (砂嵐時、地面・岩・鋼技の威力1.3倍)
+    if (ability === "SANDFORCE" && isSandstorm) {
+        if (moveType === "GROUND" || moveType === "ROCK" || moveType === "STEEL") {
+            document.getElementById("ability_m_atk").value = "5325";
+        }
+    }
+
+        // サンパワー
+    if (ability === "SOLARPOWER" && isSun && move?.Category === "Special") {
+            abilityAtkMult = "1.5";
+        }
+// ⭐ ひひいろのこどう (Orichalcum Pulse)
+    if (ability === "ORICHALCUMPULSE" && isSun && move?.Category === "Physical") {
+    // 4 / 3 の計算結果を abilityAtkMult に設定
+    abilityAtkMult = 4 / 3; 
+    
+    // 攻撃実数値が変わるため、攻撃側能力値の再計算をトリガー
+    const attackerName = document.getElementById('attacker-pokemon-name').value;
+    if (attackerName) updateStatsAndRecalculate('attacker', attackerName);
+}
+
+// ⭐ ハドロンエンジン
+if (ability === "HADRONENGINE" && isElectricTerrain && move?.Category === "Special") {
+    // 4 / 3 の計算結果を abilityAtkMult に設定
+    abilityAtkMult = 4 / 3; 
+    
+    // 攻撃実数値が変わるため、攻撃側能力値の再計算をトリガー
+    const attackerName = document.getElementById('attacker-pokemon-name').value;
+    if (attackerName) updateStatsAndRecalculate('attacker', attackerName);
+}
+
+    // テクニシャン (Technician) の処理を追記 (威力60以下)
+    if (ability === "TECHNICIAN") {
+        const power = parseInt(document.getElementById('power').value) || 0;
+        if (power > 0 && power <= 60) {
+            document.getElementById("ability_m_atk").value = "6144";
+        }
+    }
+
+        // ピンチ補正特性
+    if (["OVERGROW"].includes(ability)) {
+        if (move?.Type === "GRASS") {
+            abilityAtkMult = "1.5";
+        }
+    }
+    if (["BLAZE"].includes(ability)) {
+        if (move?.Type === "FIRE") {
+            abilityAtkMult = "1.5";
+        }
+    }
+    if (["TORRENT"].includes(ability)) {
+        if (move?.Type === "WATER") {
+            abilityAtkMult = "1.5";
+        }
+    }
+    if (["SWARM"].includes(ability)) {
+        if (move?.Type === "BUG") {
+            abilityAtkMult = "1.5";
+        }
+    }
+    //タイプ強化
+    if (["WATERBUBBLE"].includes(ability)) {
+        if (move?.Type === "WATER") {
+            abilityAtkMult = "2.0";
+        }
+    }
+    if (["ROCKYPAYLOAD"].includes(ability)) {
+        if (move?.Type === "ROCK") {
+            abilityAtkMult = "1.5";
+        }
+    }
+    if (["TRANSISTOR"].includes(ability)) {
+        if (move?.Type === "ELECTRIC") {
+            abilityAtkMult = "1.3";
+        }
+    }
+    if (["DRAGONSMAW"].includes(ability)) {
+        if (move?.Type === "DRAGON") {
+            abilityAtkMult = "1.5";
+        }
+    }
+    if (["STEELWORKER"].includes(ability)) {
+        if (move?.Type === "STEEL") {
+            abilityAtkMult = "1.5";
+        }
+    }
+
+    // スナイパー（急所時のみ）
+    if (ability === "SNIPER") {
+        // 急所補正 1.5 → 2.25
+        // 乱数計算部分で参照される critical_m を上書き
+        SNIPER_MODE = true;
+    } else {
+        SNIPER_MODE = false;
+    }
+
+    calculateDamage();
+});
+
+document.getElementById("defender-ability").addEventListener("change", () => {
+    const ability = document.getElementById("defender-ability").value;
+
+    abilityDefMult = 1.0;
+    document.getElementById("ability_m_def").value = "1.0";
+
+    // 【追加】わざわいのおふだ/うつわ の処理のために攻撃側の実数値補正をリセット
+    defenderAtkMult = 1.0;
+    defenderSpAtkMult = 1.0;
+    
+    // 【追加】わざわいのおふだ (攻撃側の攻撃 3/4)
+    if (ability === "TABLETSOFRUIN") {
+        defenderAtkMult = 3 / 4; 
+    }
+    
+    // 【追加】わざわいのうつわ (攻撃側の特攻 3/4)
+    if (ability === "VESSELOFRUIN") {
+        defenderSpAtkMult = 3 / 4; 
+    }
+
+        //すいほう、あついしぼう、たいねつ
+        if (["WATERBUBBLE","THICKFAT","HEATPROOF"].includes(ability)) {
+        if (move?.Type === "FIRE") {
+            abilityAtkMult *= 0.5;
+        }
+    }
+
+            //かんそうはだ
+        if (["DRYSKIN"].includes(ability)) {
+        if (move?.Type === "FIRE") {
+            document.getElementById("ability_m_atk").value = "5120";
+        }
+    }
+
+
+        //あついしぼう
+        if (["THICKFAT"].includes(ability)) {
+        if (move?.Type === "ICE") {
+            abilityAtkMult *= 0.5;
+        }
+    }
+
+        //きよめのしお
+        if (["PURIFYINGSALT"].includes(ability)) {
+        if (move?.Type === "GHOST") {
+            abilityAtkMult *= 0.5;
+        }
+    }
+
+        // もふもふ
+    if (["FLUFFY"].includes(ability) && move?.Flags?.includes("Contact")) {
+        document.getElementById("ability_m_def").value = "0.5";
+        if (move?.Type === "FIRE") {
+            document.getElementById('affinity').value *= 2.0;
+        }
+    }
+
+        //くさのけがわ
+if (ability === "GRASSPELT" && isGrassyTerrain && move?.Category === "Physical") {
+    // 4 / 3 の計算結果を abilityAtkMult に設定
+    abilityDefMult = 1.5; 
+    
+    // 攻撃実数値が変わるため、攻撃側能力値の再計算をトリガー
+    const defenderName = document.getElementById('defender-pokemon-name').value;
+    if (defenderName) updateStatsAndRecalculate('defender', defenderName);
+}
+
+    // ファーコート
+    if ((ability === "FURCOAT") && move?.Category === "Physical") {
+        abilityDefMult = 2.0;
+    }
+
+    // ふしぎなうろこ
+    if ((ability === "MARVELSCALE") && move?.Category === "Physical") {
+        abilityDefMult = 1.5;
+    }
+
+    // フィルター・ハードロック・プリズムアーマー
+    if (["FILTER","PRISMARMOR","SOLIDROCK"].includes(ability)&& document.getElementById('affinity').value > 1.0) {
+        document.getElementById("ability_m_def").value = "0.75";
+    }
+
+// 特性: マルチスケイル / ファントムガード の判定
+if (["MULTISCALE","SHADOWSHIELD"].includes(ability)) {
+        document.getElementById("ability_m_def").value = "0.5";
+    }
+
+    calculateDamage();
+});
+
+
+
+
+        async function loadPokemonData() {
+    try {
+        const response = await fetch('species_db_named2.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}. ファイル名またはパスを確認してください。`);
+        }
+        
+        const data = await response.json();
+        
+        POKEDATA_MAP = data;
+        NAME_TO_KEY_MAP = {}; // ← 忘れず初期化
+        
+        POKEMON_NAMES.length = 0; // 既存情報をクリア
+        
+        for (const [key, value] of Object.entries(data)) {
+            if (value.Name) {
+                const originalName = value.Name; // カタカナ（例：リザードン）
+
+                // ✅ 正規化キー登録
+                const normalized = toKatakana(originalName.toLowerCase());
+                NAME_TO_KEY_MAP[normalized] = key;
+
+                // 検索用のリストに格納
+                POKEMON_NAMES.push(originalName);
+            }
+        }
+        
+        console.log(`ポケモンデータ: ${Object.keys(POKEDATA_MAP).length}件のポケモンを読み込みました。`);
+
+        const moveDataLoaded = await loadMoveData(); 
+
+        // 検索用フィルタを各入力に設定（ひらがな/カタカナ正規化済み）
+        setupSearchableInput(
+            document.getElementById('attacker-search'),
+            POKEMON_NAMES,
+            (itemName) => updateStatsAndRecalculate('attacker', itemName)
+        );
+        setupSearchableInput(
+            document.getElementById('defender-search'),
+            POKEMON_NAMES,
+            (itemName) => updateStatsAndRecalculate('defender', itemName)
+        );
+        setupSearchableInput(
+            document.getElementById('move-search'),
+            MOVE_NAMES,
+            (itemName) => updateMoveDataAndRecalculate(itemName)
+        );
+
+        const initialAttacker = 'フシギダネ';
+        const initialDefender = 'リザードン';
+        const initialMove = 'はっぱカッター';
+        
+        document.getElementById('attacker-pokemon-name').value = initialAttacker;
+        document.getElementById('defender-pokemon-name').value = initialDefender;
+        document.getElementById('move-name').value = initialMove;
+        
+        document.getElementById('hp_ev').value = 32;
+        document.getElementById('attacker_ev').value = 32;
+        document.getElementById('defender_ev').value = 32;
+        
+        updateStatsAndRecalculate('attacker', initialAttacker);
+        updateStatsAndRecalculate('defender', initialDefender);
+        
+        if (moveDataLoaded) {
+            updateMoveDataAndRecalculate(initialMove);
+        } else {
+            getStatKeys();
+            calculateDamage(); 
+        }
+        
+    } catch (error) {
+        console.error('⚠️ ポケモンデータの読み込み失敗:', error);
+    }
+}
+        
+        function calculateEffectiveness(attackerName, defenderName, moveName) {
+    const normalizedAttackerName = hiraganaToKatakana(attackerName);
+    const normalizedDefenderName = hiraganaToKatakana(defenderName);
+    const normalizedMoveName = hiraganaToKatakana(moveName);
+
+    const attackerKey = NAME_TO_KEY_MAP[normalizedAttackerName];
+    const defenderKey = NAME_TO_KEY_MAP[normalizedDefenderName];
+    const moveData = MOVEDATA_MAP[normalizedMoveName];
+
+    const moveType = moveData ? moveData.Type : null;
+    
+    // 【判定用】現在の技がフリーズドライかどうか
+    const isFreezeDry = (normalizedMoveName === "フリーズドライ");
+
+    if (!moveType) {
+        return { affinity: 1.0, stab: 1.0 }; 
+    }
+
+    let stab = 1.0;
+    if (attackerKey) {
+        const attackerTypes = POKEDATA_MAP[attackerKey].Types.filter(t => t !== null && t);
+        const moveTypeUpper = moveType.toUpperCase();
+        if (attackerTypes.includes(moveTypeUpper)) {
+            stab = 1.5;
+        }
+    }
+    
+    let affinity = 1.0;
+    if (defenderKey) {
+        const defenderTypes = POKEDATA_MAP[defenderKey].Types.filter(t => t !== null && t);
+        const moveTypeUpper = moveType.toUpperCase();
+        
+        for (const defType of defenderTypes) {
+            const typeEffectiveness = TYPE_EFFECTIVENESS[moveTypeUpper];
+            let multiplier = typeEffectiveness && typeEffectiveness.hasOwnProperty(defType) 
+                                ? typeEffectiveness[defType] 
+                                : 1.0;
+
+            // --- フリーズドライの専用処理 ---
+            // 技がフリーズドライ、かつ、相手のタイプが WATER（みず）なら
+            // 本来の 0.5倍 を無視して 2.0倍 にする
+            if (isFreezeDry && defType === "WATER") {
+                multiplier = 2.0;
+            }
+            // -----------------------------
+
+            affinity *= multiplier;
+        }
+    }
+    
+    return { affinity, stab };
+}
+
+        function updateMoveDataAndRecalculate(moveName) {
+            const normalizedName = hiraganaToKatakana(moveName); 
+            const move = MOVEDATA_MAP[normalizedName]; 
+            
+            const powerInput = document.getElementById('power');
+            const physicalRadio = document.getElementById('move_type_physical');
+            const specialRadio = document.getElementById('move_type_special');
+            
+            if (!move || move.Category === 'Status') {
+            } else {
+                const power = parseInt(move.Power) || 1; 
+                powerInput.value = power;
+
+                if (move.Category === 'Physical') {
+                    physicalRadio.checked = true;
+                } else if (move.Category === 'Special') {
+                    specialRadio.checked = true;
+                }
+            }
+
+            const attackerName = document.getElementById('attacker-pokemon-name').value;
+            const defenderName = document.getElementById('defender-pokemon-name').value;
+            
+            const { affinity, stab } = calculateEffectiveness(attackerName, defenderName, moveName);
+            
+            document.getElementById('affinity').value = affinity.toFixed(2); 
+            document.getElementById('stab').value = stab.toFixed(1); 
+            
+            getStatKeys(); 
+            calculateDamage();
+        }
+
+        function updateStatsAndRecalculate(role, japaneseName) {
+    const normalizedName = hiraganaToKatakana(japaneseName); 
+    const englishKey = NAME_TO_KEY_MAP[normalizedName]; 
+    
+    const { attackerStatKey, defenderStatKey } = getStatKeys();
+    
+    // NEW: Get EV inputs
+    const attackerEV = parseFloat(document.getElementById('attacker_ev').value) || 0;
+    const defenderEV = parseFloat(document.getElementById('defender_ev').value) || 0;
+    const hpEV = parseFloat(document.getElementById('hp_ev').value) || 0;
+// 特性リストを更新
+    updateAbilitySelector(role === 'attacker' ? "attacker-pokemon-name" : "defender-pokemon-name", 
+                          role === 'attacker' ? "attacker-ability" : "defender-ability");
+    if (!englishKey || !POKEDATA_MAP[englishKey]) {
+        const attackerName = document.getElementById('attacker-pokemon-name').value;
+        const defenderName = document.getElementById('defender-pokemon-name').value;
+        const moveName = document.getElementById('move-name').value;
+        const { affinity, stab } = calculateEffectiveness(attackerName, defenderName, moveName);
+        document.getElementById('affinity').value = affinity.toFixed(1); 
+        document.getElementById('stab').value = stab.toFixed(1); 
+        calculateDamage();
+        return;
+    }
+    
+    const pokemon = POKEDATA_MAP[englishKey];
+
+    if (role === 'defender') {
+        const natureDef = parseFloat(document.getElementById('nature_defense').value);
+        
+        // Use hpEV for maxHP calculation
+        const maxHP = calculateMaxStat(pokemon.HP, true, 1.0, hpEV); 
+        document.getElementById('hp').value = maxHP;
+        
+        // 防御側は通常通り (Def または SpDef)
+        const maxDef = calculateMaxStat(pokemon[defenderStatKey], false, natureDef, defenderEV); 
+        document.getElementById('base_defense').value = maxDef;
+
+        updateHazardDisplay(englishKey); 
+        
+    } else if (role === 'attacker') {
+        const natureAtk = parseFloat(document.getElementById('nature_attack').value);
+        let baseStatValue;
+
+        // --- イカサマ (OpponentAtk) の場合の特別処理 ---
+        if (attackerStatKey === 'OpponentAtk') {
+            const defenderName = document.getElementById('defender-pokemon-name').value;
+            const defenderNormalized = hiraganaToKatakana(defenderName);
+            const defenderKey = NAME_TO_KEY_MAP[defenderNormalized];
+            
+            if (defenderKey && POKEDATA_MAP[defenderKey]) {
+                // 防御側のポケモンの「Atk（攻撃）」を参照する
+                baseStatValue = POKEDATA_MAP[defenderKey].Atk || POKEDATA_MAP[defenderKey].Stats?.Atk;
+            } else {
+                // 防御側が未入力なら自分のAtkを仮に参照
+                baseStatValue = pokemon.Atk || pokemon.Stats?.Atk;
+            }
+        } else {
+            // pokemon[attackerStatKey] が直接参照できない場合に備え、Statsの中も見る
+            baseStatValue = pokemon[attackerStatKey] || (pokemon.Stats ? pokemon.Stats[attackerStatKey] : undefined);
+        }
+        
+        // 計算実行（性格補正と努力値は現在の攻撃側入力欄のものを使用）
+        const maxAtk = calculateMaxStat(baseStatValue, false, natureAtk, attackerEV); 
+        document.getElementById('base_attack').value = maxAtk;
+    }
+    
+    const attackerName = document.getElementById('attacker-pokemon-name').value;
+    const defenderName = document.getElementById('defender-pokemon-name').value;
+    const moveName = document.getElementById('move-name').value;
+
+    const { affinity, stab } = calculateEffectiveness(attackerName, defenderName, moveName);
+    document.getElementById('affinity').value = affinity.toFixed(2); 
+    document.getElementById('stab').value = stab.toFixed(1); 
+    
+    calculateDamage();
+}
+        
+       /**
+ * 能力値計算 (修正版: 161 * 1.1 = 177 に対応)
+ * @param {number} baseStat - 種族値
+ * @param {boolean} isHP - HPかどうか
+ * @param {number} natureMultiplier - 性格補正 (1.1, 1.0, 0.9)
+ * @param {number} ev - 努力値 (0-32)
+ */
+function calculateMaxStat(baseStat, isHP, natureMultiplier = 1.0, ev = 0) {
+    const IV = 31; // 個体値は31固定
+    const LEVEL = 50; // レベル50固定
+    const safeEV = Number(ev) || 0;
+
+    if (isHP) {
+        // HPには性格補正がないため、基本値 + 努力値
+        let h = Math.floor((2 * baseStat + IV) * 0.5) + LEVEL + 10;
+        return h + safeEV;
+    } else {
+        // 1. まずレベル50時の基本実数値を出す (146など)
+        let baseValue = Math.floor((2 * baseStat + IV) * 0.5) + 5;
+        
+        // 2. 基本実数値と努力値を「足してから」性格補正をかける
+        // これにより (146 + 15) * 1.1 = 161 * 1.1 = 177.1 → 177 となります
+        let totalBeforeNature = baseValue + safeEV;
+        
+        // 3. 最後に性格補正を掛けて切り捨てる
+        return Math.floor(totalBeforeNature * natureMultiplier);
+    }
+}
+
+// ===============================================
+// NEW: 場に出た時のダメージ計算ロジック
+// ===============================================
+
+// ヘルパー関数: 単一タイプの相性倍率を取得
+function getEffectivenessMultiplier(attackType, defenderTypes) {
+    const attackTypeUpper = attackType.toUpperCase();
+    let effectiveness = 1.0;
+    
+    if (TYPE_EFFECTIVENESS[attackTypeUpper]) {
+        defenderTypes.forEach(defType => {
+            const defTypeUpper = defType.toUpperCase();
+            const typeMult = TYPE_EFFECTIVENESS[attackTypeUpper][defTypeUpper];
+            if (typeMult !== undefined) {
+                effectiveness *= typeMult;
+            }
+        });
+    }
+    
+    return effectiveness;
+}
+
+// ヘルパー関数: ステルスロックの表示を更新
+function updateHazardDisplay(defenderKey) {
+    const srDisplay = document.getElementById('stealth_rock_display');
+    if (!srDisplay) return;
+
+    if (!defenderKey || !POKEDATA_MAP[defenderKey]) {
+        srDisplay.textContent = "(岩相性: -)";
+        return;
+    }
+
+    const defenderTypes = POKEDATA_MAP[defenderKey].Types.filter(t => t !== null && t).map(t => t.toUpperCase());
+    const srEffectiveness = getEffectivenessMultiplier("ROCK", defenderTypes);
+    srDisplay.textContent = `(岩相性: ${srEffectiveness}倍)`;
+}
+
+function calculateEntryHazardDamage(defenderKey, maxHP) {
+    let totalHazardDamage = 0;
+    let hazardCalcDetails = [];
+
+    if (!defenderKey || !POKEDATA_MAP[defenderKey]) {
+        return { totalDamage: 0, details: ["防御側ポケモンが選択されていません。"] };
+    }
+
+    const defenderTypes = POKEDATA_MAP[defenderKey].Types.filter(t => t !== null && t).map(t => t.toUpperCase());
+    const defenderAbility = document.getElementById('defender-ability').value;
+    
+    // 【修正】 ?.checked を使用することで、要素がなくても null エラーを防ぎます
+    const hasHeavyDutyBoots = document.getElementById('heavy_duty_boots')?.checked || false;
+    const hasMagicGuard = document.getElementById('magic_guard_check')?.checked || defenderAbility === "MAGICGUARD";
+    
+    if (hasHeavyDutyBoots || hasMagicGuard) {
+        return { totalDamage: 0, details: ["特性/持ち物により無効"] };
+    }
+
+    // 1. ステルスロック
+    const isStealthRockChecked = document.getElementById('stealth_rock_check')?.checked || false;
+    if (isStealthRockChecked) {
+        const srEffectiveness = getEffectivenessMultiplier("ROCK", defenderTypes);
+        const srDamage = Math.floor(maxHP * srEffectiveness / 8);
+        if (srDamage > 0) {
+            totalHazardDamage += srDamage;
+            hazardCalcDetails.push(`ステルスロック: ${srDamage} (${(srEffectiveness * 12.5).toFixed(1)}%)`);
+        }
+    }
+
+    // 2. まきびし
+    const spikesElement = document.getElementById('spikes_layer');
+    const spikesLayers = spikesElement ? parseInt(spikesElement.value) : 0;
+    if (spikesLayers > 0) {
+        const isFlying = defenderTypes.includes('FLYING');
+        const hasLevitate = defenderAbility === "LEVITATE";
+        if (!isFlying && !hasLevitate) {
+            const divisors = [8, 6, 4];
+            const spikesDamage = Math.floor(maxHP / divisors[spikesLayers - 1]);
+            totalHazardDamage += spikesDamage;
+            hazardCalcDetails.push(`まきびし(${spikesLayers}層): ${spikesDamage}`);
+        }
+    }
+
+    return { totalDamage: totalHazardDamage, details: hazardCalcDetails };
+}
+        // ===============================================
+        // B. ダメージ計算ロジック
+        // ===============================================
+
+        function getEnvironmentMultiplier(moveType, environment) {
+            if (!moveType) return 1.0;
+            
+            const moveTypeUpper = moveType.toUpperCase();
+            
+            // --- 天候補正 (威力補正 M) ---
+            if (environment === 'Rain') {
+                if (moveTypeUpper === 'WATER') return 1.5;
+                if (moveTypeUpper === 'FIRE') return 0.5;
+            } else if (environment === 'Sun') {
+                if (moveTypeUpper === 'FIRE') return 1.5;
+                if (moveTypeUpper === 'WATER') return 0.5;
+            } 
+            
+            // --- フィールド補正 (威力補正 M) ---
+            const terrainBoost = 1.3; 
+            
+            if (environment === 'ElectricTerrain' && moveTypeUpper === 'ELECTRIC') {
+                return terrainBoost;
+            } else if (environment === 'GrassyTerrain' && moveTypeUpper === 'GRASS') {
+                return terrainBoost;
+            } else if (environment === 'PsychicTerrain' && moveTypeUpper === 'PSYCHIC') {
+                return terrainBoost;
+            } else if (environment === 'MistyTerrain' && moveTypeUpper === 'DRAGON') { 
+                return 0.5; 
+            }
+
+            return 1.0; 
+        }
+
+        function getRankMultiplier(rankValueStr, isCritical, isAttacker) {
+            let rankValue = parseFloat(rankValueStr);
+            if (isCritical) {
+                if (isAttacker && rankValue < 1.0) { 
+                    return 1.0;
+                }
+                if (!isAttacker && rankValue > 1.0) { 
+                    return 1.0;
+                }
+            }
+            return rankValue;
+        }
+
+        function applyQ12Multiplier(damage, multiplier, rounding) {
+            if (multiplier === 0) return 0;
+            
+            let q12Multiplier;
+            if (multiplier === 2/3) {
+                 q12Multiplier = 2731; // 2/3 * 4096 = 2730.66... -> 2731
+            } else if (multiplier === 0.75) {
+                 q12Multiplier = 3072; // 0.75 * 4096 = 3072
+            } else if (multiplier === 0.5) {
+                 q12Multiplier = 2048; // 0.5 * 4096 = 2048
+            } else if (multiplier === 1.3) {
+                 q12Multiplier = 5325; // 1.3 * 4096 = 5324.8 -> 5325
+            } else {
+                 q12Multiplier = Math.round(multiplier * Q12_BASE); 
+            }
+
+            const A = BigInt(damage) * BigInt(q12Multiplier);
+            const B = Number(A / BigInt(Q12_BASE));
+            const R = Number(A % BigInt(Q12_BASE));
+
+            let result = B;
+
+            if (rounding === 'five_up') {
+                // 五捨五超入 (四捨五入と同じ: 0.5以上の場合は切り上げ)
+                // Q12_BASE / 2 = 2048
+                if (R >= 2049) { 
+                    result = B + 1;
+                }
+            } else if (rounding === 'floor') {
+            } else if (rounding === 'four_up') { 
+                 if (R >= 2048) {
+                     result = B + 1;
+                 }
+            }
+            
+            return result;
+        }
+
+        function calculateAllDamages(damageBase, {range_m, oyako_m, critical_m, weather_m, wall_m, stab_m, affinity_m, burn_m, item_m_atk, ability_m_atk, item_m_def, ability_m_def, other_m}) {
+            const results = [];
+            
+            for (let i = MIN_RANDOM; i <= MAX_RANDOM; i++) {
+                let currentDamage = damageBase;
+                
+                // 補正適用順序: 範囲 → 急所 → 天候/フィールド → 壁
+                currentDamage = applyQ12Multiplier(currentDamage, range_m, 'five_up');
+                currentDamage = applyQ12Multiplier(currentDamage, oyako_m, 'five_up');
+                currentDamage = applyQ12Multiplier(currentDamage, critical_m, 'five_up');
+                currentDamage = applyQ12Multiplier(currentDamage, weather_m, 'five_up'); // 天候/フィールド威力補正
+                currentDamage = applyQ12Multiplier(currentDamage, wall_m, 'five_up');
+                
+                // 乱数補正 (切り捨て)
+                const random_m = i / 100;
+                currentDamage = applyQ12Multiplier(currentDamage, random_m, 'floor');
+                
+                // タイプ一致補正 (五捨五超入)
+                currentDamage = applyQ12Multiplier(currentDamage, stab_m, 'five_up');
+
+                // 相性補正 (切り捨て)
+                currentDamage = applyQ12Multiplier(currentDamage, affinity_m, 'floor');
+
+                // やけど補正 (五捨五超入)
+                currentDamage = applyQ12Multiplier(currentDamage, burn_m, 'five_up');
+
+                
+
+                // その他のM補正 (五捨五超入)
+                currentDamage = applyQ12Multiplier(currentDamage, item_m_atk, 'five_up');
+                currentDamage = applyQ12Multiplier(currentDamage, ability_m_atk, 'five_up');
+                currentDamage = applyQ12Multiplier(currentDamage, item_m_def, 'five_up');
+                currentDamage = applyQ12Multiplier(currentDamage, ability_m_def, 'five_up');
+
+
+                if (currentDamage === 0) {
+                    currentDamage = 1;
+                }
+                if (currentDamage >= 65536) {
+                    currentDamage = currentDamage % 65536;
+                }
+
+                results.push(currentDamage);
+            }
+            return results;
+        }
+        
+        function getKOProbability(targetHP, damages, hits) {
+    if (hits <= 0) return 0;
+    
+    // 単発の場合
+    if (hits === 1) {
+        const koCount = damages.filter(d => d >= targetHP).length;
+        return (koCount / damages.length) * 100;
+    }
+
+    // 複数回攻撃（連続技や確定n発）の確率計算: 動的計画法
+    // dp[ダメージ合計] = そのダメージになる組み合わせの数
+    let dp = { 0: 1n }; 
+
+    for (let h = 0; h < hits; h++) {
+        let nextDp = {};
+        for (let currentSum in dp) {
+            let count = dp[currentSum];
+            for (let d of damages) {
+                let nextSum = parseInt(currentSum) + d;
+                // 目標HPを超えたダメージは一括管理して計算量を削減
+                if (nextSum > targetHP) nextSum = targetHP; 
+                nextDp[nextSum] = (nextDp[nextSum] || 0n) + count;
+            }
+        }
+        dp = nextDp;
+    }
+
+    const totalCombinations = BigInt(damages.length) ** BigInt(hits);
+    const koCombinations = dp[targetHP] || 0n;
+
+    return Number((koCombinations * 10000n) / totalCombinations) / 100;
+}
+
+        function getKOAnalysis(targetHP, damages) {
+    // damages が単一の数値ではなく、合算済みの配列であることを前提とします
+    const minDamage = Math.min(...damages);
+    const maxDamage = Math.max(...damages);
+    
+    // 連続技の場合は、すでに「全ヒットの合計」がdamagesに入っているため
+    // 何発で倒せるか（KO数）の計算ロジックを調整します
+    const minKO = Math.ceil(targetHP / maxDamage);
+    const maxKO = Math.ceil(targetHP / minDamage);
+    
+    let koText = '';
+    let koProbability = 0;
+
+    if (maxDamage >= targetHP) {
+        // 合計ダメージがHPを超えている場合
+        const koCount = damages.filter(d => d >= targetHP).length;
+        koProbability = (koCount / damages.length) * 100;
+        
+        if (koProbability >= 100) {
+            koText = "確定1発"; // 連続技1セットで確定
+        } else {
+            koText = "乱数1発"; // 連続技1セットで乱数
+        }
+    } else {
+        // 1セット（nヒット）耐えられてしまう場合
+        koText = `確定${minKO}発以上`;
+        koProbability = 0;
+    }
+
+    return { koText, koProbability: koProbability.toFixed(2), minDamage, maxDamage, minKO, maxKO };
+}
+        /**
+         * 計算結果をHTMLとして整形するヘルパー関数
+         */
+        function formatResultHTML(title, result, effectiveHP, maxHP) {
+    // 連続技用のプロパティ（totalHits, critHitsCount, hitDetails）を分割代入に追加
+    const { 
+        minResult, maxResult, targetHP, substituteHP, koInfo, isCritical,
+        totalHits, critHitsCount, hitDetails 
+    } = result;
+    
+    let koProbabilityText = '';
+    if (koInfo.koText.includes("乱数") && parseFloat(koInfo.koProbability) > 0) {
+        koProbabilityText = `<div class="ko-prob"> (最小乱数: ${koInfo.koProbability}%)</div>`;
+    } else if (koInfo.koProbability === -1) {
+        koProbabilityText = `<div class="ko-prob"> (KO確率計算省略)</div>`;
+    }
+    
+    // --- HP割合の計算（みがわり判定を維持） ---
+    let percentageText;
+    let substituteText = "";
+    
+    if (substituteHP > 0) {
+        const minSubPercent = ((minResult / targetHP) * 100).toFixed(1);
+        const maxSubPercent = ((maxResult / targetHP) * 100).toFixed(1);
+        percentageText = `みがわりHPに対する割合: **${minSubPercent}%** 〜 **${maxSubPercent}%**`;
+        substituteText = `<div class="substitute-info">【みがわり判定】 みがわりHP: ${targetHP} (${(targetHP / maxHP * 100).toFixed(1)}% / ${maxHP})</div>`;
+    } else {
+        const minPercent = ((minResult / targetHP) * 100).toFixed(1);
+        const maxPercent = ((maxResult / targetHP) * 100).toFixed(1);
+        percentageText = `HP割合: **${minPercent}%** 〜 **${maxPercent}%**`;
+    }
+    
+    // --- 連続技の内訳表示（新規追加） ---
+    let multiHitSection = "";
+    if (totalHits && totalHits > 1) {
+        multiHitSection = `
+            <div class="multi-hit-summary" style="margin: 10px 0; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9;">
+                <div style="font-weight: bold; font-size: 0.9em; margin-bottom: 5px;">
+                    🥊 連続技内訳: ${totalHits}発中 ${critHitsCount}発急所
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.85em; text-align: center;">
+                    <tr style="background: #eee; border-bottom: 1px solid #ccc;">
+                        <th>回数</th><th>急所</th><th>ダメージ</th>
+                    </tr>
+                    ${hitDetails.map(h => `
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td>${h.hitIndex}発目</td>
+                            <td>${h.isCrit ? '<span style="color:red;">★</span>' : '-'}</td>
+                            <td>${h.min} 〜 ${h.max}</td>
+                        </tr>
+                    `).join('')}
+                </table>
+            </div>
+        `;
+    }
+    
+    // 急所表示のラベル（n発中m発の場合はタイトルに出さない方がスッキリします）
+    let criticalIndicator = (totalHits > 1) ? "" : (isCritical ? " (急所補正適用)" : "");
+
+    return `
+        <h4>${title}${criticalIndicator} (Lv${LEVEL})</h4>
+        ダメージ範囲: <span class="result-min">${minResult}</span> 〜 <span class="result-max">${maxResult}</span>
+        
+        ${multiHitSection}
+
+        <div class="percentage">
+            ${percentageText}<br>
+            **KO判定**: ${koInfo.koText} ${koProbabilityText}
+        </div>
+        ${substituteText}
+    `;
+}
+
+function pokeRound(val) {
+    return (val % 1 > 0.5) ? Math.ceil(val) : Math.floor(val + 0.5);
+}
+
+function applyModifier(value, mult) {
+    if (mult === undefined || mult === 1.0) return value;
+    return Math.floor(value * mult);
+}
+
+function applyPowerModifier(power, modifier4096) {
+    if (!modifier4096 || modifier4096 === 4096) return power;
+    return Math.floor(power * modifier4096 / 4096);
+}
+
+
+      /**
+ * 【完全復活版】
+ * 最新の連続技（ヒット数）仕様を維持しつつ、
+ * 設置物（ステロ・まきびし）、災い特性、天候補正をすべて反映した計算ロジック
+ */
+function runDamageCalculation(isCriticalOverride, args) {
+    const {
+        power, base_attack, base_defense,
+        rank_attack_val, rank_defense_val,
+        isBurnedChecked, stab_m, affinity_m,
+        item_m_atk, ability_m_atk,
+        item_m_def, ability_m_def,
+        environment, moveType, wall_m,
+        range_m, hp, isSubstituteChecked, other_m
+    } = args;
+
+    const totalHits = args.hitCount || 1;
+    const targetCritCount =
+        args.critHits !== undefined ? args.critHits :
+        (isCriticalOverride ? totalHits : 0);
+
+    const isPhysical = document.getElementById('move_type_physical').checked;
+
+    // --- 1. 防御側の情報を特定（ハザード・天候補正用） ---
+    const defenderName = document.getElementById('defender-pokemon-name').value;
+    const normalizedDefenderName = hiraganaToKatakana(defenderName);
+    const defenderKey = NAME_TO_KEY_MAP[normalizedDefenderName];
+    // ポケモンが特定できない場合でも計算できるよう空配列をデフォルトに
+    const defenderTypes = defenderKey ? POKEDATA_MAP[defenderKey].Types.map(t => t.toUpperCase()) : [];
+
+    // --- 2. 【復活】設置物（ハザード）ダメージの算出 ---
+    // ここでUIの「ステルスロック」「まきびし」の状態を読み取って計算します
+    const hazardResult = calculateEntryHazardDamage(defenderKey, hp);
+    const totalHazardDamage = hazardResult?.totalDamage ?? 0;
+
+    // --- 3. 【復活】ハザード後HP（有効HP）の確定 ---
+    // まず設置ダメージを引いた後のHPを出し、それが1未満にならないようにします
+    const effectiveHP = Math.max(1, hp - totalHazardDamage);
+
+    // KO判定の対象となるHPを決定（身代わり時は身代わりHP、それ以外はハザード後HP）
+    let subHP = Math.floor(hp * 0.25);
+    let targetHP = isSubstituteChecked ? subHP : effectiveHP;
+
+    let hitDetails = [];
+    let allHitDamages = [];
+    let accumulatedMin = 0;
+    let accumulatedMax = 0;
+    // --- 4. 各ヒットごとの計算ループ ---
+    for (let i = 0; i < totalHits; i++) {
+        const oyako_m = 1.0;
+        const isCrit = i < targetCritCount;
+        const critical_m = isCrit ? 1.5 : 1.0;
+        const burn_m = (isPhysical && isBurnedChecked) ? 0.5 : 1.0;
+        const weather_m = getEnvironmentMultiplier(moveType, environment);
+
+        // --- 5. 【復活】災い特性の適用 ---
+        let ruinAtkMult = isPhysical ? (defenderAtkMult || 1.0) : (defenderSpAtkMult || 1.0);
+        let ruinDefMult = isPhysical ? (defenderDefMult || 1.0) : (defenderSpDefMult || 1.0);
+
+        // --- 6. 能力値計算（ランク・特性・災い） ---
+        let atkWithAbility = Math.floor(base_attack * (abilityAtkMult || 1.0));
+        atkWithAbility = Math.floor(atkWithAbility * ruinAtkMult);
+        const A = Math.floor(atkWithAbility * getRankMultiplier(rank_attack_val, isCrit, true));
+
+        let itemDefKey = document.getElementById('item_m_def_select').value; // 追加
+        
+        let defWithAbility = Math.floor(base_defense * (abilityDefMult || 1.0));
+        defWithAbility = Math.floor(defWithAbility * ruinDefMult);
+
+        // 【追加】しんかのきせき・とつげきチョッキの適用
+        if (itemDefKey === "shinka") {
+            defWithAbility = Math.floor(defWithAbility * 1.5);
+        } else if (itemDefKey === "chokki" && !isPhysical) {
+        // 特殊技（isPhysicalがfalse）の時だけチョッキが適用される
+            defWithAbility = Math.floor(defWithAbility * 1.5);
+        }
+
+        let D = Math.floor(defWithAbility * getRankMultiplier(rank_defense_val, isCrit, false));
+
+        // --- 7. 【復活】天候によるタイプ別防御補正 ---
+        const currentStatKey = isPhysical ? 'Def' : 'SpDef';
+        if (environment === 'Sandstorm' && !isPhysical && currentStatKey === 'SpDef' && defenderTypes.includes('ROCK')) {
+            D = Math.round(D * 1.5);
+        } else if (environment === 'Snow' && isPhysical && currentStatKey === 'Def' && defenderTypes.includes('ICE')) {
+            D = Math.round(D * 1.5);
+        }
+
+        // --- 8. ダメージ計算実行 ---
+        let finalPower = power;
+        if (ability_m_atk && ability_m_atk !== 4096) finalPower = applyPowerModifier(finalPower, ability_m_atk);
+        if (item_m_atk && item_m_atk !== 4096) finalPower = applyPowerModifier(finalPower, item_m_atk);
+        finalPower = Math.max(1, finalPower);
+
+        let damageBase = Math.floor(
+            Math.floor((LEVEL * 2) / 5 + 2) *
+            finalPower * A / D
+        );
+        damageBase = Math.floor(damageBase / 50) + 2;
+
+        let currentItemMDef = 4096;
+            if (itemDefKey === "hangen") {
+            // 本来はタイプ判定が必要ですが、簡易実装として選択時は一律0.5倍にします
+            currentItemMDef = 2048; 
+        }
+
+        const damages = calculateAllDamages(damageBase, {
+            range_m, oyako_m, critical_m, weather_m, wall_m, stab_m, affinity_m,
+            burn_m, item_m_atk: 1.0, ability_m_atk: 1.0, 
+            item_m_atk: 1.0, ability_m_atk: 1.0, 
+    item_m_def: currentItemMDef / 4096, ability_m_def, other_m
+        });
+
+        const hMin = Math.min(...damages);
+        const hMax = Math.max(...damages);
+
+        hitDetails.push({ hitIndex: i + 1, isCrit, min: hMin, max: hMax, damages });
+        accumulatedMin += hMin;
+        accumulatedMax += hMax;
+
+        if (allHitDamages.length === 0) {
+            allHitDamages = [...damages];
+        } else {
+            allHitDamages = allHitDamages.map((d, idx) => d + damages[idx]);
+        }
+    }
+
+    // --- 9. 結果の返却 ---
+    return {
+        minResult: accumulatedMin,
+        maxResult: accumulatedMax,
+        targetHP: targetHP, // これが設置ダメージ考慮済みのHP
+        substituteHP: subHP,
+        koInfo: getKOAnalysis(targetHP, allHitDamages), // 設置ダメージ考慮後のHPに対して判定
+        totalHits,
+        critHitsCount: targetCritCount,
+        hitDetails,
+        isCritical: targetCritCount > 0,
+        totalHazardDamage: totalHazardDamage // UI表示用に保持
+    };
+}
+        // メインのダメージ計算関数
+function calculateDamage() {
+    console.log("calculateDamage() is called.");
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = "**計算中...**";
+
+    try {
+        // 1. 全ての入力を取得
+        const hp = parseFloat(document.getElementById('hp').value);
+        const power = parseFloat(document.getElementById('power').value);
+        const base_attack = parseFloat(document.getElementById('base_attack').value);
+        const base_defense = parseFloat(document.getElementById('base_defense').value);
+        const rank_attack_val = document.getElementById('rank_attack').value;
+        const rank_defense_val = document.getElementById('rank_defense').value;
+        const isCriticalChecked = document.getElementById('critical_m_check').checked;
+        const isBurnedChecked = document.getElementById('burn_m_check').checked;
+        const isSubstituteChecked = document.getElementById('substitute_check').checked;
+        const isWallSingleChecked = document.getElementById('wall_single_check').checked;
+        const isWallDoubleChecked = document.getElementById('wall_double_check').checked;
+        const isRangeChecked = document.getElementById('range_m_check').checked;
+
+        const stab_m = parseFloat(document.getElementById('stab').value);
+        const affinity_m = parseFloat(document.getElementById('affinity').value);
+        const item_m_atk = parseFloat(document.getElementById('item_m_atk').value);
+        const ability_m_atk = parseFloat(document.getElementById('ability_m_atk').value);
+        const item_m_def = parseFloat(document.getElementById('item_m_def').value);
+        const ability_m_def = parseFloat(document.getElementById('ability_m_def').value);
+
+        const environment = document.getElementById('environment_m_select').value;
+        const moveName = document.getElementById('move-name').value;
+        const normalizedMoveName = hiraganaToKatakana(moveName);
+        const moveData = MOVEDATA_MAP[normalizedMoveName];
+        const moveType = moveData ? moveData.Type : null;
+
+        // 【追加項目】連続技・条件チェックの取得
+        const hitCount = parseInt(document.getElementById('hit_count')?.value) || 1;
+        const critHitCount = parseInt(document.getElementById('crit_hit_count')?.value) || 0;
+        const isConditionMet = document.getElementById('conditions_m_check')?.checked || false;
+
+        // ▼▼▼ その他補正開始 ▼▼▼
+        let extraMultiplier = 1.0;
+        if (document.getElementById("dark_aura")?.checked && moveType === "DARK") extraMultiplier *= 1.33;
+        if (document.getElementById("fairy_aura")?.checked && moveType === "FAIRY") extraMultiplier *= 1.33;
+        if (document.getElementById("steely_spirit")?.checked && moveType === "STEEL") extraMultiplier *= 1.5;
+        if (document.getElementById("power_spot")?.checked) extraMultiplier *= 1.3;
+        // バッテリー (category変数が未定義の場合のエラー防止策)
+        const categoryElement = document.getElementById('move-category'); // カテゴリ取得元を想定
+        const category = categoryElement ? categoryElement.value : "Physical";
+        if (document.getElementById("battery")?.checked && category === "Special") extraMultiplier *= 1.3;
+        if (document.getElementById("charge")?.checked && moveType === "ELECTRIC") extraMultiplier *= 2.0;
+
+        const supremeOverlordElement = document.getElementById("supreme_overlord");
+        const supremeOverlordValue = parseFloat(supremeOverlordElement?.value) || 1.0;
+        extraMultiplier *= supremeOverlordValue;
+        // ▲▲▲ その他補正終了 ▲▲▲
+
+        if (power <= 0 || base_attack <= 0 || base_defense <= 0 || hp <= 0) {
+            resultDiv.innerHTML = "<div class='error'>エラー: HP、威力、能力値は全て正の値である必要があります。</div>";
+            return;
+        }
+
+        if (affinity_m === 0) {
+            resultDiv.innerHTML = `**計算結果**<br>
+            タイプ相性によりダメージは無効化されます (<span class="result-min">0</span>ダメージ)。
+            <div class="percentage">HP割合: **0.0%**</div>`;
+            return;
+        }
+
+        // --- 特殊ロジック適用 ---
+        const attacker = {
+            atk: base_attack,
+            atkRank: parseInt(rank_attack_val) || 0,
+            currentHp: hp,
+            maxHP: hp,
+            movePower: power,
+            rankTotal: hitCount // アシストパワー等はhit_countの値をランク上昇数として流用
+        };
+
+        const defender = {
+            atk: parseFloat(document.getElementById('base_attack_def')?.value) || base_attack,
+            def: base_defense,
+            defRank: parseInt(rank_defense_val) || 0,
+            spDef: base_defense,
+            spDefRank: parseInt(rank_defense_val) || 0,
+            hasStatus: isBurnedChecked
+        };
+
+        let effect = { 
+            power: power, atk: base_attack, def: base_defense, 
+            atkRank: rank_attack_val, defRank: rank_defense_val, isMultiHit: false 
+        };
+
+        if (moveData && typeof MOVE_EFFECT_LOGIC !== 'undefined') {
+            effect = MOVE_EFFECT_LOGIC.applyEffectByCode(moveData, attacker, defender);
+            // conditions_m_check の手動反映
+            if (isConditionMet) {
+                if (moveData.FunctionCode === "DoublePowerIfTargetStatusProblem") effect.power *= 2;
+                if (moveData.FunctionCode === "IfTargetHasItemStandard") effect.power = Math.floor(effect.power * 1.5);
+            }
+        }
+
+        // 壁・範囲補正の計算
+        let wall_m = 1.0;
+        if (isWallDoubleChecked) { wall_m = 2/3; } 
+        else if (isWallSingleChecked) { wall_m = 0.5; }
+        const range_m = isRangeChecked ? 0.75 : 1.0;
+
+        // --- commonArgs の定義 (ReferenceError回避のため計算の直前に配置) ---
+        const commonArgs = {
+            power: effect.power,
+            base_attack: effect.atk,
+            base_defense: effect.def,
+            rank_attack_val: effect.atkRank,
+            rank_defense_val: effect.defRank,
+            isBurnedChecked, stab_m, affinity_m, item_m_atk, ability_m_atk, item_m_def, ability_m_def, 
+            environment, moveType, wall_m, range_m, hp, isSubstituteChecked, 
+            other_m: extraMultiplier
+        };
+
+        // --- 連続計算の実行 ---
+        let totalMin = 0;
+        let totalMax = 0;
+        let standardResult = null;
+
+        for (let i = 0; i < hitCount; i++) {
+            // ▼▼▼ トリプルアクセル専用の威力変動ロジックを追加 ▼▼▼
+            let currentHitArgs = { ...commonArgs };
+            if (normalizedMoveName === "トリプルアクセル" || normalizedMoveName === "トリプルキック") {
+                // 1発目: 20, 2発目: 40, 3発目: 60
+                currentHitArgs.power = (i + 1) * 20;
+            }
+            // ▲▲▲ ここまで ▲▲▲
+
+                    // 特性: マルチスケイル / ファントムガード の判定
+if (document.getElementById("defender-ability").value === "MULTISCALE" || document.getElementById("defender-ability").value === "SHADOWSHIELD") {
+
+        if (i > 0) {
+
+            currentHitArgs.ability_m_def = 1.0
+
+        }
+        let currentHitArgs = { ...commonArgs };            // 特性: おやこあいの判定
+if (document.getElementById("attacker-ability").value === "PARENTALBOND") {
+
+        if (i > 0) {
+
+            currentHitArgs.ability_m_atk = 1024;
+
+        }
+        }
+    }
+
+        
+
+            const isThisHitCrit = (i < critHitCount) || isCriticalChecked;
+            
+            // 引数を commonArgs から currentHitArgs に変更
+            const res = runDamageCalculation(isThisHitCrit, currentHitArgs);
+            
+            totalMin += res.minResult;
+            totalMax += res.maxResult;
+            
+            // 1発目のデータを詳細表示用に保持（トリプルアクセルでも初撃の目安として使用）
+            if (i === 0) standardResult = res; 
+        }
+        
+        // 標準的な単発結果（表示用）
+        let criticalResult = null;
+        if (!isCriticalChecked) {
+            criticalResult = runDamageCalculation(true, commonArgs);
+        }
+
+        // 1発目の結果から「ハザード考慮済みのHP」を取得する
+//const effectiveTargetHP = standardResult.targetHP;
+// 1発目の結果から「ハザード考慮済みのHP」を取得する
+let effectiveTargetHP = standardResult.targetHP;
+
+// ★修正：HTMLから防御側アイテムの選択値を取得する
+const itemDefKey = document.getElementById('item_m_def_select')?.value || "";
+
+// 【追加】回復アイテムによる「実質HP」の計算
+if (itemDefKey === "obon") {
+    // オボン込み実質HP = 現在のHP + 最大HPの25%
+    effectiveTargetHP += Math.floor(hp * 0.25);
+} else if (itemDefKey === "konran") {
+    // 混乱実込み実質HP = 現在のHP + 最大HPの33%
+    effectiveTargetHP += Math.floor(hp * 0.33);
+} else if (itemDefKey === "tabenokoshi") {
+    // たべのこしは毎ターン回復するため、確定数計算時に考慮（簡易的に1/16加算）
+    effectiveTargetHP += Math.floor(hp / 16);
+} else if (itemDefKey === "tabenokoshi2") {
+    // たべのこしは毎ターン回復するため、確定数計算時に考慮（簡易的に1/16加算）
+    effectiveTargetHP += Math.floor(hp / 16) *2;
+} else if (itemDefKey === "tabenokoshi3") {
+    // たべのこしは毎ターン回復するため、確定数計算時に考慮（簡易的に1/16加算）
+    effectiveTargetHP += Math.floor(hp / 16) *3;
+} else if (itemDefKey === "tabenokoshi4") {
+    // たべのこしは毎ターン回復するため、確定数計算時に考慮（簡易的に1/16加算）
+    effectiveTargetHP += Math.floor(hp / 16) *4;
+} else if (itemDefKey === "tabenokoshi5") {
+    // たべのこしは毎ターン回復するため、確定数計算時に考慮（簡易的に1/16加算）
+    effectiveTargetHP += Math.floor(hp / 16) *5;
+} else if (itemDefKey === "tabenokoshi6") {
+    // たべのこしは毎ターン回復するため、確定数計算時に考慮（簡易的に1/16加算）
+    effectiveTargetHP += Math.floor(hp / 16) *6;
+} else if (itemDefKey === "tabenokoshi7") {
+    // たべのこしは毎ターン回復するため、確定数計算時に考慮（簡易的に1/16加算）
+    effectiveTargetHP += Math.floor(hp / 16) *7;
+} else if (itemDefKey === "tabenokoshi8") {
+    // たべのこしは毎ターン回復するため、確定数計算時に考慮（簡易的に1/16加算）
+    effectiveTargetHP += Math.floor(hp / 16) *8;
+}
+
+// 以降、この effectiveTargetHP を使って確定数(koText)が計算される
+
+        // --- 確定数（KO率）の計算準備 ---
+        let koText = "";
+        let displayProb = 0;
+
+        // 1. 各ヒットごとの通常ダメージ（特性なし）の分布を配列で取得
+        // トリプルアクセルの威力上昇(20→40→60)を考慮する
+        let normalHitsDamages = []; // [ [16通りの配列], [16通りの配列], [16通りの配列] ]
+        let normalSetMin = 0;
+        let normalSetMax = 0;
+
+        for (let j = 0; j < hitCount; j++) {
+            let tempArgs = { ...commonArgs };
+            tempArgs.ability_m_def = 1.0; // 特性なし
+            
+            // トリプルアクセル/キックの威力変動を反映
+            if (normalizedMoveName === "トリプルアクセル" || normalizedMoveName === "トリプルキック") {
+                tempArgs.power = (j + 1) * 20;
+            }
+            
+            const res = runDamageCalculation(isCriticalChecked, tempArgs);
+            normalHitsDamages.push(res.hitDetails[0].damages);
+            normalSetMin += res.minResult;
+            normalSetMax += res.maxResult;
+        }
+
+        // 2. 1セット目（マルチスケイル考慮）のダメージ分布を合成
+        let damageDistributionForFirstSet = [];
+        const isMultiscaleTarget = (document.getElementById('defender-ability')?.value === "MULTISCALE" || document.getElementById('defender-ability')?.value === "SHADOWSHIELD");
+
+        // 全ヒットの同じインデックス（乱数位置）を足し合わせる
+        damageDistributionForFirstSet = Array(16).fill(0).map((_, idx) => {
+            let sum = 0;
+            for (let j = 0; j < hitCount; j++) {
+                if (j === 0 && isMultiscaleTarget) {
+                    // 1発目かつマルチスケイル対象なら、特性適用済みの standardResult を使用
+                    sum += standardResult.hitDetails[0].damages[idx];
+                } else {
+                    // それ以外は威力変動を考慮した normalHitsDamages を使用
+                    sum += normalHitsDamages[j][idx];
+                }
+            }
+            return sum;
+        });
+
+        // --- 確定数（KO率）の判定ロジック ---
+        // 1セット目(マルチスケイル考慮)の最小・最大を再定義
+        const firstSetMinActual = damageDistributionForFirstSet[0];
+        const firstSetMaxActual = damageDistributionForFirstSet[15];
+
+        if (firstSetMinActual >= effectiveTargetHP) {
+            koText = `<span style="color:#e74c3c; font-weight:bold;">確定1発</span>`;
+        } else {
+            let sets = 0;
+            let found = false;
+            while (sets < 10) {
+                sets++;
+                // 累積：1セット目(特性考慮) + (sets-1)回分の通常セット
+                let accMin = firstSetMinActual + (normalSetMin * (sets - 1));
+                let accMax = firstSetMaxActual + (normalSetMax * (sets - 1));
+
+                if (accMax >= effectiveTargetHP) {
+                    if (accMin >= effectiveTargetHP) {
+                        koText = `<span>確定 ${sets} 発</span>`;
+                    } else {
+                        // 確率計算: 1セット目の分布をベースに、sets 回分として計算
+                        // (damageDistributionForFirstSet 自体がすでに hitCount 分の合計)
+                        displayProb = getKOProbability(effectiveTargetHP - (normalSetMin * (sets - 1)), damageDistributionForFirstSet, 1);
+                        
+                        // 万が一0%や100%付近で計算が不安定な場合のフォールバック
+                        if (displayProb <= 0 && accMax >= effectiveTargetHP) {
+                            displayProb = ((accMax - effectiveTargetHP) / (accMax - accMin)) * 100;
+                        }
+                        
+                        koText = `<span style="color:#f39c12; font-weight:bold;">乱数 ${sets} 発 (${displayProb.toFixed(2)}%)</span>`;
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) koText = `<span>確定 11 発以上</span>`;
+        }
+        // --- 5. 結果の表示 (修正版) ---
+        let outputHTML = '';
+        
+        // 合計ダメージと確定数の表示ボックス
+        outputHTML += `
+        <div class="result-total-box" style="background:#fff4f4; padding:15px; border-radius:8px; margin-bottom:15px; border:2px solid #e74c3c;">
+            <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">🔥 ${hitCount}ヒット合計ダメージ</div>
+            <div style="font-size: 1.4em; font-weight: bold; color: #d35400;">
+                ${totalMin} ～ ${totalMax} <span style="font-size: 0.7em;">ダメージ</span>
+            </div>
+            <div style="font-size: 1.1em; font-weight: bold; margin: 5px 0;">
+                割合: ${(totalMin/effectiveTargetHP*100).toFixed(1)}% ～ ${(totalMax/effectiveTargetHP*100).toFixed(1)}%
+            </div>
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e74c3c; font-size: 1.1em;">
+                <strong>判定: ${koText}</strong>
+            </div>
+        </div>`;
+
+        outputHTML += formatResultHTML("1発あたりの通常ダメージ", standardResult, effectiveTargetHP);
+        
+        if (criticalResult) {
+            outputHTML += "<hr style='border: 1px dashed #ccc;'>";
+            outputHTML += formatResultHTML("1発あたりの急所ダメージ", criticalResult, effectiveTargetHP);
+        }
+        
+        const { attackerStatKey, defenderStatKey, final_attack, final_defense, defenseCalcString, weather_m } = standardResult;
+
+        let notes = `<br><br>
+            <strong>適用された威力補正 (M)</strong>: <strong>${weather_m}倍</strong>
+            <br>
+            <strong>適用能力値</strong><br>
+            <ul>
+                <li><strong>攻撃側 (${attackerStatKey})</strong>: ${effect.atk} × ${getRankMultiplier(effect.atkRank, isCriticalChecked, true)} = <strong>${final_attack}</strong></li>
+                <li><strong>防御側 (${defenderStatKey})</strong>: ${defenseCalcString} = <strong>${final_defense}</strong></li>
+            </ul>`;
+
+        resultDiv.innerHTML = outputHTML + notes;
+
+        // ▼▼▼ ここから挿入 ▼▼▼
+        // 倒れなかった場合のみ、残りHP割合を計算して反映ボタンを表示する
+        const currentHPVal = parseInt(document.getElementById('current_hp_val')?.innerText) || hp;
+        
+        // 条件：最大乱数ダメージ(totalMax)が現在の残りHP(currentHPVal)を下回っている場合（＝倒れない）
+        if (totalMax < currentHPVal) {
+            const nextHP = currentHPVal - totalMax;
+            const maxHPOrig = parseFloat(document.getElementById('hp').value) || 1; // 元の最大HP
+            const nextPercent = (Math.max(0, (nextHP / maxHPOrig) * 100)).toFixed(1);
+
+            const updateBtnHtml = `
+                <div style="margin-top:15px; padding:10px; background:#eef2f7; border-radius:8px; border:1px solid #ced4da;">
+                    <p style="margin:0 0 8px 0; font-size:0.9em; color:#495057;">
+                        🛡️ 攻撃を耐えた後の残りHP予測（最大ダメージ時）: <strong>${nextPercent}%</strong>
+                    </p>
+                    <button type="button" onclick="updatePercentAndRecalc(${nextPercent})" 
+                            style="cursor:pointer; padding:6px 12px; background:#007bff; color:white; border:none; border-radius:4px; font-weight:bold;">
+                        このHP割合を反映して再計算
+                    </button>
+                </div>
+            `;
+            resultDiv.insertAdjacentHTML('beforeend', updateBtnHtml);
+        }
+        // ▲▲▲ ここまで挿入 ▲▲▲
+
+    } catch (error) {
+        console.error("ダメージ計算中に致命的なエラーが発生しました:", error);
+        resultDiv.innerHTML = `<div class='error'>計算中にエラーが発生しました。<br>詳細: ${error.name}: ${error.message}</div>`;
+    }
+}
+
+// 関数外（scriptタグ内のどこか）に以下のヘルパー関数も追加してください
+function updatePercentAndRecalc(val) {
+    const percentInput = document.getElementById('hp_percent');
+    if (percentInput) {
+        percentInput.value = val;
+        // 既存の「割合から実数値を更新する関数」を呼ぶ
+        if (typeof updateHPByPercent === 'function') {
+            updateHPByPercent();
+        } else {
+            // updateHPByPercentがない場合は直接計算して再計算
+            calculateDamage();
+        }
+    }
+}
+
+// 動的制御用関数
+function updateCritSelect() {
+    const hitCountEl = document.getElementById('hit_count');
+    const critSelect = document.getElementById('crit_hit_count');
+    if (!hitCountEl || !critSelect) return;
+
+    const hitCount = parseInt(hitCountEl.value);
+    const currentCrit = parseInt(critSelect.value);
+
+    critSelect.innerHTML = "";
+    for (let i = 0; i <= hitCount; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = i + "回";
+        critSelect.appendChild(opt);
+    }
+    critSelect.value = Math.min(currentCrit, hitCount);
+}
+
+// イベント設定（HTML読み込み完了後）
+window.addEventListener('DOMContentLoaded', () => {
+    const hitCountEl = document.getElementById('hit_count');
+    if (hitCountEl) {
+        hitCountEl.addEventListener('change', updateCritSelect);
+        updateCritSelect();
+    }
+});
+
+
+        // ===============================================
+        // C. イベントリスナーの設定
+        // ===============================================
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+        await loadAbilityData();
+        await loadMoveData(); 
+        await loadPokemonData(); 
+
+            
+            const attackerNameInput = document.getElementById('attacker-pokemon-name');
+            const defenderNameInput = document.getElementById('defender-pokemon-name');
+            const moveNameInput = document.getElementById('move-name');
+            
+const maxHPInput = document.getElementById('attacker-max-hp-input');
+    const curHPInput = document.getElementById('attacker-current-hp-input');
+
+    if (maxHPInput) {
+        maxHPInput.addEventListener('input', updateHPDependentPower);
+    }
+    if (curHPInput) {
+        curHPInput.addEventListener('input', updateHPDependentPower);
+    }
+            function handlePokemonUpdate(role, inputElement) {
+                updateStatsAndRecalculate(role, inputElement.value); 
+            }
+
+            // ポケモンが変更された時の処理（体重再計算を追加）
+function handlePokemonUpdate(role, inputElement) {
+    const value = inputElement.value;
+
+    // 1. ステータスの更新（種族値や実数値の計算）
+    updateStatsAndRecalculate(role, value); 
+
+    // 2. ポケモンが変わったので威力を再計算（これが必要！）
+    refreshWeightBasedPower();
+
+    // 3. ダメージ計算
+    calculateDamage();
+}
+/**
+ * 技更新時の統合処理
+ * ボディプレス、体重依存技、アシストパワー、ジャイロボール、HP依存技すべてに対応
+ */
+function handleMoveUpdate(inputElement) {
+    const moveInput = inputElement.value;
+    const moveNameKatakana = hiraganaToKatakana(moveInput);
+    
+    // ① まず技の基本データを読み込む（ここで一度威力はDBの値にリセットされる）
+    updateMoveDataAndRecalculate(moveInput); 
+    
+    // ② リセットされた「後」に、特殊計算で威力を上書きする
+    const moveData = MOVEDATA_MAP[moveNameKatakana];
+    const hpDependentMoves = ["シオフキ", "フンカ", "ドラゴンエナジー"]; // カタカナで判定
+    const x15Moves = ["ハタキオトス", "Gノチカラ", "ミストバースト","ワイドフォース"];
+    const x20Moves = ["ウップンバラシ", "エラガミ","カタキウチ","キツケ","キマグレーザー","クロスサンダー","クロスフレイム","ジシン","タタリメ","ダメオシ","デンゲキクチバシ","ドクバリセンボン","ナミノリ","ハードローラー","フミツケ", "メザマシビンタ","ヤケッパチ","ユキナダレ","ライジングボルト", "リベンジ", "シオミズ", "ベノムショック", "カラゲンキ"];
+
+    if (moveData) {
+        if (moveNameKatakana === "アシストパワー" || moveNameKatakana === "ツケアガル") {
+            updateStoredPower(); 
+        } else if (moveNameKatakana === "ジャイロボール") {
+            updateGyroPower(); 
+        } else if (hpDependentMoves.includes(moveNameKatakana)) {
+            // --- HP依存技の処理を追加 ---
+            updateHPDependentPower(); 
+        } else if (x15Moves.includes(moveNameKatakana) || x20Moves.includes(moveNameKatakana)) {
+            updateConditionalPower();
+        } else if (moveNameKatakana === "フンドノコブシ") {
+            updateRageFistPower();
+        } else if (moveNameKatakana === "オハカマイリ") {
+            updateLastRespectsPower();
+        } else {
+            // ヘビーボンバー、けたぐり等の体重依存技
+            refreshWeightBasedPower(); 
+        }
+    }
+
+    // ③ ボディプレスなどの判定（分類に基づいて攻撃側のステータスAかBかを決める）
+    getStatKeys(); 
+
+    // ④ ポケモン側の実数値を再計算（性格補正や努力値を反映）
+    const attackerName = document.getElementById('attacker-pokemon-name').value;
+    const defenderName = document.getElementById('defender-pokemon-name').value;
+    if (attackerName) updateStatsAndRecalculate('attacker', attackerName);
+    if (defenderName) updateStatsAndRecalculate('defender', defenderName);
+    
+    // ⑤ 最後に全データを元にダメージ計算を実行
+    calculateDamage();
+}
+/**
+ * 現在選択されている技と両ポケモンの体重から威力を算出し、画面に反映する
+ */
+function refreshWeightBasedPower() {
+    const moveInput = document.getElementById('move-name');
+    const moveNameKatakana = hiraganaToKatakana(moveInput.value);
+    const moveData = MOVEDATA_MAP[moveNameKatakana];
+
+    if (moveData) {
+        const attackerName = document.getElementById('attacker-pokemon-name').value;
+        const defenderName = document.getElementById('defender-pokemon-name').value;
+        const atkKey = NAME_TO_KEY_MAP[hiraganaToKatakana(attackerName)];
+        const defKey = NAME_TO_KEY_MAP[hiraganaToKatakana(defenderName)];
+        
+        const atkWeight = POKEDATA_MAP[atkKey]?.Weight || 0;
+        const defWeight = POKEDATA_MAP[defKey]?.Weight || 0;
+
+        const newPower = calculateWeightBasedPower(moveData, atkWeight, defWeight);
+        
+        // 体重依存技の場合のみ、威力入力欄を上書きする
+        if (newPower !== null) {
+            document.getElementById('power').value = newPower;
+        }
+    }
+}
+// --- 技名入力時のUI切り替え制御（修正版） ---
+document.getElementById('move-name').addEventListener('input', function() {
+    const moveInput = this.value;
+    const moveNameKatakana = hiraganaToKatakana(moveInput);
+    const x15Moves = ["ハタキオトス", "Gノチカラ", "ミストバースト","ワイドフォース"]; // 1.5倍
+const x20Moves = ["ウップンバラシ", "エラガミ","カタキウチ","キツケ","キマグレーザー","クロスサンダー","クロスフレイム","ジシン","タタリメ","ダメオシ","デンゲキクチバシ","ドクバリセンボン","ナミノリ","ハードローラー","フミツケ", "メザマシビンタ","ヤケッパチ","ユキナダレ","ライジングボルト", "リベンジ", "シオミズ", "ベノムショック", "カラゲンキ"]; // 2倍（しおみず等はHP50%以下想定）
+const conditionalUI = document.getElementById('conditional-power-ui');
+const multiplierCheck = document.getElementById('power-multiplier-check');
+const multiplierValueSpan = document.getElementById('power-multiplier-value');
+    const gyroUI = document.getElementById('gyro-ball-ui');
+    const storedPowerUI = document.getElementById('stored-power-ui');
+    const hpDependentUI = document.getElementById('hp-dependent-move-ui');
+    const rageFistUI = document.getElementById('rage-fist-ui');
+    const lastRespectsUI = document.getElementById('last-respects-ui');
+
+    // ジャイロボール
+    if (moveNameKatakana === "ジャイロボール") {
+        gyroUI.style.display = 'block';
+        if (typeof updateGyroPower === "function") updateGyroPower(); 
+    } else {
+        gyroUI.style.display = 'none';
+    }
+
+    // アシストパワー・つけあがる
+    if (moveNameKatakana === "アシストパワー" || moveNameKatakana === "ツケアガル") {
+        storedPowerUI.style.display = 'block';
+        if (typeof updateStoredPower === "function") updateStoredPower();
+    } else {
+        storedPowerUI.style.display = 'none';
+    }
+
+    if (moveNameKatakana === "フンドノコブシ") {
+    rageFistUI.style.display = 'block';
+    updateRageFistPower(); 
+} else {
+    rageFistUI.style.display = 'none';
+}
+if (moveNameKatakana === "オハカマイリ") {
+    lastRespectsUI.style.display = 'block';
+    updateLastRespectsPower(); 
+} else {
+    lastRespectsUI.style.display = 'none';
+}
+if (x15Moves.includes(moveNameKatakana) || x20Moves.includes(moveNameKatakana)) {
+    conditionalUI.style.display = 'block';
+    const is2x = x20Moves.includes(moveNameKatakana);
+    multiplierValueSpan.innerText = is2x ? "2" : "1.5";
+    
+    // 技ごとにラベルを変えると親切
+    document.getElementById('power-multiplier-label').innerText = 
+        moveNameKatakana === "ハタキオトス" ? "相手が道具を持っている" :
+        moveNameKatakana === "タタリメ" ? "相手が状態異常" :
+        moveNameKatakana === "カラゲンキ" ? "自分が状態異常" : "条件を満たしている";
+
+    updateConditionalPower(); 
+} else {
+    conditionalUI.style.display = 'none';
+}
+    // --- HP依存技の判定 ---
+    const hpDependentMoves = ["シオフキ", "フンカ", "ドラゴンエナジー"];
+    if (hpDependentMoves.includes(moveNameKatakana)) {
+        hpDependentUI.style.display = 'block';
+        
+        // 【重要】UIを開いた時に現在のステータス画面のHP実数値を同期
+        const attackerHPReal = document.getElementById('atk-hp'); // 攻撃側のHP実数値入力欄
+        if (attackerHPReal && attackerHPReal.value) {
+            // ID名はHTML側のinputタグと一致させること
+            document.getElementById('attacker-max-hp-input').value = attackerHPReal.value;
+            document.getElementById('attacker-current-hp-input').value = attackerHPReal.value;
+        }
+        updateHPDependentPower(); 
+    } else {
+        hpDependentUI.style.display = 'none';
+    }
+});
+/**
+ * 条件付き技（はたき、たたりめ等）の威力を計算して反映
+ */
+function updateConditionalPower() {
+    const moveInput = document.getElementById('move-name');
+    const moveNameKatakana = hiraganaToKatakana(moveInput.value);
+    const moveData = MOVEDATA_MAP[moveNameKatakana];
+    const powerInput = document.getElementById('power');
+    const isChecked = document.getElementById('power-multiplier-check').checked;
+
+    if (!moveData || !powerInput) return;
+
+    let basePower = parseInt(moveData.Power) || 0;
+    
+    // 倍率の決定
+    const x15Moves = ["ハタキオトス", "Gノチカラ", "ミストバースト","ワイドフォース"];
+    const x20Moves = ["ウップンバラシ", "エラガミ","カタキウチ","キツケ","キマグレーザー","クロスサンダー","クロスフレイム","ジシン","タタリメ","ダメオシ","デンゲキクチバシ","ドクバリセンボン","ナミノリ","ハードローラー","フミツケ", "メザマシビンタ","ヤケッパチ","ユキナダレ","ライジングボルト", "リベンジ", "シオミズ", "ベノムショック", "カラゲンキ"];
+
+    let multiplier = 1.0;
+    if (isChecked) {
+        if (x15Moves.includes(moveNameKatakana)) multiplier = 1.5;
+        if (x20Moves.includes(moveNameKatakana)) multiplier = 2.0;
+    }
+
+    // 計算（はたきおとすの1.5倍は四捨五入ではなく、通常は基本威力を書き換える処理）
+    // 威力 = floor(基本威力 * 倍率)
+    const finalPower = Math.floor(basePower * multiplier);
+    
+    powerInput.value = finalPower;
+
+    if (typeof calculateDamage === "function") {
+        calculateDamage();
+    }
+}
+
+// チェックボックス自体の変更イベントを登録
+document.getElementById('power-multiplier-check').addEventListener('change', updateConditionalPower);
+/**
+ * ふんどのこぶしの威力を計算し、反映する
+ */
+function updateRageFistPower() {
+    const countInput = document.getElementById('rage-fist-count');
+    const displaySpan = document.getElementById('rage-fist-calculated-power');
+    const powerInput = document.getElementById('power');
+
+    if (!countInput) return;
+
+    // 回数の取得（最大6回で威力350になる: 50 + 6*50 = 350）
+    let count = parseInt(countInput.value) || 0;
+    if (count < 0) count = 0;
+    if (count > 6) count = 6; // 350以上にはならない仕様
+    countInput.value = count;
+
+    // 威力 = 50 + (被弾回数 × 50)
+    const calculatedPower = 50 + (count * 50);
+
+    // UI更新
+    if (displaySpan) displaySpan.innerText = calculatedPower;
+    if (powerInput) powerInput.value = calculatedPower;
+
+    // ダメージ計算実行
+    if (typeof calculateDamage === "function") {
+        calculateDamage();
+    }
+}
+
+// 被弾回数入力へのイベントリスナー登録
+const rageInput = document.getElementById('rage-fist-count');
+if (rageInput) {
+    rageInput.addEventListener('input', updateRageFistPower);
+}
+/**
+ * おはかまいりの威力を計算し、反映する
+ */
+function updateLastRespectsPower() {
+    const countInput = document.getElementById('last-respects-count');
+    const displaySpan = document.getElementById('last-respects-calculated-power');
+    const powerInput = document.getElementById('power');
+
+    if (!countInput) return;
+
+    // 回数の取得（最大6回で威力350になる: 50 + 6*50 = 350）
+    let count = parseInt(countInput.value) || 0;
+    if (count < 0) count = 0;
+    if (count > 10) count = 10; // 350以上にはならない仕様
+    countInput.value = count;
+
+    // 威力 = 50 + (被弾回数 × 50)
+    const calculatedPower = 50 + (count * 50);
+
+    // UI更新
+    if (displaySpan) displaySpan.innerText = calculatedPower;
+    if (powerInput) powerInput.value = calculatedPower;
+
+    // ダメージ計算実行
+    if (typeof calculateDamage === "function") {
+        calculateDamage();
+    }
+}
+
+// 被弾回数入力へのイベントリスナー登録
+const lastrespectsInput = document.getElementById('last-respects-count');
+if (lastrespectsInput) {
+    lastrespectsInput.addEventListener('input', updateLastRespectsPower);
+}
+/**
+ * HP依存技の威力計算および「技の威力」欄への強制反映
+ */
+function updateHPDependentPower() {
+    const maxElem = document.getElementById('attacker-max-hp-input');
+    const curElem = document.getElementById('attacker-current-hp-input');
+    const powerInput = document.getElementById('power'); // メインの威力入力欄
+    const displaySpan = document.getElementById('hp-calculated-power-display');
+
+    if (!maxElem || !curElem || !powerInput) return;
+
+    const maxHP = parseInt(maxElem.value) || 1;
+    let currentHP = parseInt(curElem.value);
+    if (isNaN(currentHP)) currentHP = 0;
+
+    // 威力 = floor(150 × 残りHP ÷ 最大HP)
+    let power = Math.floor(150 * currentHP / maxHP);
+    
+    // HPが1以上あるなら最低威力は1、HP0なら0
+    if (power < 1 && currentHP > 0) power = 1;
+    if (currentHP <= 0) power = 0;
+
+    // 1. 専用UI内の数値を更新
+    if (displaySpan) displaySpan.innerText = power;
+    
+    // 2. メインの「技の威力 (自動入力)」欄を書き換え
+    powerInput.value = power;
+
+    // 3. 重要：威力プロパティが変わったのでダメージ再計算をトリガー
+    if (typeof calculateDamage === "function") {
+        calculateDamage();
+    }
+}
+
+/**
+ * アシストパワー・つけあがるの威力を計算し、計算機全体を更新する
+ */
+function updateStoredPower() {
+    const rankSumInput = document.getElementById('rank-sum-total');
+    const displaySpan = document.getElementById('stored-calculated-power');
+    const powerInput = document.getElementById('power');
+
+    if (!rankSumInput) return;
+
+    // 1. 値の取得とバリデーション
+    let rankSum = parseInt(rankSumInput.value) || 0;
+    if (rankSum > 42) rankSum = 42;
+    if (rankSum < 0) rankSum = 0;
+    rankSumInput.value = rankSum;
+
+    // 2. 威力計算：20 + (上昇ランク合計 × 20)
+    const calculatedPower = 20 + (rankSum * 20);
+
+    // 3. UIの「算出威力」テキストを更新
+    if (displaySpan) displaySpan.innerText = calculatedPower;
+    
+    // 4. 重要：メインの威力入力欄（id="power"）に値をセット
+    // これによりダメージ計算式でこの威力が使われるようになる
+    if (powerInput) {
+        powerInput.value = calculatedPower;
+    }
+
+    // 5. 【追加】ダメージ計算を即座に実行
+    // 威力だけでなく、ボディプレスなどの判定(getStatKeys)も念のため通す
+    getStatKeys();
+    
+    if (typeof calculateDamage === "function") {
+        calculateDamage();
+    }
+}
+// JavaScriptのDOMContentLoaded内、またはHTMLのタグを直接修正
+const rankInput = document.getElementById('rank-sum-total');
+if (rankInput) {
+    // 数値を矢印で変えたり入力した瞬間に反応
+    rankInput.addEventListener('input', updateStoredPower);
+    // フォーカスが外れた時なども念のため反応
+    rankInput.addEventListener('change', updateStoredPower);
+}
+// --- ジャイロボール用：素早さ種族値取得と連動の修正 ---
+
+// 攻撃側ポケモンの入力時に素早さ種族値を反映
+document.getElementById('attacker-pokemon-name').addEventListener('change', function() {
+    const name = hiraganaToKatakana(this.value);
+    const key = NAME_TO_KEY_MAP[name]; 
+    if (key && POKEDATA_MAP[key]) {
+        const baseS = POKEDATA_MAP[key].Speed;
+        document.getElementById('s-base-atk').value = baseS;
+        updateGyroUIRealSpeed('atk'); // 実数値を再計算
+    }
+});
+
+// 防御側ポケモンの入力時に素早さ種族値を反映
+document.getElementById('defender-pokemon-name').addEventListener('change', function() {
+    const name = hiraganaToKatakana(this.value);
+    const key = NAME_TO_KEY_MAP[name];
+    if (key && POKEDATA_MAP[key]) {
+        const baseS = POKEDATA_MAP[key].Speed;
+        document.getElementById('s-base-def').value = baseS;
+        updateGyroUIRealSpeed('def'); // 実数値を再計算
+    }
+});
+
+/**
+ * ジャイロUI専用：種族値・個体値・努力値から実数値を計算して表示を更新
+ * (提示された calculateMaxStat のロジックを適用)
+ */
+function updateGyroUIRealSpeed(side) {
+    const baseStat = parseInt(document.getElementById(`s-base-${side}`).value) || 0;
+    const iv = parseInt(document.getElementById(`s-iv-${side}`).value) || 0;
+    const ev = parseInt(document.getElementById(`s-ev-${side}`).value) || 0;
+    const natureMultiplier = parseFloat(document.getElementById(`s-nature-${side}`).value) || 1.0;
+    const rankValue = parseInt(document.getElementById(`s-rank-${side}`).value) || 0;
+
+    // ステータス計算 (Lv50固定)
+    // floor((floor((2 * B + I + E/4) * L / 100) + 5) * N)
+    let stat = Math.floor((baseStat * 2 + iv + Math.floor(ev / 4)) * 0.5) + 5;
+    stat = Math.floor(stat * natureMultiplier);
+
+    // ランク補正の適用
+    const multipliers = {
+        '0': 1.0, '1': 1.5, '2': 2.0, '3': 2.5, '4': 3.0, '5': 3.5, '6': 4.0,
+        '-1': 0.66, '-2': 0.5, '-3': 0.4, '-4': 0.33, '-5': 0.28, '-6': 0.25
+    };
+    stat = Math.floor(stat * (multipliers[rankValue] || 1.0));
+
+    // UI上の「計算後の実数値」を更新
+    document.getElementById(`real-s-${side}`).innerText = stat;
+
+    // 既存の威力計算関数を呼び出し（威力を再計算して反映）
+    if (typeof updateGyroPower === "function") {
+        updateGyroPower();
+    }
+}
+
+/**
+ * 既存の updateGyroPower を「詳細UIの実数値」を使うように修正/ラップ
+ */
+function updateGyroPower() {
+    // 安全策：移動名がジャイロボールでないなら何もしない
+    const curMove = hiraganaToKatakana(document.getElementById('move-name').value);
+    if (curMove !== "ジャイロボール") return;
+
+    // 詳細UIに表示されている「計算後の実数値」を直接取得
+    const attackerS = parseInt(document.getElementById('real-s-atk').innerText) || 1;
+    const defenderS = parseInt(document.getElementById('real-s-def').innerText) || 1;
+    
+    // ジャイロボールの公式: 威力 = floor(25 × 相手S / 自分S) + 1
+    let gyroPower = Math.floor((25 * defenderS) / attackerS) + 1;
+    
+    if (gyroPower > 150) gyroPower = 150;
+    if (gyroPower < 1) gyroPower = 1;
+
+    // UI表示の更新
+    document.getElementById('gyro-calculated-power').innerText = gyroPower;
+    document.getElementById('power').value = gyroPower; // メインの威力欄に反映
+    
+    // ダメージ計算も再実行
+    if (typeof calculateDamage === "function") calculateDamage();
+}
+
+// ジャイロ詳細UIの数値が変わった時も自動計算が走るようにする
+[
+    's-base-atk', 's-iv-atk', 's-ev-atk', 's-nature-atk', 's-rank-atk',
+    's-base-def', 's-iv-def', 's-ev-def', 's-nature-def', 's-rank-def'
+].forEach(id => {
+    const side = id.includes('-atk') ? 'atk' : 'def';
+    document.getElementById(id).addEventListener('input', () => updateGyroUIRealSpeed(side));
+});
+
+/**
+ * 汎用的な能力値計算（ランク補正込み）
+ */
+function calculateStatWithRank(base, iv, ev, nature, rankMult) {
+    // 実数値 = floor((floor((2 * 種族値 + 個体値 + floor(努力値/4)) * レベル / 100) + 5) * 性格補正)
+    let stat = Math.floor((Math.floor((2 * base + iv + Math.floor(ev / 4)) * 50 / 100) + 5) * nature);
+    // ランク補正（素早さは麻痺なども考慮が必要だが、ここではランクのみ）
+    return Math.floor(stat * rankMult);
+}
+
+/**
+ * ランク補正倍率の取得
+ */
+function getRankMultiplier(rank) {
+    const multipliers = {
+        '6': 4.0, '5': 3.5, '4': 3.0, '3': 2.5, '2': 2.0, '1': 1.5,
+        '0': 1.0,
+        '-1': 0.66, '-2': 0.5, '-3': 0.4, '-4': 0.33, '-5': 0.28, '-6': 0.25
+    };
+    return multipliers[rank] || 1.0;
+}
+
+// 全ての入力項目にイベントリスナーを設定して自動更新
+[
+    's-base-atk', 's-iv-atk', 's-ev-atk', 's-nature-atk', 's-rank-atk',
+    's-base-def', 's-iv-def', 's-ev-def', 's-nature-def', 's-rank-def'
+].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateGyroPower);
+});
+// ポケモン名を変えるだけで実数値計算と威力の更新が連鎖します。
+// リスナー登録（既存のまま）
+moveNameInput.addEventListener('change', (e) => handleMoveUpdate(e.target));
+moveNameInput.addEventListener('blur', (e) => handleMoveUpdate(e.target));
+moveNameInput.addEventListener('input', (e) => handleMoveUpdate(e.target)); // inputイベントも追加するとより即時性が増します
+            
+            attackerNameInput.addEventListener('input', (e) => handlePokemonUpdate('attacker', e.target));
+            attackerNameInput.addEventListener('change', (e) => handlePokemonUpdate('attacker', e.target));
+            attackerNameInput.addEventListener('blur', (e) => handlePokemonUpdate('attacker', e.target));
+
+            defenderNameInput.addEventListener('input', (e) => handlePokemonUpdate('defender', e.target));
+            defenderNameInput.addEventListener('change', (e) => handlePokemonUpdate('defender', e.target));
+            defenderNameInput.addEventListener('blur', (e) => handlePokemonUpdate('defender', e.target));
+
+            moveNameInput.addEventListener('change', (e) => handleMoveUpdate(e.target));
+            moveNameInput.addEventListener('blur', (e) => handleMoveUpdate(e.target));
+            
+            document.querySelectorAll('input[name="move_type"]').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    getStatKeys();
+                    
+                    const attackerName = attackerNameInput.value;
+                    const defenderName = defenderNameInput.value;
+                    
+                    // 技の分類が変わったので、能力値表示と防御補正を再計算
+                    if (attackerName) updateStatsAndRecalculate('attacker', attackerName);
+                    if (defenderName) updateStatsAndRecalculate('defender', defenderName);
+                    
+                    calculateDamage(); 
+                });
+            });
+
+            document.getElementById('nature_attack').addEventListener('change', () => {
+                const attackerName = document.getElementById('attacker-pokemon-name').value;
+                if (attackerName) updateStatsAndRecalculate('attacker', attackerName);
+                calculateDamage();
+            });
+
+            document.getElementById('nature_defense').addEventListener('change', () => {
+                const defenderName = document.getElementById('defender-pokemon-name').value;
+                if (defenderName) updateStatsAndRecalculate('defender', defenderName);
+                calculateDamage();
+            });
+
+            // 環境補正の変更時、ダメージ再計算 (防御能力値の再計算も含む)
+            document.getElementById('environment_m_select').addEventListener('change', () => {
+                calculateDamage();
+            });
+            
+            // NEW: EV input change listeners
+            document.getElementById('hp_ev').addEventListener('change', () => {
+                const defenderName = document.getElementById('defender-pokemon-name').value;
+                if (defenderName) updateStatsAndRecalculate('defender', defenderName);
+                calculateDamage();
+            });
+
+            document.getElementById('attacker_ev').addEventListener('change', () => {
+                const attackerName = document.getElementById('attacker-pokemon-name').value;
+                if (attackerName) updateStatsAndRecalculate('attacker', attackerName);
+                calculateDamage();
+            });
+
+            document.getElementById('defender_ev').addEventListener('change', () => {
+                const defenderName = document.getElementById('defender-pokemon-name').value;
+                if (defenderName) updateStatsAndRecalculate('defender', defenderName);
+                calculateDamage();
+            });
+
+            // NEW: EV button listeners
+            document.querySelectorAll('.ev-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const stat = e.target.getAttribute('data-stat');
+                    const evValue = e.target.getAttribute('data-ev');
+                    const attackerName = document.getElementById('attacker-pokemon-name').value;
+                    const defenderName = document.getElementById('defender-pokemon-name').value;
+
+                    if (stat === 'hp') {
+                        document.getElementById('hp_ev').value = evValue;
+                        if (defenderName) updateStatsAndRecalculate('defender', defenderName);
+                    } else if (stat === 'attacker') {
+                        document.getElementById('attacker_ev').value = evValue;
+                        if (attackerName) updateStatsAndRecalculate('attacker', attackerName);
+                    } else if (stat === 'defender') {
+                        document.getElementById('defender_ev').value = evValue;
+                        if (defenderName) updateStatsAndRecalculate('defender', defenderName);
+                    }
+                    calculateDamage(); // 念のため再計算
+                });
+            });
+
+// EV入力欄が変更されたら能力値とダメージ計算を再実行
+    document.getElementById('hp_ev').addEventListener('change', (e) => updateStatsAndRecalculate('defender', document.getElementById('defender-pokemon-name').value));
+    document.getElementById('attacker_ev').addEventListener('change', (e) => updateStatsAndRecalculate('attacker', document.getElementById('attacker-pokemon-name').value));
+    document.getElementById('defender_ev').addEventListener('change', (e) => updateStatsAndRecalculate('defender', document.getElementById('defender-pokemon-name').value));
+    
+    // NEW: 場に出た時のダメージ計算用イベントリスナー (ステルスロック、まきびし等)
+    const hazardInputs = ['stealth_rock_check', 'spikes_layer'];
+    hazardInputs.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('change', calculateDamage);
+        }
+    });
+    
+// 技名が入力・選択されたときに実行
+document.getElementById('move-name').addEventListener('input', () => {
+    // 1. ラベル（AやB）の更新
+    getStatKeys();
+    
+    // --- 【ここから追加】体重依存技の処理 ---
+    const moveNameKatakana = hiraganaToKatakana(document.getElementById('move-name').value);
+    const moveData = MOVEDATA_MAP[moveNameKatakana];
+
+    if (moveData) {
+        // 体重データの取得
+        const attackerKey = NAME_TO_KEY_MAP[hiraganaToKatakana(document.getElementById('attacker-pokemon-name').value)];
+        const defenderKey = NAME_TO_KEY_MAP[hiraganaToKatakana(document.getElementById('defender-pokemon-name').value)];
+        
+        const atkWeight = POKEDATA_MAP[attackerKey]?.Weight || 0;
+        const defWeight = POKEDATA_MAP[defenderKey]?.Weight || 0;
+
+        // 威力を計算して、画面の威力入力欄（id="power"）を書き換える
+        const calculatedPower = getWeightBasedPower(moveData, atkWeight, defWeight);
+        if (calculatedPower > 0) {
+            document.getElementById('power').value = calculatedPower;
+        }
+    }
+    // --- 【追加ここまで】 ---
+
+    // 2. 実数値(157など)の再計算
+    updateAttackerStatus(); 
+    updateDefenderStatus();
+
+    // ※もし calculateDamage() が自動で呼ばれない構造ならここで呼ぶ
+    // calculateDamage();
+});
+            // その他入力欄が変更されたらダメージ計算を再実行
+            document.getElementById('damageForm').addEventListener('change', (event) => {
+                const targetId = event.target.id;
+                // 自動入力フィールド、ポケモン名、技名、技分類、性格補正、環境補正、EV入力欄以外が変更されたら再計算
+                if (targetId !== 'attacker-pokemon-name' && targetId !== 'defender-pokemon-name' && targetId !== 'move-name' && event.target.name !== 'move_type' && targetId !== 'nature_attack' && targetId !== 'nature_defense' && targetId !== 'environment_m_select' && targetId !== 'hp_ev' && targetId !== 'attacker_ev' && targetId !== 'defender_ev') {
+                    if (!event.target.classList.contains('fixed-value')) {
+                        calculateDamage();
+                    }
+                }
+            });
+        });
+        // ⭐ その他補正グループの変更時にダメージ計算を再実行
+document.getElementById('other-multiplier-group').addEventListener('change', (event) => {
+    // チェックボックスまたはそうだいしょうのinputが変更されたら再計算
+    if (event.target.type === 'checkbox' || event.target.id === 'supreme_overlord') {
+        calculateDamage();
+    }
+});
+// ⭐ 4. わざわい特性補正のチェックボックスが変更されたら補正を再計算
+document.getElementById('ruin-abilities-group').addEventListener('change', (event) => {
+    if (event.target.type === 'checkbox') {
+        updateAbilityEffects();
+    }
+});
+// 5. NEW: 場に出た時のダメージを計算
+    const defenderName = document.getElementById('defender-pokemon-name').value;
+    const normalizedDefenderName = hiraganaToKatakana(defenderName);
+    const defenderKey = NAME_TO_KEY_MAP[normalizedDefenderName];
+
+const hazardResult = calculateEntryHazardDamage(defenderKey, hp);
+const totalHazardDamage = hazardResult?.totalDamage ?? 0;
+const effectiveHP = Math.max(1, hp - totalHazardDamage);
+
+    const hazardDetailsHTML = hazardDamageResult.details.map(d => `<li>${d}</li>`).join('');
+
+    let hazardResultHTML = '';
+
+    let srEffectiveness = 1.0;
+    if (totalHazardDamage > 0) {
+        const hazardPercent = (totalHazardDamage / hp * 100).toFixed(1);
+        hazardResultHTML = `
+            <div style="margin-top: 15px; padding: 10px; border: 1px solid #ff7f50; background-color: #fff8f0; border-radius: 4px;">
+                <h4>場に出た時のダメージ (合計)</h4>
+                **${totalHazardDamage}** ダメージ (${hazardPercent}%)<br>
+                <ul style="margin-top: 5px; padding-left: 20px; font-size: 0.9em;">
+                    ${hazardDetailsHTML}
+                </ul>
+            </div>
+        `;
+        // 【追記】totalHazardDamage > 0 の場合にも計算
+        const defenderTypes = POKEDATA_MAP[defenderKey].Types.filter(t => t !== null && t).map(t => t.toUpperCase());
+        srEffectiveness = getEffectivenessMultiplier("ROCK", defenderTypes);
+    } else if (defenderKey) {
+        // ダメージが0の場合でも、ステルスロックの相性補正を情報として表示
+        const defenderTypes = POKEDATA_MAP[defenderKey].Types.filter(t => t !== null && t).map(t => t.toUpperCase());
+        const srEffectiveness = getEffectivenessMultiplier("ROCK", defenderTypes);
+        hazardResultHTML = `
+            <div style="margin-top: 15px; padding: 10px; border: 1px dashed #ccc; background-color: #f9f9f9; border-radius: 4px; font-size: 0.9em;">
+                <h4>場に出た時のダメージ (合計)</h4>
+                0 ダメージ (補正なし、または無効)
+                <span style="margin-left: 10px; color: #555;">(ステルスロック 岩相性: ${srEffectiveness}倍)</span>
+            </div>
+        `;
+    }
+
+// 5. 結果のHTMLを構築し、DOMに反映
+    resultDiv.innerHTML = `
+        **計算結果**<br>
+        ${standardResultHTML}
+        ${criticalResultHTML}
+        ${hazardResultHTML}
+    `;
+
+    function generateQuickTable() {
+    const container = document.getElementById('quick-table-container');
+    const attackerName = document.getElementById('attacker-pokemon-name').value;
+    const defenderName = document.getElementById('defender-pokemon-name').value;
+    
+    const attackerKey = NAME_TO_KEY_MAP[hiraganaToKatakana(attackerName)];
+    const defenderKey = NAME_TO_KEY_MAP[hiraganaToKatakana(defenderName)];
+
+    if (!attackerKey || !defenderKey) {
+        alert("攻撃側と防御側のポケモンを選択してください。");
+        return;
+    }
+
+    // パラメータ取得
+    const hp = parseFloat(document.getElementById('hp').value);
+    const base_attack = parseFloat(document.getElementById('base_attack').value);
+    const base_defense = parseFloat(document.getElementById('base_defense').value);
+    const rank_attack_val = document.getElementById('rank_attack').value;
+    const rank_defense_val = document.getElementById('rank_defense').value;
+    const isBurnedChecked = document.getElementById('burn_m_check').checked;
+    const environment = document.getElementById('environment_m_select').value;
+    const moveTypeMode = document.querySelector('input[name="move_type"]:checked').value; // physical or special
+    const isSubstituteChecked = document.getElementById('substitute_check').checked;
+
+    // 共通補正
+    const item_m_atk = parseFloat(document.getElementById('item_m_atk').value) || 1.0;
+    const ability_m_atk = parseFloat(document.getElementById('ability_m_atk').value) || 1.0;
+    const item_m_def = parseFloat(document.getElementById('item_m_def').value) || 1.0;
+    const ability_m_def = parseFloat(document.getElementById('ability_m_def').value) || 1.0;
+    
+    // 壁・範囲・その他補正の取得
+    let wall_m = 1.0;
+    if (document.getElementById('wall_single_check').checked) wall_m = 0.5;
+    else if (document.getElementById('wall_double_check').checked) wall_m = 2732 / 4096;
+    const range_m = document.getElementById('range_m_check').checked ? 0.75 : 1.0;
+    const other_m = parseFloat(document.getElementById('supreme_overlord')?.value) || 1.0; // 簡易的にそうだいしょう等を反映
+
+    // 出力用の威力リスト
+    const powers = [150, 140, 130, 120, 110, 100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 40, 30];
+    
+    // 攻撃側のタイプ取得
+    const attackerTypes = POKEDATA_MAP[attackerKey].Types.filter(t => t);
+    const defenderTypes = POKEDATA_MAP[defenderKey].Types.filter(t => t);
+
+    // 列定義
+    const columns = [
+        { label: `${attackerTypes[0]} (一致)`, stab: 1.5, affinity: getEffectivenessMultiplier(attackerTypes[0], defenderTypes), type: attackerTypes[0] },
+        { label: attackerTypes[1] ? `${attackerTypes[1]} (一致)` : "-", stab: 1.5, affinity: attackerTypes[1] ? getEffectivenessMultiplier(attackerTypes[1], defenderTypes) : 0, type: attackerTypes[1] },
+        { label: "不一致抜群", stab: 1.0, affinity: 2.0, type: "NORMAL" },
+        { label: "不一致等倍", stab: 1.0, affinity: 1.0, type: "NORMAL" },
+        { label: "不一致半減", stab: 1.0, affinity: 0.5, type: "NORMAL" }
+    ];
+
+    let html = `<h3>⚔️ ダメージ計算早見表 (vs ${POKEDATA_MAP[defenderKey].Name})</h3>`;
+    html += `<table class="quick-table"><thead><tr><th>威力</th>`;
+    columns.forEach(col => { if(col.affinity > 0) html += `<th>${col.label}<br><small>(x${(col.stab * col.affinity).toFixed(2)})</small></th>`; });
+    html += `</tr></thead><tbody>`;
+
+    powers.forEach(p => {
+        html += `<tr><td class="power-cell">${p}</td>`;
+        columns.forEach(col => {
+            if (col.affinity <= 0) return;
+
+            // 各条件でダメージ計算を実行
+            const res = runDamageCalculation(false, {
+                power: p, base_attack, base_defense, rank_attack_val, rank_defense_val,
+                isBurnedChecked, stab_m: col.stab, affinity_m: col.affinity,
+                item_m_atk, ability_m_atk, item_m_def, ability_m_def,
+                environment, moveType: moveTypeMode, wall_m, range_m, hp,
+                isSubstituteChecked, other_m
+            });
+
+            const minP = ((res.minResult / hp) * 100).toFixed(1);
+            const maxP = ((res.maxResult / hp) * 100).toFixed(1);
+            
+            html += `<td><span class="damage-val">${res.minResult}-${res.maxResult}</span><br><span class="percent-val">${minP}%-${maxP}%</span></td>`;
+        });
+        html += `</tr>`;
+    });
+
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
+
+function loadFromPartyMemo(target) {
+    const slot = document.getElementById('import-slot').value;
+    const pokemonIdx = document.getElementById('import-pokemon-idx').value;
+    const rawData = localStorage.getItem(`p_slot_66_v3_${slot}`);
+
+    if (!rawData) {
+        alert("指定したスロットにデータが見つかりません。");
+        return;
+    }
+
+    const party = JSON.parse(rawData);
+    const pokemon = party.members[pokemonIdx];
+
+    if (!pokemon || !pokemon.spName) {
+        alert("その枠にポケモンが登録されていません。");
+        return;
+    }
+
+    // 性格名から補正値を判定する関数
+    const getNatureMultiplier = (natureName, type) => {
+        // 性格が未設定、または空文字の場合は無補正(1.0)
+        if (!natureName || natureName === "") return "1.0";
+        
+        const attackNatures = ["いじっぱり", "さみしがり", "やんちゃ", "ゆうかん", "ひかえめ", "れいせい", "うっかりや", "おっとり"];
+        const defenseNatures = ["ずぶとい", "おだやか", "のんき", "なまいき", "しんちょう", "わんぱく"];
+
+        if (type === 'attacker') {
+            return attackNatures.includes(natureName) ? "1.1" : "1.0";
+        } else if (type === 'defender') {
+            return defenseNatures.includes(natureName) ? "1.1" : "1.0";
+        }
+        
+        return "1.0";
+    };
+
+    // 補正値を文字列として取得（HTMLのvalueは文字列のため）
+    const multiplier = getNatureMultiplier(pokemon.nt, target);
+
+    if (target === 'attacker') {
+        // 攻撃側の反映
+        const nameInput = document.getElementById('attacker-pokemon-name');
+        nameInput.value = pokemon.spName;
+        // 努力値。配列が空やnullの場合を考慮してデフォルト0
+        document.getElementById('attacker_ev').value = (pokemon.ev && pokemon.ev[1]) || 0; 
+        
+        // セレクトボックスの値を更新
+        const natureSelect = document.getElementById('nature_attack');
+        natureSelect.value = multiplier; 
+        
+        nameInput.dispatchEvent(new Event('change'));
+    } else {
+        // 防御側の反映
+        const nameInput = document.getElementById('defender-pokemon-name');
+        nameInput.value = pokemon.spName;
+        document.getElementById('hp_ev').value = (pokemon.ev && pokemon.ev[0]) || 0;
+        document.getElementById('defender_ev').value = (pokemon.ev && pokemon.ev[2]) || 0;
+        
+        // セレクトボックスの値を更新
+        const natureSelect = document.getElementById('nature_defense');
+        natureSelect.value = multiplier;
+
+        nameInput.dispatchEvent(new Event('change'));
+    }
+
+    // 数値計算の関数を呼ぶ（test.html内に定義されているもの）
+    if (typeof updateStatsAndRecalculate === "function") {
+        updateStatsAndRecalculate();
+    }
+    
+    alert(`${pokemon.spName} を読み込みました。\n性格: ${pokemon.nt || "未設定"} (補正: x${multiplier})`);
+}
+    </script>
+<script>
+/**
+ * パーティ名を強制的に書き換える最終手段
+ */
+function forceSyncPokemonNames() {
+    const slotSelect = document.getElementById('import-slot');
+    const pokemonSelect = document.getElementById('import-pokemon-idx');
+    if (!slotSelect || !pokemonSelect) return;
+
+    const slotIdx = slotSelect.value;
+    const options = pokemonSelect.options;
+
+    // 構築メモ(party_memo.html)が使っているキー名
+    const storageKey = 'p_slot_66_v3_' + slotIdx;
+    const savedData = localStorage.getItem(storageKey);
+    
+    console.log("読み込み中...", storageKey); // ブラウザのF12で確認できます
+
+    let partyData = null;
+    if (savedData) {
+        try {
+            const parsed = JSON.parse(savedData);
+            // 構築メモは「members」という箱の中にポケモン名を入れている
+            partyData = parsed.members; 
+        } catch (e) {
+            console.error("データが壊れています", e);
+        }
+    }
+
+    // 表示をリセットしてから上書き
+    for (let i = 0; i < 6; i++) {
+        const p = (partyData && partyData[i]) ? partyData[i] : null;
+        if (p && p.spName && p.spName.trim() !== "") {
+            // ★ここが一番やりたかった表示変更
+            options[i].textContent = `ポケモン ${i + 1} (${p.spName})`;
+        } else {
+            options[i].textContent = `ポケモン ${i + 1}`;
+        }
+    }
+}
+
+// 1. スロットを50番まで強制的に拡張
+(function() {
+    const s = document.getElementById('import-slot');
+    if (s) {
+        const currentVal = s.value;
+        s.innerHTML = ''; 
+        for (let i = 1; i <= 50; i++) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = `スロット ${i}`;
+            s.appendChild(opt);
+        }
+        s.value = currentVal || "1";
+    }
+})();
+
+// 2. スロットを切り替えたら即実行
+document.getElementById('import-slot').onchange = forceSyncPokemonNames;
+
+// 3. ページが開いた瞬間、および1秒後(json読み込み待ち)に実行
+forceSyncPokemonNames();
+setTimeout(forceSyncPokemonNames, 1000); 
+
+// 4. 読み込みボタンを押した時にも名前を更新するようにフック
+const btnAttacker = document.querySelector("button[onclick*='attacker']");
+const btnDefender = document.querySelector("button[onclick*='defender']");
+if(btnAttacker) btnAttacker.addEventListener('click', () => setTimeout(forceSyncPokemonNames, 100));
+if(btnDefender) btnDefender.addEventListener('click', () => setTimeout(forceSyncPokemonNames, 100));
+</script>
+<script>
+    let countdownInterval;
+
+function startCountdown() {
+    // 既に動いている場合はリセット
+    clearInterval(countdownInterval);
+    
+    const display = document.getElementById('timer-display');
+    const timeLeftSpan = document.getElementById('time-left');
+    display.style.display = 'block'; // タイマーを表示
+
+    let totalSeconds = 20 * 60; // 20分を秒に変換
+
+    countdownInterval = setInterval(() => {
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+
+        // 画面の表示を更新 (00:00 形式)
+        timeLeftSpan.textContent = 
+            `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+        if (totalSeconds <= 0) {
+            clearInterval(countdownInterval);
+            timeLeftSpan.textContent = "終了！";
+            timeLeftSpan.style.color = "red";
+            alert("20分が経過しました。");
+        } else {
+            totalSeconds--;
+        }
+    }, 1000);
+}
+</script>
+</body>
+</html>

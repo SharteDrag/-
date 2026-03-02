@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ポケモン パーティ構築メモ (IV & メモ対応版)</title>
+    <style>
+        /* ハンバーガーメニュー */
+        .hamburger-menu { position: fixed; top: 20px; left: 20px; z-index: 10000; }
+        .hamburger-btn {
+            width: 50px;
+            height: 50px;
+            background: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            padding: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .hamburger-btn:hover { background: #0056b3; }
+        .hamburger-btn span {
+            width: 25px;
+            height: 3px;
+            background: white;
+            display: block;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        .hamburger-btn.active span:nth-child(1) { transform: rotate(45deg) translate(8px, 8px); }
+        .hamburger-btn.active span:nth-child(2) { opacity: 0; }
+        .hamburger-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(7px, -7px); }
+        
+        .nav-menu {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            flex-direction: column;
+            min-width: 180px;
+            z-index: 9999;
+        }
+        .nav-menu.open { display: flex; }
+        .nav-link {
+            padding: 12px 16px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+            display: block;
+        }
+        .nav-link:last-child { border-bottom: none; }
+        .nav-link:hover { background: #f0f0f0; color: #007bff; }
+        
+        :root { --primary: #007bff; --bg: #f8f9fa; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 20px; font-size: 13px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .party-controls { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px; }
+        .party-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 15px; }
+        .pokemon-card { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        
+        .search-container { position: relative; width: 100%; }
+        .search-input { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .suggestion-list { 
+            position: absolute; width: 100%; max-height: 200px; overflow-y: auto; 
+            background: white; border: 1px solid #ddd; z-index: 1000; display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 0 0 4px 4px;
+        }
+        .suggestion-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .suggestion-item:hover { background-color: #e9ecef; }
+
+        .stat-table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+        .stat-table th, .stat-table td { padding: 4px; border-bottom: 1px solid #eee; text-align: center; }
+        .ev-input, .iv-input { width: 45px !important; text-align: center; padding: 3px; border: 1px solid #ccc; border-radius: 3px; }
+        .ev-input { font-weight: bold; }
+        .total-display { font-weight: bold; min-width: 70px; display: inline-block; }
+        .ev-counter { font-size: 11px; color: #666; text-align: right; margin-bottom: 5px; }
+        .ev-over { color: red; font-weight: bold; }
+        .nature-up { color: #d9534f; }
+        .nature-down { color: #0275d8; }
+        
+        .memo-area { width: 100%; height: 60px; margin-top: 10px; padding: 5px; border: 1px solid #eee; border-radius: 4px; resize: none; font-size: 12px; box-sizing: border-box; background: #fffdf0; }
+        
+        button { padding: 8px 15px; cursor: pointer; background: var(--primary); color: white; border: none; border-radius: 4px; }
+        button:hover { opacity: 0.8; }
+        select { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+    </style>
+</head>
+<script>
+function toggleMenu() {
+    const btn = document.querySelector('.hamburger-btn');
+    const menu = document.getElementById('navMenu');
+    btn.classList.toggle('active');
+    menu.classList.toggle('open');
+}
+
+// メニュー外をクリックしたら閉じる
+document.addEventListener('click', function(event) {
+    const hamburger = document.getElementById('hamburgerMenu');
+    if (!hamburger.contains(event.target)) {
+        document.querySelector('.hamburger-btn').classList.remove('active');
+        document.getElementById('navMenu').classList.remove('open');
+    }
+});
+</script>
+<body>
+
+<!-- ハンバーガーメニュー -->
+<div id="hamburgerMenu" class="hamburger-menu">
+    <div class="hamburger-btn" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <nav id="navMenu" class="nav-menu">
+        <a href="party_memo.html" class="nav-link">📋 構築メモ</a>
+        <a href="test.html" class="nav-link">⚡ ダメージ計算</a>
+    </nav>
+</div>
+
+<div class="container">
+    <div class="party-controls">
+        <h2 style="margin:0; font-size: 18px;">構築メモ (IV & Memo)</h2>
+        <input type="text" id="partyName" placeholder="パーティ名" style="width: 150px; padding:8px; border:1px solid #ccc; border-radius:4px;">
+        <select id="saveSlot" style="width: 120px;"></select>
+        <button onclick="saveParty()">保存</button>
+        <button onclick="loadParty()">読込</button>
+    </div>
+    <div id="partyGrid" class="party-grid"></div>
+</div>
+
+<script>
+const MAX_TOTAL_EV = 66;
+const MAX_SINGLE_EV = 32;
+
+const NATURES = {
+    "さみしがり": {up:1, down:2}, "いじっぱり": {up:1, down:3}, "やんちゃ": {up:1, down:4}, "ゆうかん": {up:1, down:5},
+    "ずぶとい": {up:2, down:1}, "わんぱく": {up:2, down:3}, "のうてんき": {up:2, down:4}, "のんき": {up:2, down:5},
+    "ひかえめ": {up:3, down:1}, "おっとり": {up:3, down:2}, "うっかりや": {up:3, down:4}, "れいせい": {up:3, down:5},
+    "おだやか": {up:4, down:1}, "おとなしい": {up:4, down:2}, "しんちょう": {up:4, down:3}, "なまいき": {up:4, down:5},
+    "おくびょう": {up:5, down:1}, "せっかち": {up:5, down:2}, "ようき": {up:5, down:3}, "むじゃき": {up:5, down:4},
+    "まじめ": {up:0, down:0}
+};
+
+let db = { species: [], items: [], moves: [], abilities: {} };
+
+function toKatakana(str) {
+    return str.replace(/[ぁ-ん]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60));
+}
+
+async function init() {
+    try {
+        const fetchText = async (url) => {
+            const r = await fetch(url);
+            if (!r.ok) throw new Error(`${url} not found`);
+            let t = await r.text();
+            return JSON.parse(t.replace(/[\x00-\x1F\x7F]/g, "")); 
+        };
+
+        const [sp, mv, it, ab] = await Promise.all([
+            fetchText('species_db_named2.json'),
+            fetchText('moves_extracted2.json'),
+            fetchText('items.json'),
+            fetchText('abilities_db.json')
+        ]);
+
+        db.species = Object.keys(sp).map(k => ({ id: k, name: sp[k].Name, data: sp[k] }));
+        db.moves = mv.map(m => ({ id: m.ID, name: m.Name }));
+        db.items = it.items.map(i => ({ id: i.id, name: i.name }));
+        db.abilities = ab || {};
+
+        setupSaveSlots();
+        createPartyUI();
+    } catch (e) {
+        console.error(e);
+        alert("データの読み込みに失敗しました。");
+    }
+}
+
+function setupSaveSlots() {
+    const s = document.getElementById('saveSlot');
+    for (let i = 1; i <= 50; i++) {
+        const o = document.createElement('option');
+        o.value = i; o.textContent = `スロット ${i}`;
+        s.appendChild(o);
+    }
+}
+
+function setupSearchableInput(container, dataList, onSelectCallback) {
+    const input = container.querySelector('.search-input');
+    const list = container.querySelector('.suggestion-list');
+
+    input.addEventListener('input', () => {
+        const query = toKatakana(input.value.toLowerCase());
+        list.innerHTML = '';
+        if (!query) { list.style.display = 'none'; return; }
+        const filtered = dataList.filter(item => toKatakana(item.name).includes(query)).slice(0, 20);
+        if (filtered.length > 0) {
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.textContent = item.name;
+                div.onclick = () => {
+                    input.value = item.name;
+                    input.dataset.selectedId = item.id;
+                    list.style.display = 'none';
+                    if (onSelectCallback) onSelectCallback(item);
+                };
+                list.appendChild(div);
+            });
+            list.style.display = 'block';
+        } else { list.style.display = 'none'; }
+    });
+    input.addEventListener('blur', () => setTimeout(() => list.style.display = 'none', 200));
+}
+
+function createPartyUI() {
+    const grid = document.getElementById('partyGrid');
+    grid.innerHTML = '';
+    for (let i = 0; i < 6; i++) {
+        const card = document.createElement('div');
+        card.className = 'pokemon-card';
+        card.id = `pokemon-${i}`;
+        card.innerHTML = `
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div class="search-container">
+                    <input type="text" class="search-input sp-input" placeholder="ポケモン名">
+                    <div class="suggestion-list"></div>
+                </div>
+                <div class="search-container">
+                    <input type="text" class="search-input item-input" placeholder="持ち物">
+                    <div class="suggestion-list"></div>
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:5px;">
+                <select class="ability-select"><option value="">特性</option></select>
+                <select class="nature-select" onchange="calcStats(${i})">
+                    <option value="まじめ">性格(無補正)</option>
+                    ${Object.keys(NATURES).filter(n => n !== "まじめ").map(n => `<option value="${n}">${n}</option>`).join('')}
+                </select>
+            </div>
+            <table class="stat-table">
+                <thead><tr><th>能力</th><th>種族</th><th>個体(IV)</th><th>努力(EV)</th><th>実数値</th></tr></thead>
+                ${['HP','攻撃','防御','特攻','特防','素早'].map((label, j) => `
+                    <tr class="stats-row">
+                        <td style="font-size:11px; color:#666;">${label}</td>
+                        <td class="base-val">0</td>
+                        <td><input type="number" class="iv-input" value="31" min="0" max="31" oninput="calcStats(${i})"></td>
+                        <td><input type="number" class="ev-input" value="0" min="0" max="32" oninput="validateEV(this, ${i})"></td>
+                        <td class="total-display">0</td>
+                    </tr>`).join('')}
+            </table>
+            <div class="ev-counter">合計努力値: <span class="ev-sum">0</span> / 66</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+                ${[1,2,3,4].map(() => `
+                    <div class="search-container">
+                        <input type="text" class="search-input move-input" placeholder="技">
+                        <div class="suggestion-list"></div>
+                    </div>`).join('')}
+            </div>
+            <textarea class="memo-area" placeholder="調整メモ、役割など..."></textarea>
+        `;
+        grid.appendChild(card);
+
+        setupSearchableInput(card.querySelector('.sp-input').parentNode, db.species, (item) => updateSpecies(i, item.data));
+        setupSearchableInput(card.querySelector('.item-input').parentNode, db.items);
+        card.querySelectorAll('.move-input').forEach(mvInput => setupSearchableInput(mvInput.parentNode, db.moves));
+    }
+}
+
+function validateEV(input, idx) {
+    let val = parseInt(input.value);
+    if (val > MAX_SINGLE_EV) input.value = MAX_SINGLE_EV;
+    if (val < 0 || isNaN(val)) val = 0;
+
+    const card = document.getElementById(`pokemon-${idx}`);
+    const evs = [...card.querySelectorAll('.ev-input')];
+    let sum = evs.reduce((acc, cur) => acc + (parseInt(cur.value) || 0), 0);
+    
+    const sumDisplay = card.querySelector('.ev-sum');
+    sumDisplay.textContent = sum;
+    sumDisplay.classList.toggle('ev-over', sum > MAX_TOTAL_EV);
+
+    calcStats(idx);
+}
+
+function updateSpecies(idx, speciesData) {
+    const card = document.getElementById(`pokemon-${idx}`);
+    const bases = [speciesData.HP, speciesData.Atk, speciesData.Def, speciesData.SpAtk, speciesData.SpDef, speciesData.Speed];
+    card.querySelectorAll('.base-val').forEach((td, i) => td.textContent = bases[i]);
+    const abSelect = card.querySelector('.ability-select');
+    const abs = [...(speciesData.Abilities || []), ...(speciesData.HiddenAbilities || [])];
+    abSelect.innerHTML = abs.map(a => `<option value="${a}">${db.abilities[a]?.name || a}</option>`).join('');
+    calcStats(idx);
+}
+
+function calcStats(idx) {
+    const card = document.getElementById(`pokemon-${idx}`);
+    const nature = NATURES[card.querySelector('.nature-select').value] || NATURES["まじめ"];
+    const rows = card.querySelectorAll('.stats-row');
+
+    rows.forEach((row, i) => {
+        const base = parseInt(row.querySelector('.base-val').textContent) || 0;
+        const iv = parseInt(row.querySelector('.iv-input').value) || 0;
+        const ev = parseInt(row.querySelector('.ev-input').value) || 0;
+        
+        let val = 0;
+        if (i === 0) {
+            val = (base === 1) ? 1 : Math.floor((base * 2 + iv) * 50 / 100) + 60 + ev;
+        } else {
+            let core = Math.floor((base * 2 + iv) * 50 / 100) + 5;
+            val = Math.floor(core + ev); 
+            if (nature.up === i) val = Math.floor(val * 1.1);
+            if (nature.down === i) val = Math.floor(val * 0.9);
+        }
+        const display = row.querySelector('.total-display');
+        display.textContent = val;
+        display.className = 'total-display';
+        if (i !== 0) {
+            if (nature.up === i) display.classList.add('nature-up');
+            if (nature.down === i) display.classList.add('nature-down');
+        }
+    });
+}
+
+function saveParty() {
+    const slot = document.getElementById('saveSlot').value;
+    const partyName = document.getElementById('partyName').value || `パーティ${slot}`;
+    const storageKey = `p_slot_66_v3_${slot}`;
+    
+    // --- 追加: 上書き確認のロジック ---
+    const existingData = localStorage.getItem(storageKey);
+    if (existingData) {
+        const oldData = JSON.parse(existingData);
+        const confirmMsg = `スロット ${slot} には既に「${oldData.name}」が保存されています。\n上書きしてもよろしいですか？`;
+        if (!confirm(confirmMsg)) {
+            return; // 「いいえ」を選んだらここで処理を終了する
+        }
+    }
+    // -------------------------------
+
+    const data = {
+        name: partyName,
+        members: []
+    };
+    for (let i = 0; i < 6; i++) {
+        const c = document.getElementById(`pokemon-${i}`);
+        data.members.push({
+            spName: c.querySelector('.sp-input').value,
+            spId: c.querySelector('.sp-input').dataset.selectedId,
+            itName: c.querySelector('.item-input').value,
+            itId: c.querySelector('.item-input').dataset.selectedId,
+            ab: c.querySelector('.ability-select').value,
+            nt: c.querySelector('.nature-select').value,
+            iv: [...c.querySelectorAll('.iv-input')].map(el => el.value),
+            ev: [...c.querySelectorAll('.ev-input')].map(el => el.value),
+            mv: [...c.querySelectorAll('.move-input')].map(el => ({ name: el.value, id: el.dataset.selectedId })),
+            memo: c.querySelector('.memo-area').value
+        });
+    }
+    localStorage.setItem(storageKey, JSON.stringify(data));
+    alert("保存完了しました");
+}
+
+function loadParty() {
+    const slot = document.getElementById('saveSlot').value;
+    const raw = localStorage.getItem(`p_slot_66_v3_${slot}`);
+    if (!raw) return alert("データが見つかりません");
+    const data = JSON.parse(raw);
+    document.getElementById('partyName').value = data.name;
+    data.members.forEach((m, i) => {
+        const c = document.getElementById(`pokemon-${i}`);
+        const spInp = c.querySelector('.sp-input');
+        spInp.value = m.spName;
+        spInp.dataset.selectedId = m.spId;
+        
+        const speciesObj = db.species.find(s => s.id === m.spId);
+        if (speciesObj) updateSpecies(i, speciesObj.data);
+
+        c.querySelector('.item-input').value = m.itName || "";
+        c.querySelector('.item-input').dataset.selectedId = m.itId || "";
+        c.querySelector('.nature-select').value = m.nt;
+        c.querySelectorAll('.iv-input').forEach((el, j) => el.value = m.iv ? m.iv[j] : 31);
+        c.querySelectorAll('.ev-input').forEach((el, j) => { el.value = m.ev[j]; validateEV(el, i); });
+        c.querySelector('.ability-select').value = m.ab;
+        c.querySelectorAll('.move-input').forEach((el, j) => {
+            el.value = m.mv[j].name;
+            el.dataset.selectedId = m.mv[j].id;
+        });
+        c.querySelector('.memo-area').value = m.memo || "";
+    });
+}
+
+init();
+</script>
+</body>
+</html>
