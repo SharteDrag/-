@@ -1483,87 +1483,42 @@ if (["MULTISCALE","SHADOWSHIELD"].includes(ability)) {
 
         async function loadPokemonData() {
     try {
-        console.time('LoadData'); // 速度計測用
-
-        // ✅ 高速化1: ポケモン、技、特性のJSONを同時に取得開始する
-        const [pokemonRes, moveDataLoaded] = await Promise.all([
-            fetch('species_db_named2.json'),
-            loadMoveData() // loadMoveDataも内部でfetchしているなら同時に走ります
-        ]);
-
-        if (!pokemonRes.ok) throw new Error(`HTTP error! status: ${pokemonRes.status}`);
+        const pokemonRes = await fetch('species_db_named2.json');
+        if (!pokemonRes.ok) throw new Error("File not found");
         
         const data = await pokemonRes.json();
         POKEDATA_MAP = data;
         NAME_TO_KEY_MAP = {}; 
-        POKEMON_NAMES.length = 0; 
-        
-        /// ✅ 修正後のループ部分
-for (let i = 0, len = keys.length; i < len; i++) {
-    const key = keys[i];
-    const name = data[key].Name;
-    if (name) {
-        const normalized = toKatakana(name.toLowerCase());
-        
-        // 名前をキーにして、IDを配列で溜める
-        if (!NAME_TO_KEY_MAP[normalized]) {
-            NAME_TO_KEY_MAP[normalized] = [];
+        POKEMON_NAMES.length = 0;
+
+        // 全ポケモンのIDを取得
+        const keys = Object.keys(data); 
+
+        for (const key of keys) {
+            const p = data[key];
+            if (p.Name) {
+                const norm = toKatakana(p.Name.toLowerCase());
+                if (!NAME_TO_KEY_MAP[norm]) NAME_TO_KEY_MAP[norm] = [];
+                
+                // 同じ名前でも別のIDとして全て保存
+                NAME_TO_KEY_MAP[norm].push(key);
+                
+                // 検索リストには名前を入れる（重複はあとでSetで消してもOK）
+                POKEMON_NAMES.push(p.Name);
+            }
         }
-        NAME_TO_KEY_MAP[normalized].push(key);
 
-        // 検索リストには、重複を許さず「名前」だけを入れる
-        if (!POKEMON_NAMES.includes(name)) {
-            POKEMON_NAMES.push(name);
-        }
-    }
-}
-
-        console.timeEnd('LoadData');
-
-        // ✅ 高速化3: UI構築（検索フィルタの設定）
-        setupSearchableInput(
-            document.getElementById('attacker-search'),
-            POKEMON_NAMES,
-            (itemName) => updateStatsAndRecalculate('attacker', itemName)
-        );
-        setupSearchableInput(
-            document.getElementById('defender-search'),
-            POKEMON_NAMES,
-            (itemName) => updateStatsAndRecalculate('defender', itemName)
-        );
-        setupSearchableInput(
-            document.getElementById('move-search'),
-            MOVE_NAMES,
-            (itemName) => updateMoveDataAndRecalculate(itemName)
-        );
-
-        // 初期値のセット
-        const initialAttacker = 'フシギダネ';
-        const initialDefender = 'リザードン';
-        const initialMove = 'はっぱカッター';
-        
-        document.getElementById('attacker-pokemon-name').value = initialAttacker;
-        document.getElementById('defender-pokemon-name').value = initialDefender;
-        document.getElementById('move-name').value = initialMove;
-        
-        // 努力値などの初期値
-        ['hp_ev', 'attacker_ev', 'defender_ev'].forEach(id => {
-            document.getElementById(id).value = 32;
-        });
-        
-        // 反映
-        updateStatsAndRecalculate('attacker', initialAttacker);
-        updateStatsAndRecalculate('defender', initialDefender);
-        
-        if (moveDataLoaded) {
-            updateMoveDataAndRecalculate(initialMove);
-        } else {
-            if (typeof getStatKeys === 'function') getStatKeys();
-            calculateDamage(); 
+        // UI設定（要素が存在するか確認しながら）
+        const atkSearch = document.getElementById('attacker-search');
+        if (atkSearch) {
+            setupSearchableInput(atkSearch, [...new Set(POKEMON_NAMES)], (name) => {
+                updateStatsAndRecalculate('attacker', name);
+            });
         }
         
+        console.log("ポケモンデータ読み込み完了");
     } catch (error) {
-        console.error('⚠️ ポケモンデータの読み込み失敗:', error);
+        console.error('⚠️ エラー発生:', error);
     }
 }
         
