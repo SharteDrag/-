@@ -1483,42 +1483,89 @@ if (["MULTISCALE","SHADOWSHIELD"].includes(ability)) {
 
         async function loadPokemonData() {
     try {
-        const pokemonRes = await fetch('species_db_named2.json');
-        if (!pokemonRes.ok) throw new Error("File not found");
+        console.time('LoadData');
+
+        // ポケモンと技のデータを同時に取得（高速化）
+        const [pokemonRes, moveDataLoaded] = await Promise.all([
+            fetch('species_db_named2.json'),
+            loadMoveData()
+        ]);
+
+        if (!pokemonRes.ok) throw new Error("JSONファイルが見つかりません。");
         
         const data = await pokemonRes.json();
         POKEDATA_MAP = data;
         NAME_TO_KEY_MAP = {}; 
-        POKEMON_NAMES.length = 0;
+        POKEMON_NAMES.length = 0; 
 
-        // 全ポケモンのIDを取得
+        // ✅ 修正ポイント: keys をしっかり定義する
         const keys = Object.keys(data); 
 
-        for (const key of keys) {
-            const p = data[key];
-            if (p.Name) {
-                const norm = toKatakana(p.Name.toLowerCase());
-                if (!NAME_TO_KEY_MAP[norm]) NAME_TO_KEY_MAP[norm] = [];
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const pokemon = data[key];
+            const name = pokemon.Name;
+
+            if (name) {
+                const normalized = toKatakana(name.toLowerCase());
                 
-                // 同じ名前でも別のIDとして全て保存
-                NAME_TO_KEY_MAP[norm].push(key);
-                
-                // 検索リストには名前を入れる（重複はあとでSetで消してもOK）
-                POKEMON_NAMES.push(p.Name);
+                // ✅ 修正ポイント: 同名ポケモン（メガリザードン等）を配列で保持
+                if (!NAME_TO_KEY_MAP[normalized]) {
+                    NAME_TO_KEY_MAP[normalized] = [];
+                }
+                NAME_TO_KEY_MAP[normalized].push(key);
+
+                // ✅ 検索候補リストに追加
+                // IDが違う(フォルム違い)場合はリストに両方出す
+                POKEMON_NAMES.push(name);
             }
         }
 
-        // UI設定（要素が存在するか確認しながら）
-        const atkSearch = document.getElementById('attacker-search');
-        if (atkSearch) {
-            setupSearchableInput(atkSearch, [...new Set(POKEMON_NAMES)], (name) => {
-                updateStatsAndRecalculate('attacker', name);
-            });
-        }
+        console.timeEnd('LoadData');
+
+        // UI設定（要素があるか確認しながら実行）
+        const setupInput = (containerId, dataList, callback) => {
+            const container = document.getElementById(containerId);
+            if (container) setupSearchableInput(container, dataList, callback);
+        };
+
+        setupInput('attacker-search', POKEMON_NAMES, (name) => updateStatsAndRecalculate('attacker', name));
+        setupInput('defender-search', POKEMON_NAMES, (name) => updateStatsAndRecalculate('defender', name));
+        setupInput('move-search', MOVE_NAMES, (name) => updateMoveDataAndRecalculate(name));
+
+        // 初期値の読み込み
+        initAppDisplay(moveDataLoaded);
         
-        console.log("ポケモンデータ読み込み完了");
     } catch (error) {
-        console.error('⚠️ エラー発生:', error);
+        console.error('⚠️ ポケモンデータの読み込み失敗:', error);
+    }
+}
+
+// 初期表示用関数（整理のため分離）
+function initAppDisplay(moveDataLoaded) {
+    const initialAttacker = 'フシギダネ';
+    const initialDefender = 'リザードン';
+    const initialMove = 'はっぱカッター';
+    
+    if(document.getElementById('attacker-pokemon-name')) {
+        document.getElementById('attacker-pokemon-name').value = initialAttacker;
+        document.getElementById('defender-pokemon-name').value = initialDefender;
+        document.getElementById('move-name').value = initialMove;
+        
+        ['hp_ev', 'attacker_ev', 'defender_ev'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = 32;
+        });
+
+        updateStatsAndRecalculate('attacker', initialAttacker);
+        updateStatsAndRecalculate('defender', initialDefender);
+        
+        if (moveDataLoaded) {
+            updateMoveDataAndRecalculate(initialMove);
+        } else {
+            if (typeof getStatKeys === 'function') getStatKeys();
+            calculateDamage(); 
+        }
     }
 }
         
@@ -1608,80 +1655,90 @@ if (["MULTISCALE","SHADOWSHIELD"].includes(ability)) {
         }
 
         function updateStatsAndRecalculate(role, japaneseName) {
+    // 1. 名前の正規化とIDの取得
     const normalizedName = hiraganaToKatakana(japaneseName); 
-    const englishKey = NAME_TO_KEY_MAP[normalizedName]; 
-    
-    const { attackerStatKey, defenderStatKey } = getStatKeys();
-    
-    // NEW: Get EV inputs
-    const attackerEV = parseFloat(document.getElementById('attacker_ev').value) || 0;
-    const defenderEV = parseFloat(document.getElementById('defender_ev').value) || 0;
-    const hpEV = parseFloat(document.getElementById('hp_ev').value) || 0;
-// 特性リストを更新
-    updateAbilitySelector(role === 'attacker' ? "attacker-pokemon-name" : "defender-pokemon-name", 
-                          role === 'attacker' ? "attacker-ability" : "defender-ability");
-    if (!englishKey || !POKEDATA_MAP[englishKey]) {
-        const attackerName = document.getElementById('attacker-pokemon-name').value;
-        const defenderName = document.getElementById('defender-pokemon-name').value;
-        const moveName = document.getElementById('move-name').value;
-        const { affinity, stab } = calculateEffectiveness(attackerName, defenderName, moveName);
-        document.getElementById('affinity').value = affinity.toFixed(1); 
-        document.getElementById('stab').value = stab.toFixed(1); 
+    const ids = NAME_TO_KEY_MAP[normalizedName]; 
+
+    // 特性リストの更新（役割に応じて実行）
+    const nameInputId = (role === 'attacker') ? "attacker-pokemon-name" : "defender-pokemon-name";
+    const abilitySelectId = (role === 'attacker') ? "attacker-ability" : "defender-ability";
+    updateAbilitySelector(nameInputId, abilitySelectId);
+
+    // ポケモンデータが見つからない場合の早期リターン
+    if (!ids || ids.length === 0) {
+        updateBasicEffectiveness();
         calculateDamage();
         return;
     }
-    
-    const pokemon = POKEDATA_MAP[englishKey];
 
+    // 2. IDの決定（メガリザードン対策）
+    // とりあえず最初のIDを使うが、将来的に「選択されたID」をDatasetから取れるようにしておくと完璧
+    const selectedId = ids[0]; 
+    const pokemon = POKEDATA_MAP[selectedId];
+
+    if (!pokemon) return;
+
+    // ステータスキーと入力値の取得（一括取得して計算コストを下げる）
+    const { attackerStatKey, defenderStatKey } = getStatKeys();
+    const attackerEV = parseFloat(document.getElementById('attacker_ev').value) || 0;
+    const defenderEV = parseFloat(document.getElementById('defender_ev').value) || 0;
+    const hpEV = parseFloat(document.getElementById('hp_ev').value) || 0;
+
+    // 3. 役割（攻/防）に応じたステータス計算
     if (role === 'defender') {
-        const natureDef = parseFloat(document.getElementById('nature_defense').value);
+        const natureDef = parseFloat(document.getElementById('nature_defense').value) || 1.0;
         
-        // Use hpEV for maxHP calculation
-        const maxHP = calculateMaxStat(pokemon.HP, true, 1.0, hpEV); 
+        // HPの計算
+        const baseHP = pokemon.HP ?? pokemon.Stats?.HP;
+        const maxHP = calculateMaxStat(baseHP, true, 1.0, hpEV); 
         document.getElementById('hp').value = maxHP;
         
-        // 防御側は通常通り (Def または SpDef)
-        const maxDef = calculateMaxStat(pokemon[defenderStatKey], false, natureDef, defenderEV); 
+        // 防御ステータスの計算
+        const baseDefValue = pokemon[defenderStatKey] ?? pokemon.Stats?.[defenderStatKey];
+        const maxDef = calculateMaxStat(baseDefValue, false, natureDef, defenderEV); 
         document.getElementById('base_defense').value = maxDef;
 
-        updateHazardDisplay(englishKey); 
+        if (typeof updateHazardDisplay === 'function') updateHazardDisplay(selectedId); 
         
     } else if (role === 'attacker') {
-        const natureAtk = parseFloat(document.getElementById('nature_attack').value);
+        const natureAtk = parseFloat(document.getElementById('nature_attack').value) || 1.0;
         let baseStatValue;
 
-        // --- イカサマ (OpponentAtk) の場合の特別処理 ---
+        // イカサマ (OpponentAtk) の処理
         if (attackerStatKey === 'OpponentAtk') {
-            const defenderName = document.getElementById('defender-pokemon-name').value;
-            const defenderNormalized = hiraganaToKatakana(defenderName);
-            const defenderKey = NAME_TO_KEY_MAP[defenderNormalized];
+            const defName = document.getElementById('defender-pokemon-name').value;
+            const defIds = NAME_TO_KEY_MAP[hiraganaToKatakana(defName)];
+            const defPokemon = defIds ? POKEDATA_MAP[defIds[0]] : null;
             
-            if (defenderKey && POKEDATA_MAP[defenderKey]) {
-                // 防御側のポケモンの「Atk（攻撃）」を参照する
-                baseStatValue = POKEDATA_MAP[defenderKey].Atk || POKEDATA_MAP[defenderKey].Stats?.Atk;
-            } else {
-                // 防御側が未入力なら自分のAtkを仮に参照
-                baseStatValue = pokemon.Atk || pokemon.Stats?.Atk;
-            }
+            baseStatValue = defPokemon ? (defPokemon.Atk ?? defPokemon.Stats?.Atk) : (pokemon.Atk ?? pokemon.Stats?.Atk);
         } else {
-            // pokemon[attackerStatKey] が直接参照できない場合に備え、Statsの中も見る
-            baseStatValue = pokemon[attackerStatKey] || (pokemon.Stats ? pokemon.Stats[attackerStatKey] : undefined);
+            baseStatValue = pokemon[attackerStatKey] ?? pokemon.Stats?.[attackerStatKey];
         }
         
-        // 計算実行（性格補正と努力値は現在の攻撃側入力欄のものを使用）
         const maxAtk = calculateMaxStat(baseStatValue, false, natureAtk, attackerEV); 
         document.getElementById('base_attack').value = maxAtk;
     }
     
+    // 4. 相性計算とダメージ計算（最後に1回だけ呼ぶ）
+    updateBasicEffectiveness();
+    calculateDamage();
+}
+
+/**
+ * 相性・タイプ一致の計算とUI反映を共通化
+ */
+function updateBasicEffectiveness() {
     const attackerName = document.getElementById('attacker-pokemon-name').value;
     const defenderName = document.getElementById('defender-pokemon-name').value;
     const moveName = document.getElementById('move-name').value;
 
     const { affinity, stab } = calculateEffectiveness(attackerName, defenderName, moveName);
-    document.getElementById('affinity').value = affinity.toFixed(2); 
-    document.getElementById('stab').value = stab.toFixed(1); 
     
-    calculateDamage();
+    const affinityEl = document.getElementById('affinity');
+    const stabEl = document.getElementById('stab');
+    
+    if (affinityEl) affinityEl.value = affinity.toFixed(2); 
+    if (stabEl) stabEl.value = stab.toFixed(1);
 }
         
        /**
