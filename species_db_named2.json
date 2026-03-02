@@ -20190,7 +20190,7 @@
     "HiddenAbilities": [],
     "Name": "モモワロウ"
   },
-  "VENUSAUR,1": {
+  "VENUSAURFORM1": {
     "Types": [
       "GRASS",
       "POISON"
@@ -20210,7 +20210,7 @@
     ],
     "Name": "メガフシギバナ"
   },
-  "CHARIZARD,1": {
+  "CHARIZARDFORM1": {
     "Types": [
       "FIRE",
       "DRAGON"
@@ -20230,7 +20230,7 @@
     ],
     "Name": "メガリザードンX"
   },
-  "CHARIZARD,2": {
+  "CHARIZARDFORM2": {
     "Types": [
       "FIRE",
       "FLYING"
@@ -20250,7 +20250,7 @@
     ],
     "Name": "メガリザードンY"
   },
-  "BLASTOISE,1": {
+  "BLASTOISEFORM1": {
     "Types": [
       "WATER"
     ],
@@ -20269,7 +20269,7 @@
     ],
     "Name": "メガカメックス"
   },
-  "BEEDRILL,1": {
+  "BEEDRILLFORM1": {
     "Types": [
       "BUG",
       "POISON"
@@ -20289,7 +20289,7 @@
     ],
     "Name": "メガスピアー"
   },
-  "PIDGEOT,1": {
+  "PIDGEOTFORM1": {
     "Types": [
       "NORMAL",
       "FLYING"
@@ -20309,7 +20309,7 @@
     ],
     "Name": "メガピジョット"
   },
-  "RATTATA,1": {
+  "RATTATAFORM1": {
     "Types": [
       "DARK",
       "NORMAL"
@@ -20330,7 +20330,7 @@
     ],
     "Name": "アローラコラッタ"
   },
-  "RATICATE,1": {
+  "RATICATEFORM1": {
     "Types": [
       "DARK",
       "NORMAL"
@@ -20351,7 +20351,7 @@
     ],
     "Name": "アローララッタ"
   },
-  "RAICHU,1": {
+  "RAICHUFORM1": {
     "Types": [
       "ELECTRIC",
       "PSYCHIC"
@@ -20371,7 +20371,7 @@
     ],
     "Name": "アローラライチュウ"
   },
-  "SANDSHREW,1": {
+  "SANDSHREWFORM1": {
     "Types": [
       "ICE",
       "STEEL"
@@ -20391,7 +20391,7 @@
     ],
     "Name": "アローラサンド"
   },
-  "SANDSLASH,1": {
+  "SANDSLASHFORM1": {
     "Types": [
       "ICE",
       "STEEL"
@@ -20411,7 +20411,7 @@
     ],
     "Name": "アローラサンドパン"
   },
-  "VULPIX,1": {
+  "VULPIXFORM1": {
     "Types": [
       "ICE"
     ],
@@ -20430,7 +20430,7 @@
     ],
     "Name": "アローラロコン"
   },
-  "NINETALES,1": {
+  "NINETALESFORM1": {
     "Types": [
       "ICE",
       "FAIRY"
@@ -20450,7 +20450,7 @@
     ],
     "Name": "アローラキュウコン"
   },
-  "DIGLETT,1": {
+  "DIGLETTFORM1": {
     "Types": [
       "GROUND",
       "STEEL"
@@ -20471,7 +20471,7 @@
     ],
     "Name": "アローラディグダ"
   },
-  "DUGTRIO,1": {
+  "DUGTRIOFORM1": {
     "Types": [
       "GROUND",
       "STEEL"
@@ -20492,7 +20492,7 @@
     ],
     "Name": "アローラダグトリオ"
   },
-  "MEOWTH,1": {
+  "MEOWTHFORM1": {
     "Types": [
       "DARK"
     ],
@@ -20512,7 +20512,7 @@
     ],
     "Name": "アローラニャース"
   },
-  "MEOWTH,2": {
+  "MEOWTHFORM2": {
     "Types": [
       "STEEL"
     ],
@@ -20532,7 +20532,7 @@
     ],
     "Name": "ガラルニャース"
   },
-  "PERSIAN,1": {
+  "PERSIANFORM1": {
     "Types": [
       "DARK"
     ],
@@ -20552,7 +20552,7 @@
     ],
     "Name": "アローラペルシアン"
   },
-  "ALAKAZAM,1": {
+  "ALAKAZAMFORM1": {
     "Types": [
       "PSYCHIC"
     ],
@@ -20571,7 +20571,7 @@
     ],
     "Name": "メガフーディン"
   },
-  "GEODUDE,1": {
+  "GEODUDEFORM1": {
     "Types": [
       "ROCK",
       "ELECTRIC"
@@ -20592,7 +20592,7 @@
     ],
     "Name": "アローライシツブテ"
   },
-  "GRAVELER,1": {
+  "GRAVELERFORM1": {
     "Types": [
       "ROCK",
       "ELECTRIC"
@@ -20613,7 +20613,7 @@
     ],
     "Name": "アローラゴローン"
   },
-  "GOLEM,1": {
+  "GOLEMFORM1": {
     "Types": [
       "ROCK",
       "ELECTRIC"
@@ -20634,7 +20634,7 @@
     ],
     "Name": "アローラゴローニャ"
   },
-  "PONYTA,1": {
+  "PONYTAFORM1": {
     "Types": [
       "PSYCHIC"
     ],
@@ -20654,7 +20654,7 @@
     ],
     "Name": "ガラルポニータ"
   },
-  "RAPIDASH,1": {
+  "RAPIDASHFORM1": {
     "Types": [
       "PSYCHIC",
       "FAIRY"
@@ -20675,7 +20675,7 @@
     ],
     "Name": "ガラルギャロップ"
   },
-  "SLOWPOKE,1": {
+  "SLOWPOKEFORM1": {
     "Types": [
       "PSYCHIC"
     ],
@@ -20695,7 +20695,7 @@
     ],
     "Name": "ガラルヤドン"
   },
-  "SLOWBRO,1": {
+  "SLOWBROFORM1": {
     "Types": [
       "POISON",
       "PSYCHIC"
@@ -20716,7 +20716,7 @@
     ],
     "Name": "ガラルヤドラン"
   },
-  "SLOWBRO,2": {
+  "SLOWBROFORM2": {
     "Types": [
       "WATER",
       "PSYCHIC"
@@ -20736,7 +20736,7 @@
     ],
     "Name": "メガヤドラン"
   },
-  "FARFETCHD,1": {
+  "FARFETCHDFORM1": {
     "Types": [
       "FIGHTING"
     ],
@@ -20755,7 +20755,7 @@
     ],
     "Name": "ガラルカモネギ"
   },
-  "GRIMER,1": {
+  "GRIMERFORM1": {
     "Types": [
       "POISON",
       "DARK"
@@ -20776,7 +20776,7 @@
     ],
     "Name": "アローラベトベター"
   },
-  "MUK,1": {
+  "MUKFORM1": {
     "Types": [
       "POISON",
       "DARK"
@@ -20797,7 +20797,7 @@
     ],
     "Name": "アローラベトベトン"
   },
-  "GENGAR,1": {
+  "GENGARFORM1": {
     "Types": [
       "GHOST",
       "POISON"
@@ -20817,7 +20817,7 @@
     ],
     "Name": "メガゲンガー"
   },
-  "EXEGGUTOR,1": {
+  "EXEGGUTORFORM1": {
     "Types": [
       "GRASS",
       "DRAGON"
@@ -20837,7 +20837,7 @@
     ],
     "Name": "アローラナッシー"
   },
-  "MAROWAK,1": {
+  "MAROWAKFORM1": {
     "Types": [
       "FIRE",
       "GHOST"
@@ -20858,7 +20858,7 @@
     ],
     "Name": "アローラガラガラ"
   },
-  "WEEZING,1": {
+  "WEEZINGFORM1": {
     "Types": [
       "POISON",
       "FAIRY"
@@ -20879,7 +20879,7 @@
     ],
     "Name": "ガラルマタドガス"
   },
-  "KANGASKHAN,1": {
+  "KANGASKHANFORM1": {
     "Types": [
       "NORMAL"
     ],
@@ -20898,7 +20898,7 @@
     ],
     "Name": "メガガルーラ"
   },
-  "MRMIME,1": {
+  "MRMIMEFORM1": {
     "Types": [
       "ICE",
       "PSYCHIC"
@@ -20919,7 +20919,7 @@
     ],
     "Name": "ガラルバリヤード"
   },
-  "PINSIR,1": {
+  "PINSIRFORM1": {
     "Types": [
       "BUG",
       "FLYING"
@@ -20939,7 +20939,7 @@
     ],
     "Name": "メガカイロス"
   },
-  "GYARADOS,1": {
+  "GYARADOSFORM1": {
     "Types": [
       "WATER",
       "DARK"
@@ -20959,7 +20959,7 @@
     ],
     "Name": "メガギャラドス"
   },
-  "AERODACTYL,1": {
+  "AERODACTYLFORM1": {
     "Types": [
       "ROCK",
       "FLYING"
@@ -20979,7 +20979,7 @@
     ],
     "Name": "メガプテラ"
   },
-  "ARTICUNO,1": {
+  "ARTICUNOFORM1": {
     "Types": [
       "PSYCHIC",
       "FLYING"
@@ -20999,7 +20999,7 @@
     ],
     "Name": "ガラルフリーザー"
   },
-  "ZAPDOS,1": {
+  "ZAPDOSFORM1": {
     "Types": [
       "FIGHTING",
       "FLYING"
@@ -21019,7 +21019,7 @@
     ],
     "Name": "ガラルサンダー"
   },
-  "MOLTRES,1": {
+  "MOLTRESFORM1": {
     "Types": [
       "DARK",
       "FLYING"
@@ -21039,7 +21039,7 @@
     ],
     "Name": "ガラルファイヤー"
   },
-  "MEWTWO,1": {
+  "MEWTWOFORM1": {
     "Types": [
       "PSYCHIC",
       "FIGHTING"
@@ -21059,7 +21059,7 @@
     ],
     "Name": "メガミュウツーX"
   },
-  "MEWTWO,2": {
+  "MEWTWOFORM2": {
     "Types": [
       "PSYCHIC"
     ],
@@ -21078,7 +21078,7 @@
     ],
     "Name": "メガミュウツーY"
   },
-  "AMPHAROS,1": {
+  "AMPHAROSFORM1": {
     "Types": [
       "ELECTRIC",
       "DRAGON"
@@ -21098,7 +21098,7 @@
     ],
     "Name": "メガデンリュウ"
   },
-  "SLOWKING,1": {
+  "SLOWKINGFORM1": {
     "Types": [
       "POISON",
       "PSYCHIC"
@@ -21119,7 +21119,7 @@
     ],
     "Name": "ガラルヤドキング"
   },
-  "STEELIX,1": {
+  "STEELIXFORM1": {
     "Types": [
       "STEEL",
       "GROUND"
@@ -21139,7 +21139,7 @@
     ],
     "Name": "メガハガネール"
   },
-  "SCIZOR,1": {
+  "SCIZORFORM1": {
     "Types": [
       "BUG",
       "STEEL"
@@ -21159,7 +21159,7 @@
     ],
     "Name": "メガハッサム"
   },
-  "HERACROSS,1": {
+  "HERACROSSFORM1": {
     "Types": [
       "BUG",
       "FIGHTING"
@@ -21179,7 +21179,7 @@
     ],
     "Name": "メガヘラクロス"
   },
-  "CORSOLA,1": {
+  "CORSOLAFORM1": {
     "Types": [
       "GHOST"
     ],
@@ -21198,7 +21198,7 @@
     ],
     "Name": "ガラルサニーゴ"
   },
-  "HOUNDOOM,1": {
+  "HOUNDOOMFORM1": {
     "Types": [
       "DARK",
       "FIRE"
@@ -21218,7 +21218,7 @@
     ],
     "Name": "メガヘルガー"
   },
-  "TYRANITAR,1": {
+  "TYRANITARFORM1": {
     "Types": [
       "ROCK",
       "DARK"
@@ -21238,7 +21238,7 @@
     ],
     "Name": "メガバンギラス"
   },
-  "SCEPTILE,1": {
+  "SCEPTILEFORM1": {
     "Types": [
       "GRASS",
       "DRAGON"
@@ -21258,7 +21258,7 @@
     ],
     "Name": "メガジュカイン"
   },
-  "BLAZIKEN,1": {
+  "BLAZIKENFORM1": {
     "Types": [
       "FIRE",
       "FIGHTING"
@@ -21278,7 +21278,7 @@
     ],
     "Name": "メガバシャーモ"
   },
-  "SWAMPERT,1": {
+  "SWAMPERTFORM1": {
     "Types": [
       "WATER",
       "GROUND"
@@ -21298,7 +21298,7 @@
     ],
     "Name": "メガラグラージ"
   },
-  "ZIGZAGOON,1": {
+  "ZIGZAGOONFORM1": {
     "Types": [
       "DARK",
       "NORMAL"
@@ -21319,7 +21319,7 @@
     ],
     "Name": "ガラルジグザグマ"
   },
-  "LINOONE,1": {
+  "LINOONEFORM1": {
     "Types": [
       "DARK",
       "NORMAL"
@@ -21340,7 +21340,7 @@
     ],
     "Name": "ガラルマッスグマ"
   },
-  "GARDEVOIR,1": {
+  "GARDEVOIRFORM1": {
     "Types": [
       "PSYCHIC",
       "FAIRY"
@@ -21360,7 +21360,7 @@
     ],
     "Name": "メガサーナイト"
   },
-  "SABLEYE,1": {
+  "SABLEYEFORM1": {
     "Types": [
       "DARK",
       "GHOST"
@@ -21380,7 +21380,7 @@
     ],
     "Name": "メガヤミラミ"
   },
-  "MAWILE,1": {
+  "MAWILEFORM1": {
     "Types": [
       "STEEL",
       "FAIRY"
@@ -21400,7 +21400,7 @@
     ],
     "Name": "メガクチート"
   },
-  "AGGRON,1": {
+  "AGGRONFORM1": {
     "Types": [
       "STEEL"
     ],
@@ -21419,7 +21419,7 @@
     ],
     "Name": "メガボスゴドラ"
   },
-  "MEDICHAM,1": {
+  "MEDICHAMFORM1": {
     "Types": [
       "FIGHTING",
       "PSYCHIC"
@@ -21439,7 +21439,7 @@
     ],
     "Name": "メガチャーレム"
   },
-  "MANECTRIC,1": {
+  "MANECTRICFORM1": {
     "Types": [
       "ELECTRIC"
     ],
@@ -21458,7 +21458,7 @@
     ],
     "Name": "メガライボルト"
   },
-  "SHARPEDO,1": {
+  "SHARPEDOFORM1": {
     "Types": [
       "WATER",
       "DARK"
@@ -21478,7 +21478,7 @@
     ],
     "Name": "メガサメハダー"
   },
-  "CAMERUPT,1": {
+  "CAMERUPTFORM1": {
     "Types": [
       "FIRE",
       "GROUND"
@@ -21498,7 +21498,7 @@
     ],
     "Name": "メガバクーダ"
   },
-  "ALTARIA,1": {
+  "ALTARIAFORM1": {
     "Types": [
       "DRAGON",
       "FAIRY"
@@ -21518,7 +21518,7 @@
     ],
     "Name": "メガチルタリス"
   },
-  "CASTFORM,1": {
+  "CASTFORMFORM1": {
     "Types": [
       "FIRE"
     ],
@@ -21535,7 +21535,7 @@
     "HiddenAbilities": [],
     "Name": "ポワルン(たいよう)"
   },
-  "CASTFORM,2": {
+  "CASTFORMFORM2": {
     "Types": [
       "WATER"
     ],
@@ -21552,7 +21552,7 @@
     "HiddenAbilities": [],
     "Name": "ポワルン(あまみず)"
   },
-  "CASTFORM,3": {
+  "CASTFORMFORM3": {
     "Types": [
       "ICE"
     ],
@@ -21569,7 +21569,7 @@
     "HiddenAbilities": [],
     "Name": "ポワルン(ゆきぐも)"
   },
-  "BANETTE,1": {
+  "BANETTEFORM1": {
     "Types": [
       "GHOST"
     ],
@@ -21588,7 +21588,7 @@
     ],
     "Name": "メガジュペッタ"
   },
-  "ABSOL,1": {
+  "ABSOLFORM1": {
     "Types": [
       "DARK"
     ],
@@ -21607,7 +21607,7 @@
     ],
     "Name": "メガアブソル"
   },
-  "GLALIE,1": {
+  "GLALIEFORM1": {
     "Types": [
       "ICE"
     ],
@@ -21626,7 +21626,7 @@
     ],
     "Name": "メガオニゴーリ"
   },
-  "SALAMENCE,1": {
+  "SALAMENCEFORM1": {
     "Types": [
       "DRAGON",
       "FLYING"
@@ -21646,7 +21646,7 @@
     ],
     "Name": "メガボーマンダ"
   },
-  "METAGROSS,1": {
+  "METAGROSSFORM1": {
     "Types": [
       "STEEL",
       "PSYCHIC"
@@ -21666,7 +21666,7 @@
     ],
     "Name": "メガメタグロス"
   },
-  "LATIAS,1": {
+  "LATIASFORM1": {
     "Types": [
       "DRAGON",
       "PSYCHIC"
@@ -21684,7 +21684,7 @@
     "HiddenAbilities": [],
     "Name": "メガラティアス"
   },
-  "LATIOS,1": {
+  "LATIOSFORM1": {
     "Types": [
       "DRAGON",
       "PSYCHIC"
@@ -21702,7 +21702,7 @@
     "HiddenAbilities": [],
     "Name": "メガラティオス"
   },
-  "KYOGRE,1": {
+  "KYOGREFORM1": {
     "Types": [
       "WATER"
     ],
@@ -21719,7 +21719,7 @@
     "HiddenAbilities": [],
     "Name": "ゲンシカイオーガ"
   },
-  "GROUDON,1": {
+  "GROUDONFORM1": {
     "Types": [
       "GROUND",
       "FIRE"
@@ -21737,7 +21737,7 @@
     "HiddenAbilities": [],
     "Name": "ゲンシグラードン"
   },
-  "RAYQUAZA,1": {
+  "RAYQUAZAFORM1": {
     "Types": [
       "DRAGON",
       "FLYING"
@@ -21757,7 +21757,7 @@
     ],
     "Name": "メガレックウザ"
   },
-  "DEOXYS,1": {
+  "DEOXYSFORM1": {
     "Types": [
       "PSYCHIC"
     ],
@@ -21774,7 +21774,7 @@
     "HiddenAbilities": [],
     "Name": "デオキシス(アタック)"
   },
-  "DEOXYS,2": {
+  "DEOXYSFORM2": {
     "Types": [
       "PSYCHIC"
     ],
@@ -21791,7 +21791,7 @@
     "HiddenAbilities": [],
     "Name": "デオキシス(ディフェンス)"
   },
-  "DEOXYS,3": {
+  "DEOXYSFORM3": {
     "Types": [
       "PSYCHIC"
     ],
@@ -21808,7 +21808,7 @@
     "HiddenAbilities": [],
     "Name": "デオキシス(スピード)"
   },
-  "WORMADAM,1": {
+  "WORMADAMFORM1": {
     "Types": [
       "BUG",
       "GROUND"
@@ -21828,7 +21828,7 @@
     ],
     "Name": "ミノマダム(すなち)"
   },
-  "WORMADAM,2": {
+  "WORMADAMFORM2": {
     "Types": [
       "BUG",
       "STEEL"
@@ -21848,7 +21848,7 @@
     ],
     "Name": "ミノマダム(ゴミ)"
   },
-  "LOPUNNY,1": {
+  "LOPUNNYFORM1": {
     "Types": [
       "NORMAL",
       "FIGHTING"
@@ -21868,7 +21868,7 @@
     ],
     "Name": "メガミミロップ"
   },
-  "GARCHOMP,1": {
+  "GARCHOMPFORM1": {
     "Types": [
       "DRAGON",
       "GROUND"
@@ -21888,7 +21888,7 @@
     ],
     "Name": "メガガブリアス"
   },
-  "LUCARIO,1": {
+  "LUCARIOFORM1": {
     "Types": [
       "FIGHTING",
       "STEEL"
@@ -21908,7 +21908,7 @@
     ],
     "Name": "メガルカリオ"
   },
-  "ABOMASNOW,1": {
+  "ABOMASNOWFORM1": {
     "Types": [
       "GRASS",
       "ICE"
@@ -21928,7 +21928,7 @@
     ],
     "Name": "メガユキノオー"
   },
-  "GALLADE,1": {
+  "GALLADEFORM1": {
     "Types": [
       "PSYCHIC",
       "FIGHTING"
@@ -21948,7 +21948,7 @@
     ],
     "Name": "メガエルレイド"
   },
-  "ROTOM,1": {
+  "ROTOMFORM1": {
     "Types": [
       "ELECTRIC",
       "FIRE"
@@ -21966,7 +21966,7 @@
     "HiddenAbilities": [],
     "Name": "ヒートロトム"
   },
-  "ROTOM,2": {
+  "ROTOMFORM2": {
     "Types": [
       "ELECTRIC",
       "WATER"
@@ -21984,7 +21984,7 @@
     "HiddenAbilities": [],
     "Name": "ウォッシュロトム"
   },
-  "ROTOM,3": {
+  "ROTOMFORM3": {
     "Types": [
       "ELECTRIC",
       "ICE"
@@ -22002,7 +22002,7 @@
     "HiddenAbilities": [],
     "Name": "フロストロトム"
   },
-  "ROTOM,4": {
+  "ROTOMFORM4": {
     "Types": [
       "ELECTRIC",
       "FLYING"
@@ -22020,7 +22020,7 @@
     "HiddenAbilities": [],
     "Name": "スピンロトム"
   },
-  "ROTOM,5": {
+  "ROTOMFORM5": {
     "Types": [
       "ELECTRIC",
       "GRASS"
@@ -22038,7 +22038,7 @@
     "HiddenAbilities": [],
     "Name": "カットロトム"
   },
-  "GIRATINA,1": {
+  "GIRATINAFORM1": {
     "Types": [
       "GHOST",
       "DRAGON"
@@ -22058,7 +22058,7 @@
     ],
     "Name": "ギラティナ(オリジン)"
   },
-  "SHAYMIN,1": {
+  "SHAYMINFORM1": {
     "Types": [
       "GRASS",
       "FLYING"
@@ -22076,7 +22076,7 @@
     "HiddenAbilities": [],
     "Name": "シェイミ(スカイ)"
   },
-  "ARCEUS,1": {
+  "ARCEUSFORM1": {
     "Types": [
       "FIGHTING"
     ],
@@ -22093,7 +22093,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(かくとう)"
   },
-  "ARCEUS,2": {
+  "ARCEUSFORM2": {
     "Types": [
       "FLYING"
     ],
@@ -22110,7 +22110,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(ひこう)"
   },
-  "ARCEUS,3": {
+  "ARCEUSFORM3": {
     "Types": [
       "POISON"
     ],
@@ -22127,7 +22127,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(どく)"
   },
-  "ARCEUS,4": {
+  "ARCEUSFORM4": {
     "Types": [
       "GROUND"
     ],
@@ -22144,7 +22144,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(じめん)"
   },
-  "ARCEUS,5": {
+  "ARCEUSFORM5": {
     "Types": [
       "ROCK"
     ],
@@ -22161,7 +22161,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(いわ)"
   },
-  "ARCEUS,6": {
+  "ARCEUSFORM6": {
     "Types": [
       "BUG"
     ],
@@ -22178,7 +22178,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(むし)"
   },
-  "ARCEUS,7": {
+  "ARCEUSFORM7": {
     "Types": [
       "GHOST"
     ],
@@ -22195,7 +22195,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(ゴースト)"
   },
-  "ARCEUS,8": {
+  "ARCEUSFORM8": {
     "Types": [
       "STEEL"
     ],
@@ -22212,7 +22212,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(はがね)"
   },
-  "ARCEUS,10": {
+  "ARCEUSFORM10": {
     "Types": [
       "FIRE"
     ],
@@ -22229,7 +22229,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(ほのお)"
   },
-  "ARCEUS,11": {
+  "ARCEUSFORM11": {
     "Types": [
       "WATER"
     ],
@@ -22246,7 +22246,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(みず)"
   },
-  "ARCEUS,12": {
+  "ARCEUSFORM12": {
     "Types": [
       "GRASS"
     ],
@@ -22263,7 +22263,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(くさ)"
   },
-  "ARCEUS,13": {
+  "ARCEUSFORM13": {
     "Types": [
       "ELECTRIC"
     ],
@@ -22280,7 +22280,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(でんき)"
   },
-  "ARCEUS,14": {
+  "ARCEUSFORM14": {
     "Types": [
       "PSYCHIC"
     ],
@@ -22297,7 +22297,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(エスパー)"
   },
-  "ARCEUS,15": {
+  "ARCEUSFORM15": {
     "Types": [
       "ICE"
     ],
@@ -22314,7 +22314,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(こおり)"
   },
-  "ARCEUS,16": {
+  "ARCEUSFORM16": {
     "Types": [
       "DRAGON"
     ],
@@ -22331,7 +22331,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(ドラゴン)"
   },
-  "ARCEUS,17": {
+  "ARCEUSFORM17": {
     "Types": [
       "DARK"
     ],
@@ -22348,7 +22348,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(あく)"
   },
-  "ARCEUS,18": {
+  "ARCEUSFORM18": {
     "Types": [
       "FAIRY"
     ],
@@ -22365,7 +22365,7 @@
     "HiddenAbilities": [],
     "Name": "アルセウス(フェアリー)"
   },
-  "AUDINO,1": {
+  "AUDINOFORM1": {
     "Types": [
       "NORMAL",
       "FAIRY"
@@ -22385,7 +22385,7 @@
     ],
     "Name": "メガタブンネ"
   },
-  "DARUMAKA,2": {
+  "DARUMAKAFORM2": {
     "Types": [
       "ICE"
     ],
@@ -22404,7 +22404,7 @@
     ],
     "Name": "ガラルダルマッカ"
   },
-  "DARMANITAN,1": {
+  "DARMANITANFORM1": {
     "Types": [
       "FIRE",
       "PSYCHIC"
@@ -22424,7 +22424,7 @@
     ],
     "Name": "ヒヒダルマ(ダルマモード)"
   },
-  "DARMANITAN,2": {
+  "DARMANITANFORM2": {
     "Types": [
       "ICE"
     ],
@@ -22443,7 +22443,7 @@
     ],
     "Name": "ガラルヒヒダルマ"
   },
-  "DARMANITAN,3": {
+  "DARMANITANFORM3": {
     "Types": [
       "ICE",
       "FIRE"
@@ -22463,7 +22463,7 @@
     ],
     "Name": "ガラルヒヒダルマ(ダルマモード)"
   },
-  "YAMASK,1": {
+  "YAMASKFORM1": {
     "Types": [
       "GROUND",
       "GHOST"
@@ -22481,7 +22481,7 @@
     "HiddenAbilities": [],
     "Name": "ガラルデスマス"
   },
-  "STUNFISK,1": {
+  "STUNFISKFORM1": {
     "Types": [
       "GROUND",
       "STEEL"
@@ -22501,7 +22501,7 @@
     ],
     "Name": "ガラルマッギョ"
   },
-  "TORNADUS,1": {
+  "TORNADUSFORM1": {
     "Types": [
       "FLYING"
     ],
@@ -22520,7 +22520,7 @@
     ],
     "Name": "トルネロス(れいじゅう)"
   },
-  "THUNDURUS,1": {
+  "THUNDURUSFORM1": {
     "Types": [
       "ELECTRIC",
       "FLYING"
@@ -22540,7 +22540,7 @@
     ],
     "Name": "ボルトロス(れいじゅう)"
   },
-  "LANDORUS,1": {
+  "LANDORUSFORM1": {
     "Types": [
       "GROUND",
       "FLYING"
@@ -22560,7 +22560,7 @@
     ],
     "Name": "ランドロス(れいじゅう)"
   },
-  "KYUREM,1": {
+  "KYUREMFORM1": {
     "Types": [
       "DRAGON",
       "ICE"
@@ -22578,7 +22578,7 @@
     "HiddenAbilities": [],
     "Name": "ホワイトキュレム"
   },
-  "KYUREM,2": {
+  "KYUREMFORM2": {
     "Types": [
       "DRAGON",
       "ICE"
@@ -22596,7 +22596,7 @@
     "HiddenAbilities": [],
     "Name": "ブラックキュレム"
   },
-  "MELOETTA,1": {
+  "MELOETTAFORM1": {
     "Types": [
       "NORMAL",
       "FIGHTING"
@@ -22614,7 +22614,7 @@
     "HiddenAbilities": [],
     "Name": "メロエッタ(ステップ)"
   },
-  "GRENINJA,1": {
+  "GRENINJAFORM1": {
     "Types": [
       "WATER",
       "DARK"
@@ -22634,7 +22634,7 @@
     ],
     "Name": "ゲッコウガ(きずなへんげ)"
   },
-  "GRENINJA,2": {
+  "GRENINJAFORM2": {
     "Types": [
       "WATER",
       "DARK"
@@ -22654,7 +22654,7 @@
     ],
     "Name": "サトシゲッコウガ"
   },
-  "FLOETTE,5": {
+  "FLOETTEFORM5": {
     "Types": [
       "FAIRY"
     ],
@@ -22673,7 +22673,7 @@
     ],
     "Name": "フラエッテ(えいえん)"
   },
-  "MEOWSTIC,1": {
+  "MEOWSTICFORM1": {
     "Types": [
       "PSYCHIC"
     ],
@@ -22693,7 +22693,7 @@
     ],
     "Name": "ニャオニクス(メス)"
   },
-  "AEGISLASH,1": {
+  "AEGISLASHFORM1": {
     "Types": [
       "STEEL",
       "GHOST"
@@ -22711,7 +22711,7 @@
     "HiddenAbilities": [],
     "Name": "ギルガルド(ブレード)"
   },
-  "PUMPKABOO,1": {
+  "PUMPKABOOFORM1": {
     "Types": [
       "GHOST",
       "GRASS"
@@ -22732,7 +22732,7 @@
     ],
     "Name": "バケッチャ(普通)"
   },
-  "PUMPKABOO,2": {
+  "PUMPKABOOFORM2": {
     "Types": [
       "GHOST",
       "GRASS"
@@ -22751,7 +22751,7 @@
     "HiddenAbilities": [],
     "Name": "バケッチャ(大)"
   },
-  "PUMPKABOO,3": {
+  "PUMPKABOOFORM3": {
     "Types": [
       "GHOST",
       "GRASS"
@@ -22772,7 +22772,7 @@
     ],
     "Name": "バケッチャ(特大)"
   },
-  "GOURGEIST,1": {
+  "GOURGEISTFORM1": {
     "Types": [
       "GHOST",
       "GRASS"
@@ -22793,7 +22793,7 @@
     ],
     "Name": "パンプジン(普通)"
   },
-  "GOURGEIST,2": {
+  "GOURGEISTFORM2": {
     "Types": [
       "GHOST",
       "GRASS"
@@ -22812,7 +22812,7 @@
     "HiddenAbilities": [],
     "Name": "パンプジン(大)"
   },
-  "GOURGEIST,3": {
+  "GOURGEISTFORM3": {
     "Types": [
       "GHOST",
       "GRASS"
@@ -22833,7 +22833,7 @@
     ],
     "Name": "パンプジン(特大)"
   },
-  "ZYGARDE,1": {
+  "ZYGARDEFORM1": {
     "Types": [
       "DRAGON",
       "GROUND"
@@ -22852,7 +22852,7 @@
     "HiddenAbilities": [],
     "Name": "ジガルデ(10%)"
   },
-  "ZYGARDE,2": {
+  "ZYGARDEFORM2": {
     "Types": [
       "DRAGON",
       "GROUND"
@@ -22872,7 +22872,7 @@
     ],
     "Name": "ジガルデ(パーフェクト)"
   },
-  "DIANCIE,1": {
+  "DIANCIEFORM1": {
     "Types": [
       "ROCK",
       "FAIRY"
@@ -22892,7 +22892,7 @@
     ],
     "Name": "メガディアンシー"
   },
-  "HOOPA,1": {
+  "HOOPAFORM1": {
     "Types": [
       "PSYCHIC",
       "DARK"
@@ -22910,7 +22910,7 @@
     "HiddenAbilities": [],
     "Name": "フーパ(ときはな)"
   },
-  "ORICORIO,1": {
+  "ORICORIOFORM1": {
     "Types": [
       "ELECTRIC",
       "FLYING"
@@ -22928,7 +22928,7 @@
     "HiddenAbilities": [],
     "Name": "オドリドリ(ぱちぱち)"
   },
-  "ORICORIO,2": {
+  "ORICORIOFORM2": {
     "Types": [
       "PSYCHIC",
       "FLYING"
@@ -22946,7 +22946,7 @@
     "HiddenAbilities": [],
     "Name": "オドリドリ(ふらふら)"
   },
-  "ORICORIO,3": {
+  "ORICORIOFORM3": {
     "Types": [
       "GHOST",
       "FLYING"
@@ -22964,7 +22964,7 @@
     "HiddenAbilities": [],
     "Name": "オドリドリ(まいまい)"
   },
-  "ROCKRUFF,2": {
+  "ROCKRUFFFORM2": {
     "Types": [
       "ROCK"
     ],
@@ -22983,7 +22983,7 @@
     ],
     "Name": "イワンコ(マイペース)"
   },
-  "LYCANROC,1": {
+  "LYCANROCFORM1": {
     "Types": [
       "ROCK"
     ],
@@ -23003,7 +23003,7 @@
     ],
     "Name": "ルガルガン(まよなか)"
   },
-  "LYCANROC,2": {
+  "LYCANROCFORM2": {
     "Types": [
       "ROCK"
     ],
@@ -23022,7 +23022,7 @@
     ],
     "Name": "ルガルガン(たそがれ)"
   },
-  "WISHIWASHI,1": {
+  "WISHIWASHIFORM1": {
     "Types": [
       "WATER"
     ],
@@ -23039,7 +23039,7 @@
     "HiddenAbilities": [],
     "Name": "ヨワシ(むれ)"
   },
-  "SILVALLY,1": {
+  "SILVALLYFORM1": {
     "Types": [
       "FIGHTING"
     ],
@@ -23056,7 +23056,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(かくとう)"
   },
-  "SILVALLY,2": {
+  "SILVALLYFORM2": {
     "Types": [
       "FLYING"
     ],
@@ -23073,7 +23073,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(ひこう)"
   },
-  "SILVALLY,3": {
+  "SILVALLYFORM3": {
     "Types": [
       "POISON"
     ],
@@ -23090,7 +23090,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(どく)"
   },
-  "SILVALLY,4": {
+  "SILVALLYFORM4": {
     "Types": [
       "GROUND"
     ],
@@ -23107,7 +23107,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(じめん)"
   },
-  "SILVALLY,5": {
+  "SILVALLYFORM5": {
     "Types": [
       "ROCK"
     ],
@@ -23124,7 +23124,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(いわ)"
   },
-  "SILVALLY,6": {
+  "SILVALLYFORM6": {
     "Types": [
       "BUG"
     ],
@@ -23141,7 +23141,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(むし)"
   },
-  "SILVALLY,7": {
+  "SILVALLYFORM7": {
     "Types": [
       "GHOST"
     ],
@@ -23158,7 +23158,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(ゴースト)"
   },
-  "SILVALLY,8": {
+  "SILVALLYFORM8": {
     "Types": [
       "STEEL"
     ],
@@ -23175,7 +23175,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(はがね)"
   },
-  "SILVALLY,10": {
+  "SILVALLYFORM10": {
     "Types": [
       "FIRE"
     ],
@@ -23192,7 +23192,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(ほのお)"
   },
-  "SILVALLY,11": {
+  "SILVALLYFORM11": {
     "Types": [
       "WATER"
     ],
@@ -23209,7 +23209,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(みず)"
   },
-  "SILVALLY,12": {
+  "SILVALLYFORM12": {
     "Types": [
       "GRASS"
     ],
@@ -23226,7 +23226,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(くさ)"
   },
-  "SILVALLY,13": {
+  "SILVALLYFORM13": {
     "Types": [
       "ELECTRIC"
     ],
@@ -23243,7 +23243,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(でんき)"
   },
-  "SILVALLY,14": {
+  "SILVALLYFORM14": {
     "Types": [
       "PSYCHIC"
     ],
@@ -23260,7 +23260,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(エスパー)"
   },
-  "SILVALLY,15": {
+  "SILVALLYFORM15": {
     "Types": [
       "ICE"
     ],
@@ -23277,7 +23277,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(こおり)"
   },
-  "SILVALLY,16": {
+  "SILVALLYFORM16": {
     "Types": [
       "DRAGON"
     ],
@@ -23294,7 +23294,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(ドラゴン)"
   },
-  "SILVALLY,17": {
+  "SILVALLYFORM17": {
     "Types": [
       "DARK"
     ],
@@ -23311,7 +23311,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(あく)"
   },
-  "SILVALLY,18": {
+  "SILVALLYFORM18": {
     "Types": [
       "FAIRY"
     ],
@@ -23328,7 +23328,7 @@
     "HiddenAbilities": [],
     "Name": "シルヴァディ(フェアリー)"
   },
-  "MINIOR,2": {
+  "MINIORFORM2": {
     "Types": [
       "ROCK",
       "FLYING"
@@ -23346,7 +23346,7 @@
     "HiddenAbilities": [],
     "Name": "メテノ(コア)"
   },
-  "NECROZMA,1": {
+  "NECROZMAFORM1": {
     "Types": [
       "PSYCHIC",
       "STEEL"
@@ -23364,7 +23364,7 @@
     "HiddenAbilities": [],
     "Name": "ネクロズマ(日食)"
   },
-  "NECROZMA,2": {
+  "NECROZMAFORM2": {
     "Types": [
       "PSYCHIC",
       "GHOST"
@@ -23382,7 +23382,7 @@
     "HiddenAbilities": [],
     "Name": "ネクロズマ(月食)"
   },
-  "NECROZMA,3": {
+  "NECROZMAFORM3": {
     "Types": [
       "PSYCHIC",
       "DRAGON"
@@ -23400,7 +23400,7 @@
     "HiddenAbilities": [],
     "Name": "ウルトラネクロズマ"
   },
-  "TOXTRICITY,1": {
+  "TOXTRICITYFORM1": {
     "Types": [
       "ELECTRIC",
       "POISON"
@@ -23421,7 +23421,7 @@
     ],
     "Name": "ストリンダー(ロー)"
   },
-  "EISCUE,1": {
+  "EISCUEFORM1": {
     "Types": [
       "ICE"
     ],
@@ -23438,7 +23438,7 @@
     "HiddenAbilities": [],
     "Name": "コオリッポ(ナイス)"
   },
-  "INDEEDEE,1": {
+  "INDEEDEEFORM1": {
     "Types": [
       "PSYCHIC",
       "NORMAL"
@@ -23459,7 +23459,7 @@
     ],
     "Name": "イエッサン(メス)"
   },
-  "ZACIAN,1": {
+  "ZACIANFORM1": {
     "Types": [
       "FAIRY",
       "STEEL"
@@ -23477,7 +23477,7 @@
     "HiddenAbilities": [],
     "Name": "ザシアン(王)"
   },
-  "ZAMAZENTA,1": {
+  "ZAMAZENTAFORM1": {
     "Types": [
       "FIGHTING",
       "STEEL"
@@ -23495,7 +23495,7 @@
     "HiddenAbilities": [],
     "Name": "ザマゼンタ(王)"
   },
-  "URSHIFU,1": {
+  "URSHIFUFORM1": {
     "Types": [
       "FIGHTING",
       "WATER"
@@ -23513,7 +23513,7 @@
     "HiddenAbilities": [],
     "Name": "ウーラオス(れんげき)"
   },
-  "CALYREX,1": {
+  "CALYREXFORM1": {
     "Types": [
       "PSYCHIC",
       "ICE"
@@ -23531,7 +23531,7 @@
     "HiddenAbilities": [],
     "Name": "バドレックス(はくば)"
   },
-  "CALYREX,2": {
+  "CALYREXFORM2": {
     "Types": [
       "PSYCHIC",
       "GHOST"
@@ -23549,7 +23549,7 @@
     "HiddenAbilities": [],
     "Name": "バドレックス(こくば)"
   },
-  "GROWLITHE,1": {
+  "GROWLITHEFORM1": {
     "Types": [
       "FIRE",
       "ROCK"
@@ -23570,7 +23570,7 @@
     ],
     "Name": "ヒスイガーディ"
   },
-  "ARCANINE,1": {
+  "ARCANINEFORM1": {
     "Types": [
       "FIRE",
       "ROCK"
@@ -23591,7 +23591,7 @@
     ],
     "Name": "ヒスイウインディ"
   },
-  "VOLTORB,1": {
+  "VOLTORBFORM1": {
     "Types": [
       "ELECTRIC",
       "GRASS"
@@ -23612,7 +23612,7 @@
     ],
     "Name": "ヒスイビリリダマ"
   },
-  "ELECTRODE,1": {
+  "ELECTRODEFORM1": {
     "Types": [
       "ELECTRIC",
       "GRASS"
@@ -23633,7 +23633,7 @@
     ],
     "Name": "ヒスイマルマイン"
   },
-  "TAUROS,1": {
+  "TAUROSFORM1": {
     "Types": [
       "FIGHTING"
     ],
@@ -23653,7 +23653,7 @@
     ],
     "Name": "パルデアケンタロス"
   },
-  "TAUROS,2": {
+  "TAUROSFORM2": {
     "Types": [
       "FIGHTING",
       "FIRE"
@@ -23674,7 +23674,7 @@
     ],
     "Name": "パルデアケンタロス(炎)"
   },
-  "TAUROS,3": {
+  "TAUROSFORM3": {
     "Types": [
       "FIGHTING",
       "WATER"
@@ -23695,7 +23695,7 @@
     ],
     "Name": "パルデアケンタロス(水)"
   },
-  "TYPHLOSION,1": {
+  "TYPHLOSIONFORM1": {
     "Types": [
       "FIRE",
       "GHOST"
@@ -23715,7 +23715,7 @@
     ],
     "Name": "ヒスイバクフーン"
   },
-  "WOOPER,1": {
+  "WOOPERFORM1": {
     "Types": [
       "POISON",
       "GROUND"
@@ -23736,7 +23736,7 @@
     ],
     "Name": "パルデアウパー"
   },
-  "QWILFISH,1": {
+  "QWILFISHFORM1": {
     "Types": [
       "DARK",
       "POISON"
@@ -23757,7 +23757,7 @@
     ],
     "Name": "ヒスイハリーセン"
   },
-  "SNEASEL,1": {
+  "SNEASELFORM1": {
     "Types": [
       "FIGHTING",
       "POISON"
@@ -23778,7 +23778,7 @@
     ],
     "Name": "ヒスイニューラ"
   },
-  "DIALGA,1": {
+  "DIALGAFORM1": {
     "Types": [
       "STEEL",
       "DRAGON"
@@ -23798,7 +23798,7 @@
     ],
     "Name": "ディアルガ(オリジン)"
   },
-  "PALKIA,1": {
+  "PALKIAFORM1": {
     "Types": [
       "WATER",
       "DRAGON"
@@ -23818,7 +23818,7 @@
     ],
     "Name": "パルキア(オリジン)"
   },
-  "SAMUROTT,1": {
+  "SAMUROTTFORM1": {
     "Types": [
       "WATER",
       "DARK"
@@ -23838,7 +23838,7 @@
     ],
     "Name": "ヒスイダイケンキ"
   },
-  "LILLIGANT,1": {
+  "LILLIGANTFORM1": {
     "Types": [
       "GRASS",
       "FIGHTING"
@@ -23859,7 +23859,7 @@
     ],
     "Name": "ヒスイドレディア"
   },
-  "BASCULIN,2": {
+  "BASCULINFORM2": {
     "Types": [
       "WATER"
     ],
@@ -23879,7 +23879,7 @@
     ],
     "Name": "バスラオ(しろすじ)"
   },
-  "ZORUA,1": {
+  "ZORUAFORM1": {
     "Types": [
       "NORMAL",
       "GHOST"
@@ -23897,7 +23897,7 @@
     "HiddenAbilities": [],
     "Name": "ヒスイゾロア"
   },
-  "ZOROARK,1": {
+  "ZOROARKFORM1": {
     "Types": [
       "NORMAL",
       "GHOST"
@@ -23915,7 +23915,7 @@
     "HiddenAbilities": [],
     "Name": "ヒスイゾロアーク"
   },
-  "BRAVIARY,1": {
+  "BRAVIARYFORM1": {
     "Types": [
       "PSYCHIC",
       "FLYING"
@@ -23936,7 +23936,7 @@
     ],
     "Name": "ヒスイウォーグル"
   },
-  "SLIGGOO,1": {
+  "SLIGGOOFORM1": {
     "Types": [
       "STEEL",
       "DRAGON"
@@ -23957,7 +23957,7 @@
     ],
     "Name": "ヒスイヌメイル"
   },
-  "GOODRA,1": {
+  "GOODRAFORM1": {
     "Types": [
       "STEEL",
       "DRAGON"
@@ -23978,7 +23978,7 @@
     ],
     "Name": "ヒスイヌメルゴン"
   },
-  "AVALUGG,1": {
+  "AVALUGGFORM1": {
     "Types": [
       "ICE",
       "ROCK"
@@ -23999,7 +23999,7 @@
     ],
     "Name": "ヒスイクレベース"
   },
-  "DECIDUEYE,1": {
+  "DECIDUEYEFORM1": {
     "Types": [
       "GRASS",
       "FIGHTING"
@@ -24019,7 +24019,7 @@
     ],
     "Name": "ヒスイジュナイパー"
   },
-  "URSALUNA,1": {
+  "URSALUNAFORM1": {
     "Types": [
       "GROUND",
       "NORMAL"
@@ -24039,7 +24039,7 @@
     ],
     "Name": "ガチグマ(あかつき)"
   },
-  "BASCULEGION,1": {
+  "BASCULEGIONFORM1": {
     "Types": [
       "WATER",
       "GHOST"
@@ -24060,7 +24060,7 @@
     ],
     "Name": "イダイトウ(メス)"
   },
-  "ENAMORUS,1": {
+  "ENAMORUSFORM1": {
     "Types": [
       "FAIRY",
       "FLYING"
@@ -24080,7 +24080,7 @@
     ],
     "Name": "ラブトロス(れいじゅう)"
   },
-  "OINKOLOGNE,1": {
+  "OINKOLOGNEFORM1": {
     "Types": [
       "NORMAL"
     ],
@@ -24100,7 +24100,7 @@
     ],
     "Name": "パフュートン(メス)"
   },
-  "PALAFIN,1": {
+  "PALAFINFORM1": {
     "Types": [
       "WATER"
     ],
@@ -24117,7 +24117,7 @@
     "HiddenAbilities": [],
     "Name": "イルカマン(マイティ)"
   },
-  "GIMMIGHOUL,1": {
+  "GIMMIGHOULFORM1": {
     "Types": [
       "GHOST"
     ],
@@ -24134,7 +24134,7 @@
     "HiddenAbilities": [],
     "Name": "コレクレー(とほ)"
   },
-  "OGERPON,1": {
+  "OGERPONFORM1": {
     "Types": [
       "GRASS",
       "WATER"
@@ -24152,7 +24152,7 @@
     "HiddenAbilities": [],
     "Name": "オーガポン(いど)"
   },
-  "OGERPON,2": {
+  "OGERPONFORM2": {
     "Types": [
       "GRASS",
       "FIRE"
@@ -24170,7 +24170,7 @@
     "HiddenAbilities": [],
     "Name": "オーガポン(かまど)"
   },
-  "OGERPON,3": {
+  "OGERPONFORM3": {
     "Types": [
       "GRASS",
       "ROCK"
@@ -24188,7 +24188,7 @@
     "HiddenAbilities": [],
     "Name": "オーガポン(いしずえ)"
   },
-  "TERAPAGOS,1": {
+  "TERAPAGOSFORM1": {
     "Types": [
       "NORMAL"
     ],
@@ -24205,7 +24205,7 @@
     "HiddenAbilities": [],
     "Name": "テラパゴス(テラス)"
   },
-  "TERAPAGOS,2": {
+  "TERAPAGOSFORM2": {
     "Types": [
       "NORMAL"
     ],
@@ -24222,7 +24222,7 @@
     "HiddenAbilities": [],
     "Name": "テラパゴス(ステラ)"
   },
-  "CLEFABLE,1": {
+  "CLEFABLEFORM1": {
     "Types": [
       "FAIRY","FLYING"
     ],
@@ -24242,7 +24242,7 @@
     ],
     "Name": "メガピクシー"
   },
-  "VICTREEBEL,1": {
+  "VICTREEBELFORM1": {
     "Types": [
       "GRASS",
       "POISON"
@@ -24262,7 +24262,7 @@
     ],
     "Name": "メガウツボット"
   },
-  "STARMIE,1": {
+  "STARMIEFORM1": {
     "Types": [
       "WATER",
       "PSYCHIC"
@@ -24282,7 +24282,7 @@
     ],
     "Name": "メガスターミー"
   },
-  "DRAGONITE,1": {
+  "DRAGONITEFORM1": {
     "Types": [
       "DRAGON",
       "FLYING"
@@ -24302,7 +24302,7 @@
     ],
     "Name": "メガカイリュー"
   },
-  "MEGANIUM,1": {
+  "MEGANIUMFORM1": {
     "Types": [
       "GRASS","FAIRY"
     ],
@@ -24321,7 +24321,7 @@
     ],
     "Name": "メガメガニウム"
   },
-  "FERALIGATR,1": {
+  "FERALIGATRFORM1": {
     "Types": [
       "WATER","DRAGON"
     ],
@@ -24340,7 +24340,7 @@
     ],
     "Name": "メガオーダイル"
   },
-    "SKARMORY,1": {
+    "SKARMORYFORM1": {
     "Types": [
       "STEEL",
       "FLYING"
@@ -24361,7 +24361,7 @@
     ],
     "Name": "メガエアームド"
   },
-    "FROSLASS,1": {
+    "FROSLASSFORM1": {
     "Types": [
       "ICE",
       "GHOST"
@@ -24381,7 +24381,7 @@
     ],
     "Name": "メガユキメノコ"
   },
-    "EMBOAR,1": {
+    "EMBOARFORM1": {
     "Types": [
       "FIRE",
       "FIGHTING"
@@ -24401,7 +24401,7 @@
     ],
     "Name": "メガエンブオー"
   },
-    "EXCADRILL,1": {
+    "EXCADRILLFORM1": {
     "Types": [
       "GROUND",
       "STEEL"
@@ -24422,7 +24422,7 @@
     ],
     "Name": "メガドリュウズ"
   },
-    "SCOLIPEDE,1": {
+    "SCOLIPEDEFORM1": {
     "Types": [
       "BUG",
       "POISON"
@@ -24443,7 +24443,7 @@
     ],
     "Name": "メガペンドラー"
   },
-    "SCRAFTY,1": {
+    "SCRAFTYFORM1": {
     "Types": [
       "DARK",
       "FIGHTING"
@@ -24464,7 +24464,7 @@
     ],
     "Name": "メガズルズキン"
   },
-    "EELEKTROSS,1": {
+    "EELEKTROSSFORM1": {
     "Types": [
       "ELECTRIC"
     ],
@@ -24481,7 +24481,7 @@
     "HiddenAbilities": [],
     "Name": "メガシビルドン"
   },
-    "CHANDELURE,1": {
+    "CHANDELUREFORM1": {
     "Types": [
       "GHOST",
       "FIRE"
@@ -24502,7 +24502,7 @@
     ],
     "Name": "メガシャンデラ"
   },
-    "CHESNAUGHT,1": {
+    "CHESNAUGHTFORM1": {
     "Types": [
       "GRASS",
       "FIGHTING"
@@ -24522,7 +24522,7 @@
     ],
     "Name": "メガブリガロン"
   },
-  "DELPHOX,1": {
+  "DELPHOXFORM1": {
     "Types": [
       "FIRE",
       "PSYCHIC"
@@ -24542,7 +24542,7 @@
     ],
     "Name": "メガマフォクシー"
   },
-  "GRENINJA,3": {
+  "GRENINJAFORM3": {
     "Types": [
       "WATER",
       "DARK"
@@ -24562,7 +24562,7 @@
     ],
     "Name": "メガゲッコウガ"
   },
-    "PYROAR,1": {
+    "PYROARFORM1": {
     "Types": [
       "FIRE",
       "NORMAL"
@@ -24583,7 +24583,7 @@
     ],
     "Name": "メガカエンジシ"
   },
-    "FLOETTE,6": {
+    "FLOETTEFORM6": {
     "Types": [
       "FAIRY"
     ],
@@ -24602,7 +24602,7 @@
     ],
     "Name": "メガフラエッテ"
   },
-    "MALAMAR,1": {
+    "MALAMARFORM1": {
     "Types": [
       "DARK",
       "PSYCHIC"
@@ -24623,7 +24623,7 @@
     ],
     "Name": "メガカラマネロ"
   },
-    "BARBARACLE,1": {
+    "BARBARACLEFORM1": {
     "Types": [
       "ROCK",
       "FIGHTING"
@@ -24644,7 +24644,7 @@
     ],
     "Name": "メガガメノデス"
   },
-    "DRAGALGE,1": {
+    "DRAGALGEFORM1": {
     "Types": [
       "POISON",
       "DRAGON"
@@ -24665,7 +24665,7 @@
     ],
     "Name": "メガドラミドロ"
   },
-    "HAWLUCHA,1": {
+    "HAWLUCHAFORM1": {
     "Types": [
       "FIGHTING",
       "FLYING"
@@ -24686,7 +24686,7 @@
     ],
     "Name": "メガルチャブル"
   },
-    "ZYGARDE,3": {
+    "ZYGARDEFORM3": {
     "Types": [
       "DRAGON",
       "GROUND"
@@ -24705,7 +24705,7 @@
     "HiddenAbilities": [],
     "Name": "メガジガルデ"
   },
-    "DRAMPA,1": {
+    "DRAMPAFORM1": {
     "Types": [
       "NORMAL",
       "DRAGON"
@@ -24726,7 +24726,7 @@
     ],
     "Name": "メガジジーロン"
   },
-    "FALINKS,1": {
+    "FALINKSFORM1": {
     "Types": [
       "FIGHTING"
     ],
@@ -24745,7 +24745,7 @@
     ],
     "Name": "メガタイレーツ"
   },
-    "RAICHU,2": {
+    "RAICHUFORM2": {
     "Types": [
       "ELECTRIC"
     ],
@@ -24764,7 +24764,7 @@
     ],
     "Name": "メガライチュウX"
   },
-    "RAICHU,3": {
+    "RAICHUFORM3": {
     "Types": [
       "ELECTRIC"
     ],
@@ -24783,7 +24783,7 @@
     ],
     "Name": "メガライチュウY"
   },
-    "CHIMECHO,1": {
+    "CHIMECHOFORM1": {
     "Types": [
       "PSYCHIC",
       "STEEL"
@@ -24801,7 +24801,7 @@
     "HiddenAbilities": [],
     "Name": "メガチリーン"
   },
-    "ABSOL,2": {
+    "ABSOLFORM2": {
     "Types": [
       "DARK","GHOST"
     ],
@@ -24821,7 +24821,7 @@
     ],
     "Name": "メガアブソルZ"
   },
-    "STARAPTOR,1": {
+    "STARAPTORFORM1": {
     "Types": [
       "FIGHTING",
       "FLYING"
@@ -24841,7 +24841,7 @@
     ],
     "Name": "メガムクホーク"
   },
-    "GARCHOMP,2": {
+    "GARCHOMPFORM2": {
     "Types": [
       "DRAGON"
     ],
@@ -24860,7 +24860,7 @@
     ],
     "Name": "メガガブリアスZ"
   },
-    "LUCARIO,2": {
+    "LUCARIOFORM2": {
     "Types": [
       "FIGHTING",
       "STEEL"
@@ -24881,7 +24881,7 @@
     ],
     "Name": "メガルカリオZ"
   },
-    "HEATRAN,1": {
+    "HEATRANFORM1": {
     "Types": [
       "FIRE",
       "STEEL"
@@ -24901,7 +24901,7 @@
     ],
     "Name": "メガヒードラン"
   },
-    "DARKRAI,1": {
+    "DARKRAIFORM1": {
     "Types": [
       "DARK"
     ],
@@ -24918,7 +24918,7 @@
     "HiddenAbilities": [],
     "Name": "メガダークライ"
   },
-    "GOLURK,1": {
+    "GOLURKFORM1": {
     "Types": [
       "GROUND",
       "GHOST"
@@ -24939,7 +24939,7 @@
     ],
     "Name": "メガゴルーグ"
   },
-    "MEOWSTIC,2": {
+    "MEOWSTICFORM2": {
     "Types": [
       "PSYCHIC"
     ],
@@ -24959,7 +24959,7 @@
     ],
     "Name": "メガニャオニクス"
   },
-    "CRABOMINABLE,1": {
+    "CRABOMINABLEFORM1": {
     "Types": [
       "FIGHTING",
       "ICE"
@@ -24980,7 +24980,7 @@
     ],
     "Name": "メガケケンカニ"
   },
-    "GOLISOPOD,1": {
+    "GOLISOPODFORM1": {
     "Types": [
       "BUG",
       "STEEL"
@@ -24998,7 +24998,7 @@
     "HiddenAbilities": [],
     "Name": "メガグソクムシャ"
   },
-    "MAGEARNA,1": {
+    "MAGEARNAFORM1": {
     "Types": [
       "STEEL",
       "FAIRY"
@@ -25016,7 +25016,7 @@
     "HiddenAbilities": [],
     "Name": "メガマギアナ"
   },
-      "ZERAORA,1": {
+      "ZERAORAFORM1": {
     "Types": [
       "ELECTRIC"
     ],
@@ -25033,7 +25033,7 @@
     "HiddenAbilities": [],
     "Name": "メガゼラオラ"
   },
-    "SCOVILLAIN,1": {
+    "SCOVILLAINFORM1": {
     "Types": [
       "GRASS",
       "FIRE"
@@ -25054,7 +25054,7 @@
     ],
     "Name": "メガスコヴィラン"
   },
-    "GLIMMORA,1": {
+    "GLIMMORAFORM1": {
     "Types": [
       "ROCK",
       "POISON"
@@ -25074,7 +25074,7 @@
     ],
     "Name": "メガキラフロル"
   },
-    "TATSUGIRI,1": {
+    "TATSUGIRIFORM1": {
     "Types": [
       "DRAGON",
       "WATER"
@@ -25094,7 +25094,7 @@
     ],
     "Name": "メガシャリタツ"
   },
-    "BAXCALIBUR,1": {
+    "BAXCALIBURFORM1": {
     "Types": [
       "DRAGON",
       "ICE"
