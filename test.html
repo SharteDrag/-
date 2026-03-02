@@ -1498,17 +1498,25 @@ if (["MULTISCALE","SHADOWSHIELD"].includes(ability)) {
         NAME_TO_KEY_MAP = {}; 
         POKEMON_NAMES.length = 0; 
         
-        // ✅ 高速化2: インデックス作成を効率化
-        const keys = Object.keys(data);
-        for (let i = 0, len = keys.length; i < len; i++) {
-            const key = keys[i];
-            const name = data[key].Name;
-            if (name) {
-                // ここで正規化して保存しておくことで、検索時の計算をゼロにする
-                NAME_TO_KEY_MAP[toKatakana(name.toLowerCase())] = key;
-                POKEMON_NAMES.push(name);
-            }
+        /// ✅ 修正後のループ部分
+for (let i = 0, len = keys.length; i < len; i++) {
+    const key = keys[i];
+    const name = data[key].Name;
+    if (name) {
+        const normalized = toKatakana(name.toLowerCase());
+        
+        // 名前をキーにして、IDを配列で溜める
+        if (!NAME_TO_KEY_MAP[normalized]) {
+            NAME_TO_KEY_MAP[normalized] = [];
         }
+        NAME_TO_KEY_MAP[normalized].push(key);
+
+        // 検索リストには、重複を許さず「名前」だけを入れる
+        if (!POKEMON_NAMES.includes(name)) {
+            POKEMON_NAMES.push(name);
+        }
+    }
+}
 
         console.timeEnd('LoadData');
 
