@@ -649,13 +649,35 @@ document.addEventListener('click', function(event) {
         let defenderSpAtkMult = 1.0;
         
         let POKEDATA_MAP = {}; 
-        // lists used for search filtering
-        let POKEMON_NAMES = [];
-        let MOVE_NAMES = [];
-        let MOVEDATA_MAP = {}; 
-        let NAME_TO_KEY_MAP = {}; 
-        let HIRAGANA_TO_KATAKANA_MAP = {}; 
-        let ABILITIES_DB = {};
+let MOVEDATA_MAP = {};
+let NAME_TO_KEY_MAP = {};
+let POKEMON_NAMES = [];
+let MOVE_NAMES = [];
+
+/* --- 2. ユーティリティ関数（共通化） --- */
+function toKatakana(str) {
+    if (!str) return '';
+    return str.replace(/[ぁ-ん]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60));
+}
+
+/* --- 3. データの読み込み（高速化版） --- */
+async function loadPokemonData() {
+    try {
+        const response = await fetch('species_db_named2.json');
+        const data = await response.json();
+        
+        // 宣言(let)はせず、外の変数に代入
+        POKEDATA_MAP = data; 
+        NAME_TO_KEY_MAP = {};
+        POKEMON_NAMES.length = 0;
+
+        for (const [key, value] of Object.entries(data)) {
+            if (value.Name) {
+                const normalized = toKatakana(value.Name);
+                NAME_TO_KEY_MAP[normalized] = key;
+                POKEMON_NAMES.push(value.Name);
+            }
+        }
 
         // タイプ相性表
         const TYPE_EFFECTIVENESS = {
@@ -1478,13 +1500,6 @@ if (["MULTISCALE","SHADOWSHIELD"].includes(ability)) {
     calculateDamage();
 });
 
-
-
-
-        // --- 高速化のためのグローバル定数 ---
-let POKEDATA_MAP = {};
-let NAME_TO_KEY_MAP = {};
-const POKEMON_NAMES = [];
 
 async function loadPokemonData() {
     try {
@@ -3638,4 +3653,5 @@ function startCountdown() {
 </script>
 </body>
 </html>
+
 
