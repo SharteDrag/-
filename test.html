@@ -156,7 +156,6 @@ function toggleMenu() {
     btn.classList.toggle('active');
     menu.classList.toggle('open');
 }
-
 // メニュー外をクリックしたら閉じる
 document.addEventListener('click', function(event) {
     const hamburger = document.getElementById('hamburgerMenu');
@@ -245,11 +244,13 @@ document.addEventListener('click', function(event) {
         </div>
         
         <div class="pokemon-select-group">
-            <div>
-                <label for="move-name">💥 技名:</label>
-                <div class="search-container" id="move-search">
-                    <input type="text" id="move-name" placeholder="例: はっぱカッター (ひらがな・カタカナ混在OK)">
-                    <div class="suggestion-list"></div>
+    <div>
+        <label for="move-name">💥 技名:</label>
+        <div class="search-container" id="move-search">
+            <input type="text" id="move-name" 
+                   placeholder="例: はっぱカッター (ひらがな・カタカナ混在OK)" 
+                   oninput="handleMoveUpdate(this)">
+            <div class="suggestion-list"></div>
                 </div>
             </div>
         </div>
@@ -977,35 +978,7 @@ async function loadMoveData() {
     }
 }
 
-        /**
- * 体重依存技の威力を計算する補助関数
- */
-function calculateWeightBasedPower(moveData, atkWeight, defWeight) {
-    const moveID = moveData.ID; // JSONのID（例: "LOWKICK"）
-    
-    // けたぐり / くさむすび (相手の体重のみ参照)
-    if (moveID === "LOWKICK" || moveID === "GRASSKNOT") {
-        if (defWeight >= 200.0) return 120;
-        if (defWeight >= 100.0) return 100;
-        if (defWeight >= 50.0)  return 80;
-        if (defWeight >= 25.0)  return 60;
-        if (defWeight >= 10.0)  return 40;
-        return 20;
-    }
-
-    // ヘビーボンバー / ヒートスタンプ (自分と相手の体重比)
-    if (moveID === "HEAVYSLAM" || moveID === "HEATCRASH") {
-        if (atkWeight <= 0) return 40; // 自分の体重が取得できない場合は最低威力
-        const ratio = defWeight / atkWeight;
-        if (ratio <= 1/5) return 120;
-        if (ratio <= 1/4) return 100;
-        if (ratio <= 1/3) return 80;
-        if (ratio <= 1/2) return 60;
-        return 40;
-    }
-
-    return null; // 体重依存技ではない場合
-}
+        
 //特性
 async function loadAbilityData() {
     try {
@@ -1514,24 +1487,21 @@ if (["MULTISCALE","SHADOWSHIELD"].includes(ability)) {
         const keys = Object.keys(data); 
 
         for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const pokemon = data[key];
-            const name = pokemon.Name;
+    const key = keys[i];
+    const pokemon = data[key];
+    const name = pokemon.Name;
 
-            if (name) {
-                const normalized = toKatakana(name);
-                
-                // ✅ 修正ポイント: 同名ポケモン（メガリザードン等）を配列で保持
-                if (!NAME_TO_KEY_MAP[normalized]) {
-                    NAME_TO_KEY_MAP[normalized] = [];
-                }
-                NAME_TO_KEY_MAP[normalized].push(key);
-
-                // ✅ 検索候補リストに追加
-                // IDが違う(フォルム違い)場合はリストに両方出す
-                POKEMON_NAMES.push(name);
-            }
+    if (name) {
+        // カタカナ化 + 大文字化 + 空白除去 で完全に統一する
+        const normalized = toKatakana(name).toUpperCase().trim();
+        
+        if (!NAME_TO_KEY_MAP[normalized]) {
+            NAME_TO_KEY_MAP[normalized] = [];
         }
+        NAME_TO_KEY_MAP[normalized].push(key);
+        POKEMON_NAMES.push(name);
+    }
+}
 
         console.timeEnd('LoadData');
 
@@ -2737,6 +2707,7 @@ function handlePokemonUpdate(role, inputElement) {
     // 3. ダメージ計算
     calculateDamage();
 }
+
 /**
  * 技更新時の統合処理
  * ボディプレス、体重依存技、アシストパワー、ジャイロボール、HP依存技すべてに対応
@@ -2744,16 +2715,15 @@ function handlePokemonUpdate(role, inputElement) {
 function handleMoveUpdate(inputElement) {
     const moveInput = inputElement.value;
     const moveNameKatakana = hiraganaToKatakana(moveInput);
-    
     // ① まず技の基本データを読み込む（ここで一度威力はDBの値にリセットされる）
     updateMoveDataAndRecalculate(moveInput); 
-    
     // --- 追加：連続技UIの更新を呼び出し ---
     updateMultiHitUI();
-    
     // ② リセットされた「後」に、特殊計算で威力を上書きする
     const moveData = MOVEDATA_MAP[moveNameKatakana];
+    // ② 特殊計算が必要な技を判定して威力を上書き
     const hpDependentMoves = ["シオフキ", "フンカ", "ドラゴンエナジー"]; // カタカナで判定
+    const weightMoves = ["ヘビーボンバー", "ヒートスタンプ", "ケタグリ", "クサムスビ"];
     const x15Moves = ["ハタキオトス", "Gノチカラ", "ミストバースト","ワイドフォース"];
     const x20Moves = ["ウップンバラシ", "エラガミ","カタキウチ","キツケ","キマグレーザー","クロスサンダー","クロスフレイム","ジシン","タタリメ","ダメオシ","デンゲキクチバシ","ドクバリセンボン","ナミノリ","ハードローラー","フミツケ", "メザマシビンタ","ヤケッパチ","ユキナダレ","ライジングボルト", "リベンジ", "シオミズ", "ベノムショック", "カラゲンキ"];
 
@@ -2771,49 +2741,127 @@ function handleMoveUpdate(inputElement) {
             updateRageFistPower();
         } else if (moveNameKatakana === "オハカマイリ") {
             updateLastRespectsPower();
-        } else {
-            // ヘビーボンバー、けたぐり等の体重依存技
-            refreshWeightBasedPower(); 
+        } else if (weightMoves.includes(moveNameKatakana)) { // ★ここを明示的に判定
+        refreshWeightBasedPower(); 
         }
     }
-
     // ③ ボディプレスなどの判定（分類に基づいて攻撃側のステータスAかBかを決める）
     getStatKeys(); 
-
     // ④ ポケモン側の実数値を再計算（性格補正や努力値を反映）
     const attackerName = document.getElementById('attacker-pokemon-name').value;
     const defenderName = document.getElementById('defender-pokemon-name').value;
     if (attackerName) updateStatsAndRecalculate('attacker', attackerName);
     if (defenderName) updateStatsAndRecalculate('defender', defenderName);
-    
     // ⑤ 最後に全データを元にダメージ計算を実行
     calculateDamage();
 }
+
+/**
+ * 連続技UIの更新
+ */
+function updateMultiHitUI() {
+    const moveInput = document.getElementById('move-name');
+    const moveNameKatakana = hiraganaToKatakana(moveInput.value);
+    const hitSelect = document.getElementById('hit_count');
+
+    // 判定用リスト（小文字開始に統一）
+    const hit2Moves = ["ドラゴンアロー", "タキオンカッター", "ダブルニードル", "ニドゲリ", "ダブルアタック", "ダブルパンツァー", "ダブルウイング", "ホネブーメラン", "ギアソーサー", "ダブルチョップ", "ツインビーム"];
+    const hit3Moves = ["スイリュウレンダ", "トリプルダイブ", "トリプルアクセル", "トリプルキック"];
+    const hit5Moves = ["タネマシンガン", "ミズシュリケン", "スケイルショット", "ツララバリ", "ロックブラスト"]; // 一部抜粋
+    const hit10Moves = ["ネズミザン"];
+
+    let maxHits = 1;
+    if (hit2Moves.includes(moveNameKatakana)) maxHits = 2;
+    else if (hit3Moves.includes(moveNameKatakana)) maxHits = 3;
+    else if (hit5Moves.includes(moveNameKatakana)) maxHits = 5;
+    else if (hit10Moves.includes(moveNameKatakana)) maxHits = 10;
+
+    // 現在の選択肢の数を確認し、同じなら作り直さない（ループ防止）
+    if (hitSelect.options.length !== maxHits) {
+        hitSelect.innerHTML = '';
+        for (let i = 1; i <= maxHits; i++) {
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = i + ' ヒット';
+            hitSelect.appendChild(opt);
+        }
+        hitSelect.value = maxHits; // 初期値を最大に
+    }
+
+    // 急所の選択肢も連動させる
+    updateCritOptions();
+}
+/**
+ * 連続ヒット数に合わせて急所の選択肢を更新する関数
+ */
+function updateCritOptions() {
+    const hitSelect = document.getElementById('hit_count');
+    const critSelect = document.getElementById('crit_hit_count');
+    if (!hitSelect || !critSelect) return;
+
+    const currentHits = parseInt(hitSelect.value) || 1;
+    const previousCritValue = critSelect.value;
+
+    critSelect.innerHTML = '';
+    for (let i = 0; i <= currentHits; i++) {
+        let opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = i;
+        critSelect.appendChild(opt);
+    }
+    // 前の選択値を維持、ヒット数を超えていればリセット
+    critSelect.value = (previousCritValue <= currentHits) ? previousCritValue : 0;
+}
+
 /**
  * 現在選択されている技と両ポケモンの体重から威力を算出し、画面に反映する
  */
 function refreshWeightBasedPower() {
-    const moveInput = document.getElementById('move-name');
-    const moveNameKatakana = hiraganaToKatakana(moveInput.value);
+    const moveInput = document.getElementById('move-name').value;
+    const moveNameKatakana = hiraganaToKatakana(moveInput).trim();
     const moveData = MOVEDATA_MAP[moveNameKatakana];
 
     if (moveData) {
         const attackerName = document.getElementById('attacker-pokemon-name').value;
         const defenderName = document.getElementById('defender-pokemon-name').value;
-        const atkKey = NAME_TO_KEY_MAP[hiraganaToKatakana(attackerName)];
-        const defKey = NAME_TO_KEY_MAP[hiraganaToKatakana(defenderName)];
         
-        const atkWeight = POKEDATA_MAP[atkKey]?.Weight || 0;
-        const defWeight = POKEDATA_MAP[defKey]?.Weight || 0;
+        // 1. キー検索用の名前を正規化
+        const atkSearch = hiraganaToKatakana(attackerName).toUpperCase().trim();
+        const defSearch = hiraganaToKatakana(defenderName).toUpperCase().trim();
 
+        // 2. ID配列を取得
+        const atkKeys = NAME_TO_KEY_MAP[atkSearch];
+        const defKeys = NAME_TO_KEY_MAP[defSearch];
+        
+        const atkKey = (atkKeys && atkKeys.length > 0) ? atkKeys[0] : null;
+        const defKey = (defKeys && defKeys.length > 0) ? defKeys[0] : null;
+
+        // 3. POKEDATA_MAPから直接オブジェクトを取得してWeightを確認
+        const attackerObj = POKEDATA_MAP[atkKey];
+        const defenderObj = POKEDATA_MAP[defKey];
+
+        // デバッグ用：Weightが正しく取れているかコンソールで確認
+        if (!attackerObj || !defenderObj) {
+            console.warn("ポケモンデータが見つかりません:", {atkKey, defKey});
+        }
+
+        const atkWeight = attackerObj ? attackerObj.Weight : 0;
+        const defWeight = defenderObj ? defenderObj.Weight : 0;
+
+        // 4. 計算実行（Power:"1" が文字列でも calculateWeightBasedPower 内で判定可能）
         const newPower = calculateWeightBasedPower(moveData, atkWeight, defWeight);
         
-        // 体重依存技の場合のみ、威力入力欄を上書きする
         if (newPower !== null) {
+            // 計算結果（数値）を反映
             document.getElementById('power').value = newPower;
+            calculateDamage(); 
+        } else {
+            // 体重技以外はDBの値を数値に変換して戻す
+            document.getElementById('power').value = parseInt(moveData.Power) || 0;
         }
     }
 }
+
 // --- 技名入力時のUI切り替え制御（修正版） ---
 document.getElementById('move-name').addEventListener('input', function() {
     const moveInput = this.value;
@@ -2974,41 +3022,7 @@ function updateConditionalPower() {
 
 // チェックボックス自体の変更イベントを登録
 document.getElementById('power-multiplier-check').addEventListener('change', updateConditionalPower);
-/**
- * 連続技UIの更新
- */
-function updateMultiHitUI() {
-    const moveInput = document.getElementById('move-name');
-    const moveNameKatakana = hiraganaToKatakana(moveInput.value);
-    const hitSelect = document.getElementById('hit_count');
 
-    // 判定用リスト（小文字開始に統一）
-    const hit2Moves = ["ドラゴンアロー", "タキオンカッター", "ダブルニードル", "ニドゲリ", "ダブルアタック", "ダブルパンツァー", "ダブルウイング", "ホネブーメラン", "ギアソーサー", "ダブルチョップ", "ツインビーム"];
-    const hit3Moves = ["スイリュウレンダ", "トリプルダイブ", "トリプルアクセル", "トリプルキック"];
-    const hit5Moves = ["タネマシンガン", "ミズシュリケン", "スケイルショット", "ツララバリ", "ロックブラスト"]; // 一部抜粋
-    const hit10Moves = ["ネズミザン"];
-
-    let maxHits = 1;
-    if (hit2Moves.includes(moveNameKatakana)) maxHits = 2;
-    else if (hit3Moves.includes(moveNameKatakana)) maxHits = 3;
-    else if (hit5Moves.includes(moveNameKatakana)) maxHits = 5;
-    else if (hit10Moves.includes(moveNameKatakana)) maxHits = 10;
-
-    // 現在の選択肢の数を確認し、同じなら作り直さない（ループ防止）
-    if (hitSelect.options.length !== maxHits) {
-        hitSelect.innerHTML = '';
-        for (let i = 1; i <= maxHits; i++) {
-            let opt = document.createElement('option');
-            opt.value = i;
-            opt.textContent = i + ' ヒット';
-            hitSelect.appendChild(opt);
-        }
-        hitSelect.value = maxHits; // 初期値を最大に
-    }
-
-    // 急所の選択肢も連動させる
-    updateCritOptions();
-}
 /**
  * ふんどのこぶしの威力を計算し、反映する
  */
@@ -3110,7 +3124,35 @@ function updateHPDependentPower() {
         calculateDamage();
     }
 }
+/**
+ * 体重依存技の威力を計算する補助関数
+ */
+function calculateWeightBasedPower(moveData, atkWeight, defWeight) {
+    const moveID = moveData.ID; // JSONのID（例: "LOWKICK"）
+    
+    // けたぐり / くさむすび (相手の体重のみ参照)
+    if (moveID === "LOWKICK" || moveID === "GRASSKNOT") {
+        if (defWeight >= 200.0) return 120;
+        if (defWeight >= 100.0) return 100;
+        if (defWeight >= 50.0)  return 80;
+        if (defWeight >= 25.0)  return 60;
+        if (defWeight >= 10.0)  return 40;
+        return 20;
+    }
 
+    // ヘビーボンバー / ヒートスタンプ (自分と相手の体重比)
+    if (moveID === "HEAVYSLAM" || moveID === "HEATCRASH") {
+        if (atkWeight <= 0) return 40; // 自分の体重が取得できない場合は最低威力
+        const ratio = defWeight / atkWeight;
+        if (ratio <= 1/5) return 120;
+        if (ratio <= 1/4) return 100;
+        if (ratio <= 1/3) return 80;
+        if (ratio <= 1/2) return 60;
+        return 40;
+    }
+
+    return null; // 体重依存技ではない場合
+}
 /**
  * アシストパワー・つけあがるの威力を計算し、計算機全体を更新する
  */
