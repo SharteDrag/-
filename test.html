@@ -253,6 +253,22 @@ document.addEventListener('click', function(event) {
                 </div>
             </div>
         </div>
+        <div id="multi-hit-ui" style="display: none; background-color: #fff3e0; padding: 15px; border: 1px solid #ffb74d; border-radius: 4px; margin-top: 10px;">
+    <h4 style="margin-top: 0; font-size: 0.9em; color: #e65100;">🔄 連続技設定</h4>
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <div>
+            <label for="hit_count" style="margin-top:0;">ヒット数:</label>
+            <select id="hit_count" onchange="updateCritOptions()"></select>
+        </div>
+        <div>
+            <label for="crit_hit_count" style="margin-top:0;">うち急所回数:</label>
+            <select id="crit_hit_count"></select>
+        </div>
+    </div>
+    <div style="font-size: 0.8em; color: #666; margin-top: 8px;">
+        ※各ヒットごとのダメージを合計して計算します。
+    </div>
+</div>
         <div id="gyro-ball-ui" style="display: none; background-color: #eef9ff; padding: 15px; border: 1px solid #b8daff; border-radius: 4px; margin-top: 10px;">
     <h4 style="margin-top: 0; font-size: 0.9em; color: #004085;">⚙️ ジャイロボール威力計算（素早さ詳細）</h4>
     
@@ -2733,6 +2749,9 @@ function handleMoveUpdate(inputElement) {
     // ① まず技の基本データを読み込む（ここで一度威力はDBの値にリセットされる）
     updateMoveDataAndRecalculate(moveInput); 
     
+    // --- 追加：連続技UIの更新を呼び出し ---
+    updateMultiHitUI();
+    
     // ② リセットされた「後」に、特殊計算で威力を上書きする
     const moveData = MOVEDATA_MAP[moveNameKatakana];
     const hpDependentMoves = ["シオフキ", "フンカ", "ドラゴンエナジー"]; // カタカナで判定
@@ -2802,6 +2821,14 @@ document.getElementById('move-name').addEventListener('input', function() {
     const moveNameKatakana = hiraganaToKatakana(moveInput);
     const x15Moves = ["ハタキオトス", "Gノチカラ", "ミストバースト","ワイドフォース"]; // 1.5倍
 const x20Moves = ["ウップンバラシ", "エラガミ","カタキウチ","キツケ","キマグレーザー","クロスサンダー","クロスフレイム","ジシン","タタリメ","ダメオシ","デンゲキクチバシ","ドクバリセンボン","ナミノリ","ハードローラー","フミツケ", "メザマシビンタ","ヤケッパチ","ユキナダレ","ライジングボルト", "リベンジ", "シオミズ", "ベノムショック", "カラゲンキ"]; // 2倍（しおみず等はHP50%以下想定）
+const Hit2Moves = ["ドラゴンアロー", "タキオンカッター", "ダブルニードル","ニドゲリ","ダブルアタック","ダブルパンツァー","ダブルウイング","ホネブーメラン","ギアソーサー","ダブルチョップ","ツインビーム"]; // 2回攻撃（威力は変わらないがUIで特別扱い）
+const Hit3Moves = ["スイリュウレンダ", "トリプルダイブ","トリプルアクセル", "トリプルキック"]; // 3回攻撃（威力は変わるがUIで特別扱い）
+const Hit5Moves = ["オウフクビンタ", "タネマシンガン","タマナゲ", "トゲキャノン", "ミサイルバリ", "ミダレヅキ", "ミダレヒッカキ", "レンゾクパンチ", "ボーンラッシュ", "ツッパリ", "ツララバリ", "スイープビンタ", "ミズシュリケン", "スケイルショット"];
+const Hit10Moves = ["ネズミザン"];
+// --- 連続技UIの制御コード ---
+    const multiHitUI = document.getElementById('multi-hit-ui');
+    const hitSelect = document.getElementById('hit_count');
+    const critSelect = document.getElementById('crit_hit_count');
 const conditionalUI = document.getElementById('conditional-power-ui');
 const multiplierCheck = document.getElementById('power-multiplier-check');
 const multiplierValueSpan = document.getElementById('power-multiplier-value');
@@ -2810,6 +2837,46 @@ const multiplierValueSpan = document.getElementById('power-multiplier-value');
     const hpDependentUI = document.getElementById('hp-dependent-move-ui');
     const rageFistUI = document.getElementById('rage-fist-ui');
     const lastRespectsUI = document.getElementById('last-respects-ui');
+
+    // どのグループに属するか判定
+    let maxHits = 1;
+    if (hit2Moves.includes(moveNameKatakana)) maxHits = 2;
+    else if (hit3Moves.includes(moveNameKatakana)) maxHits = 3;
+    else if (hit5Moves.includes(moveNameKatakana)) maxHits = 5;
+    else if (hit10Moves.includes(moveNameKatakana)) maxHits = 10;
+
+    if (maxHits > 1) {
+        // 連続技なら表示
+        multiHitUI.style.display = 'block';
+        
+        // セレクトボックスの中身を作成
+        hitSelect.innerHTML = '';
+        for (let i = 1; i <= maxHits; i++) {
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = i;
+            hitSelect.appendChild(opt);
+        }
+        hitSelect.value = maxHits; // デフォルトで最大ヒットを入力
+
+        // 急所回数のリセットと初期化
+        updateCritOptions(); 
+        
+        // すいりゅうれんだ等の確定急所技への対応（おまけ）
+        if (moveNameKatakana === "スイリュウレンダ") {
+            critSelect.value = 3;
+        }
+
+    } else {
+        // 単発技なら非表示にして値を1にリセット
+        multiHitUI.style.display = 'none';
+        if (hitSelect) hitSelect.innerHTML = '<option value="1">1</option>';
+        if (hitSelect) hitSelect.value = 1;
+        if (critSelect) {
+            critSelect.innerHTML = '<option value="0">0</option><option value="1">1</option>';
+            critSelect.value = 0;
+        }
+    }
 
     // ジャイロボール
     if (moveNameKatakana === "ジャイロボール") {
@@ -2908,6 +2975,81 @@ function updateConditionalPower() {
 
 // チェックボックス自体の変更イベントを登録
 document.getElementById('power-multiplier-check').addEventListener('change', updateConditionalPower);
+/**
+ * 連続技（マルチヒット）のUI表示とヒット数・急所回数の完全リセット
+ */
+function updateMultiHitUI() {
+    const moveInput = document.getElementById('move-name');
+    const moveNameKatakana = hiraganaToKatakana(moveInput.value);
+    const multiHitUI = document.getElementById('multi-hit-ui');
+    const hitSelect = document.getElementById('hit_count');
+    const critSelect = document.getElementById('crit_hit_count');
+
+    // 連続技リスト（既存のまま）
+    const hit2Moves = ["ドラゴンアロー", "タキオンカッター", "ダブルニードル","ニドゲリ","ダブルアタック","ダブルパンツァー","ダブルウイング","ホネブーメラン","ギアソーサー","ダブルチョップ","ツインビーム"];
+    const hit3Moves = ["スイリュウレンダ", "トリプルダイブ","トリプルアクセル", "トリプルキック"];
+    const hit5Moves = ["オウフクビンタ", "タネマシンガン","タマナゲ", "トゲキャノン", "ミサイルバリ", "ミダレヅキ", "ミダレヒッカキ", "レンゾクパンチ", "ボーンラッシュ", "ツッパリ", "ツララバリ", "スイープビンタ", "ミズシュリケン", "スケイルショット"];
+    const hit10Moves = ["ネズミザン"];
+
+    let maxHits = 1; // デフォルトは単発技
+
+    if (hit2Moves.includes(moveNameKatakana)) maxHits = 2;
+    else if (hit3Moves.includes(moveNameKatakana)) maxHits = 3;
+    else if (hit5Moves.includes(moveNameKatakana)) maxHits = 5;
+    else if (hit10Moves.includes(moveNameKatakana)) maxHits = 10;
+
+    if (maxHits > 1) {
+        // --- 連続技の場合：UIを表示し、選択肢を構築 ---
+        multiHitUI.style.display = 'block';
+        
+        // ヒット数セレクトを更新
+        hitSelect.innerHTML = '';
+        for (let i = 1; i <= maxHits; i++) {
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = i + ' ヒット';
+            hitSelect.appendChild(opt);
+        }
+        hitSelect.value = maxHits; // 5連射技なら初期値を5に
+        
+        // 急所回数の選択肢も 0〜maxHits まで作成
+        updateCritOptions(); 
+
+    } else {
+        // --- 単発技の場合：UIを隠し、値を「1ヒット・急所0or1」に強制リセット ---
+        multiHitUI.style.display = 'none';
+
+        // 1. ヒット数を 1 に固定
+        hitSelect.innerHTML = '<option value="1">1 ヒット</option>';
+        hitSelect.value = 1;
+
+        // 2. 急所回数の選択肢をリセット（0か1のみ）
+        const currentCrit = critSelect.value;
+        critSelect.innerHTML = `
+            <option value="0">0 回</option>
+            <option value="1">1 回</option>
+        `;
+        
+        // 以前「3回急所」とか選んでいたら、単発技では「0回」か「1回」に丸める
+        critSelect.value = (currentCrit === "1") ? "1" : "0";
+    }
+}
+function updateCritOptions() {
+    const hitCount = parseInt(document.getElementById('hit_count').value) || 1;
+    const critSelect = document.getElementById('crit_hit_count');
+    if (!critSelect) return;
+
+    const currentVal = critSelect.value;
+    critSelect.innerHTML = '';
+    for (let i = 0; i <= hitCount; i++) {
+        let opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = i;
+        critSelect.appendChild(opt);
+    }
+    // 前の値が有効なら維持、そうでなければ0
+    critSelect.value = (currentVal <= hitCount) ? currentVal : 0;
+}
 /**
  * ふんどのこぶしの威力を計算し、反映する
  */
@@ -3054,6 +3196,13 @@ if (rankInput) {
     // フォーカスが外れた時なども念のため反応
     rankInput.addEventListener('change', updateStoredPower);
 }
+
+// 連続技UI内の変更監視
+const hitCountInput = document.getElementById('hit_count');
+if (hitCountInput) {
+    hitCountInput.addEventListener('change', updateCritOptions);
+}
+
 // --- ジャイロボール用：素早さ種族値取得と連動の修正 ---
 
 // 攻撃側ポケモンの入力時に素早さ種族値を反映
