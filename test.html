@@ -2413,47 +2413,46 @@ function calculateDamage() {
         let totalMax = 0;
         let standardResult = null;
 
-        for (let i = 0; i < hitCount; i++) {
-            // ▼▼▼ トリプルアクセル専用の威力変動ロジックを追加 ▼▼▼
-            let currentHitArgs = { ...commonArgs };
-            if (normalizedMoveName === "トリプルアクセル" || normalizedMoveName === "トリプルキック") {
-                // 1発目: 20, 2発目: 40, 3発目: 60
-                currentHitArgs.power = (i + 1) * 20;
-            }
-            // ▲▲▲ ここまで ▲▲▲
+for (let i = 0; i < hitCount; i++) {
+    // 1. まずベースとなる引数をコピー（letの重複宣言を避ける）
+    let currentHitArgs = { ...commonArgs };
 
-                    // 特性: マルチスケイル / ファントムガード の判定
-if (document.getElementById("defender-ability").value === "MULTISCALE" || document.getElementById("defender-ability").value === "SHADOWSHIELD") {
+    // 2. トリプルアクセル専用の威力変動ロジック
+    if (normalizedMoveName === "トリプルアクセル" || normalizedMoveName === "トリプルキック") {
+        // 1発目: 20, 2発目: 40, 3発目: 60
+        currentHitArgs.power = (i + 1) * 20;
+    }
 
+    // 3. 特性: マルチスケイル / ファントムガード の判定（2発目以降は無効化）
+    const defAbility = document.getElementById("defender-ability").value;
+    if (defAbility === "MULTISCALE" || defAbility === "SHADOWSHIELD") {
         if (i > 0) {
-
-            currentHitArgs.ability_m_def = 1.0
-
-        }
-        let currentHitArgs = { ...commonArgs };            // 特性: おやこあいの判定
-if (document.getElementById("attacker-ability").value === "PARENTALBOND") {
-
-        if (i > 0) {
-
-            currentHitArgs.ability_m_atk = 1024;
-
-        }
+            // 2発目以降はダメージ軽減なし(1.0倍)に強制上書き
+            currentHitArgs.ability_m_def = 1.0;
         }
     }
 
-        
-
-            const isThisHitCrit = (i < critHitCount) || isCriticalChecked;
-            
-            // 引数を commonArgs から currentHitArgs に変更
-            const res = runDamageCalculation(isThisHitCrit, currentHitArgs);
-            
-            totalMin += res.minResult;
-            totalMax += res.maxResult;
-            
-            // 1発目のデータを詳細表示用に保持（トリプルアクセルでも初撃の目安として使用）
-            if (i === 0) standardResult = res; 
+    // 4. 特性: おやこあいの判定（2発目以降は威力が1/4 = 1024/4096）
+    const atkAbility = document.getElementById("attacker-ability").value;
+    if (atkAbility === "PARENTALBOND") {
+        if (i > 0) {
+            // 親子愛の2発目は1024（約0.25倍）
+            currentHitArgs.ability_m_atk = 1024;
         }
+    }
+
+    // 5. 急所判定
+    const isThisHitCrit = (i < critHitCount) || isCriticalChecked;
+    
+    // 6. 計算実行
+    const res = runDamageCalculation(isThisHitCrit, currentHitArgs);
+    
+    totalMin += res.minResult;
+    totalMax += res.maxResult;
+    
+    // 1発目のデータを詳細表示用に保持
+    if (i === 0) standardResult = res; 
+}
         
         // 標準的な単発結果（表示用）
         let criticalResult = null;
@@ -2821,10 +2820,10 @@ document.getElementById('move-name').addEventListener('input', function() {
     const moveNameKatakana = hiraganaToKatakana(moveInput);
     const x15Moves = ["ハタキオトス", "Gノチカラ", "ミストバースト","ワイドフォース"]; // 1.5倍
 const x20Moves = ["ウップンバラシ", "エラガミ","カタキウチ","キツケ","キマグレーザー","クロスサンダー","クロスフレイム","ジシン","タタリメ","ダメオシ","デンゲキクチバシ","ドクバリセンボン","ナミノリ","ハードローラー","フミツケ", "メザマシビンタ","ヤケッパチ","ユキナダレ","ライジングボルト", "リベンジ", "シオミズ", "ベノムショック", "カラゲンキ"]; // 2倍（しおみず等はHP50%以下想定）
-const Hit2Moves = ["ドラゴンアロー", "タキオンカッター", "ダブルニードル","ニドゲリ","ダブルアタック","ダブルパンツァー","ダブルウイング","ホネブーメラン","ギアソーサー","ダブルチョップ","ツインビーム"]; // 2回攻撃（威力は変わらないがUIで特別扱い）
-const Hit3Moves = ["スイリュウレンダ", "トリプルダイブ","トリプルアクセル", "トリプルキック"]; // 3回攻撃（威力は変わるがUIで特別扱い）
-const Hit5Moves = ["オウフクビンタ", "タネマシンガン","タマナゲ", "トゲキャノン", "ミサイルバリ", "ミダレヅキ", "ミダレヒッカキ", "レンゾクパンチ", "ボーンラッシュ", "ツッパリ", "ツララバリ", "スイープビンタ", "ミズシュリケン", "スケイルショット"];
-const Hit10Moves = ["ネズミザン"];
+const hit2Moves = ["ドラゴンアロー", "タキオンカッター", "ダブルニードル","ニドゲリ","ダブルアタック","ダブルパンツァー","ダブルウイング","ホネブーメラン","ギアソーサー","ダブルチョップ","ツインビーム"]; // 2回攻撃（威力は変わらないがUIで特別扱い）
+const hit3Moves = ["スイリュウレンダ", "トリプルダイブ","トリプルアクセル", "トリプルキック"]; // 3回攻撃（威力は変わるがUIで特別扱い）
+const hit5Moves = ["オウフクビンタ", "タネマシンガン","タマナゲ", "トゲキャノン", "ミサイルバリ", "ミダレヅキ", "ミダレヒッカキ", "レンゾクパンチ", "ボーンラッシュ", "ツッパリ", "ツララバリ", "スイープビンタ", "ミズシュリケン", "スケイルショット"];
+const hit10Moves = ["ネズミザン"];
 // --- 連続技UIの制御コード ---
     const multiHitUI = document.getElementById('multi-hit-ui');
     const hitSelect = document.getElementById('hit_count');
@@ -2976,33 +2975,27 @@ function updateConditionalPower() {
 // チェックボックス自体の変更イベントを登録
 document.getElementById('power-multiplier-check').addEventListener('change', updateConditionalPower);
 /**
- * 連続技（マルチヒット）のUI表示とヒット数・急所回数の完全リセット
+ * 連続技UIの更新
  */
 function updateMultiHitUI() {
     const moveInput = document.getElementById('move-name');
     const moveNameKatakana = hiraganaToKatakana(moveInput.value);
-    const multiHitUI = document.getElementById('multi-hit-ui');
     const hitSelect = document.getElementById('hit_count');
-    const critSelect = document.getElementById('crit_hit_count');
 
-    // 連続技リスト（既存のまま）
-    const hit2Moves = ["ドラゴンアロー", "タキオンカッター", "ダブルニードル","ニドゲリ","ダブルアタック","ダブルパンツァー","ダブルウイング","ホネブーメラン","ギアソーサー","ダブルチョップ","ツインビーム"];
-    const hit3Moves = ["スイリュウレンダ", "トリプルダイブ","トリプルアクセル", "トリプルキック"];
-    const hit5Moves = ["オウフクビンタ", "タネマシンガン","タマナゲ", "トゲキャノン", "ミサイルバリ", "ミダレヅキ", "ミダレヒッカキ", "レンゾクパンチ", "ボーンラッシュ", "ツッパリ", "ツララバリ", "スイープビンタ", "ミズシュリケン", "スケイルショット"];
+    // 判定用リスト（小文字開始に統一）
+    const hit2Moves = ["ドラゴンアロー", "タキオンカッター", "ダブルニードル", "ニドゲリ", "ダブルアタック", "ダブルパンツァー", "ダブルウイング", "ホネブーメラン", "ギアソーサー", "ダブルチョップ", "ツインビーム"];
+    const hit3Moves = ["スイリュウレンダ", "トリプルダイブ", "トリプルアクセル", "トリプルキック"];
+    const hit5Moves = ["タネマシンガン", "ミズシュリケン", "スケイルショット", "ツララバリ", "ロックブラスト"]; // 一部抜粋
     const hit10Moves = ["ネズミザン"];
 
-    let maxHits = 1; // デフォルトは単発技
-
+    let maxHits = 1;
     if (hit2Moves.includes(moveNameKatakana)) maxHits = 2;
     else if (hit3Moves.includes(moveNameKatakana)) maxHits = 3;
     else if (hit5Moves.includes(moveNameKatakana)) maxHits = 5;
     else if (hit10Moves.includes(moveNameKatakana)) maxHits = 10;
 
-    if (maxHits > 1) {
-        // --- 連続技の場合：UIを表示し、選択肢を構築 ---
-        multiHitUI.style.display = 'block';
-        
-        // ヒット数セレクトを更新
+    // 現在の選択肢の数を確認し、同じなら作り直さない（ループ防止）
+    if (hitSelect.options.length !== maxHits) {
         hitSelect.innerHTML = '';
         for (let i = 1; i <= maxHits; i++) {
             let opt = document.createElement('option');
@@ -3010,45 +3003,11 @@ function updateMultiHitUI() {
             opt.textContent = i + ' ヒット';
             hitSelect.appendChild(opt);
         }
-        hitSelect.value = maxHits; // 5連射技なら初期値を5に
-        
-        // 急所回数の選択肢も 0〜maxHits まで作成
-        updateCritOptions(); 
-
-    } else {
-        // --- 単発技の場合：UIを隠し、値を「1ヒット・急所0or1」に強制リセット ---
-        multiHitUI.style.display = 'none';
-
-        // 1. ヒット数を 1 に固定
-        hitSelect.innerHTML = '<option value="1">1 ヒット</option>';
-        hitSelect.value = 1;
-
-        // 2. 急所回数の選択肢をリセット（0か1のみ）
-        const currentCrit = critSelect.value;
-        critSelect.innerHTML = `
-            <option value="0">0 回</option>
-            <option value="1">1 回</option>
-        `;
-        
-        // 以前「3回急所」とか選んでいたら、単発技では「0回」か「1回」に丸める
-        critSelect.value = (currentCrit === "1") ? "1" : "0";
+        hitSelect.value = maxHits; // 初期値を最大に
     }
-}
-function updateCritOptions() {
-    const hitCount = parseInt(document.getElementById('hit_count').value) || 1;
-    const critSelect = document.getElementById('crit_hit_count');
-    if (!critSelect) return;
 
-    const currentVal = critSelect.value;
-    critSelect.innerHTML = '';
-    for (let i = 0; i <= hitCount; i++) {
-        let opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = i;
-        critSelect.appendChild(opt);
-    }
-    // 前の値が有効なら維持、そうでなければ0
-    critSelect.value = (currentVal <= hitCount) ? currentVal : 0;
+    // 急所の選択肢も連動させる
+    updateCritOptions();
 }
 /**
  * ふんどのこぶしの威力を計算し、反映する
@@ -3195,12 +3154,6 @@ if (rankInput) {
     rankInput.addEventListener('input', updateStoredPower);
     // フォーカスが外れた時なども念のため反応
     rankInput.addEventListener('change', updateStoredPower);
-}
-
-// 連続技UI内の変更監視
-const hitCountInput = document.getElementById('hit_count');
-if (hitCountInput) {
-    hitCountInput.addEventListener('change', updateCritOptions);
 }
 
 // --- ジャイロボール用：素早さ種族値取得と連動の修正 ---
@@ -3412,6 +3365,7 @@ moveNameInput.addEventListener('input', (e) => handleMoveUpdate(e.target)); // i
                     calculateDamage(); // 念のため再計算
                 });
             });
+            
 // EV入力欄が変更されたら能力値とダメージ計算を再実行
     document.getElementById('hp_ev').addEventListener('change', (e) => updateStatsAndRecalculate('defender', document.getElementById('defender-pokemon-name').value));
     document.getElementById('attacker_ev').addEventListener('change', (e) => updateStatsAndRecalculate('attacker', document.getElementById('attacker-pokemon-name').value));
@@ -3425,38 +3379,7 @@ moveNameInput.addEventListener('input', (e) => handleMoveUpdate(e.target)); // i
             element.addEventListener('change', calculateDamage);
         }
     });
-// 技名が入力・選択されたときに実行
-document.getElementById('move-name').addEventListener('input', () => {
-    // 1. ラベル（AやB）の更新
-    getStatKeys();
-    
-    // --- 【ここから追加】体重依存技の処理 ---
-    const moveNameKatakana = hiraganaToKatakana(document.getElementById('move-name').value);
-    const moveData = MOVEDATA_MAP[moveNameKatakana];
 
-    if (moveData) {
-        // 体重データの取得
-        const attackerKey = NAME_TO_KEY_MAP[hiraganaToKatakana(document.getElementById('attacker-pokemon-name').value)];
-        const defenderKey = NAME_TO_KEY_MAP[hiraganaToKatakana(document.getElementById('defender-pokemon-name').value)];
-        
-        const atkWeight = POKEDATA_MAP[attackerKey]?.Weight || 0;
-        const defWeight = POKEDATA_MAP[defenderKey]?.Weight || 0;
-
-        // 威力を計算して、画面の威力入力欄（id="power"）を書き換える
-        const calculatedPower = getWeightBasedPower(moveData, atkWeight, defWeight);
-        if (calculatedPower > 0) {
-            document.getElementById('power').value = calculatedPower;
-        }
-    }
-    // --- 【追加ここまで】 ---
-
-    // 2. 実数値(157など)の再計算
-    updateAttackerStatus(); 
-    updateDefenderStatus();
-
-    // ※もし calculateDamage() が自動で呼ばれない構造ならここで呼ぶ
-    // calculateDamage();
-});
             // その他入力欄が変更されたらダメージ計算を再実行
             document.getElementById('damageForm').addEventListener('change', (event) => {
                 const targetId = event.target.id;
