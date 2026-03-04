@@ -1375,9 +1375,12 @@ if (ability === "HADRONENGINE" && isElectricTerrain && move?.Category === "Speci
 
 document.getElementById("defender-ability").addEventListener("change", () => {
     const ability = document.getElementById("defender-ability").value;
+    const moveName = document.getElementById("move-name").value;
+    const move = MOVEDATA_MAP[hiraganaToKatakana(moveName)] || MOVEDATA_MAP[moveName];
 
     abilityDefMult = 1.0;
     document.getElementById("ability_m_def").value = "1.0";
+
 
     // 【追加】わざわいのおふだ/うつわ の処理のために攻撃側の実数値補正をリセット
     defenderAtkMult = 1.0;
@@ -1393,7 +1396,7 @@ document.getElementById("defender-ability").addEventListener("change", () => {
         defenderSpAtkMult = 3 / 4; 
     }
 
-        //すいほう、あついしぼう、たいねつ
+         //すいほう、あついしぼう、たいねつ
         if (["WATERBUBBLE","THICKFAT","HEATPROOF"].includes(ability)) {
         if (move?.Type === "FIRE") {
             abilityAtkMult *= 0.5;
