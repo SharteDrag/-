@@ -3,7 +3,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>ポケモン ダメージ計算ツール (技データ連携版)</title>
+    <title>ポケモン ダメージ計算ツール (シーテャkids)</title>
     <style>
 /* 左上固定ボタンのスタイル */
 #fixed-button-container {
@@ -267,7 +267,7 @@ document.addEventListener('click', function(event) {
 <div id="timer-display" style="display: none; position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: #00ff00; padding: 10px 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 24px; z-index: 1000; border: 2px solid #00ff00; box-shadow: 0 0 10px rgba(0,255,0,0.5);">
     残り時間: <span id="time-left">20:00</span>
 </div>
-    <h2>ポケモン ダメージ計算ツール (技データ連携版)</h2>
+    <h2>ポケモン ダメージ計算ツール (シーテャkids)</h2>
     <p>※ ポケモン名・技名を選択/入力確定すると、**能力値・威力・相性補正**が自動入力されます。</p>
 
     <form id="damageForm">
@@ -1601,9 +1601,9 @@ if (["MULTISCALE","SHADOWSHIELD"].includes(ability)) {
 
 // 初期表示用関数（整理のため分離）
 function initAppDisplay(moveDataLoaded) {
-    const initialAttacker = 'フシギダネ';
-    const initialDefender = 'リザードン';
-    const initialMove = 'はっぱカッター';
+    const initialAttacker = 'ガブリアス';
+    const initialDefender = 'ブリジュラス';
+    const initialMove = 'じしん';
     
     if(document.getElementById('attacker-pokemon-name')) {
         document.getElementById('attacker-pokemon-name').value = initialAttacker;
