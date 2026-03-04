@@ -5,6 +5,67 @@
     <meta charset="UTF-8">
     <title>ポケモン ダメージ計算ツール (技データ連携版)</title>
     <style>
+/* 左上固定ボタンのスタイル */
+#fixed-button-container {
+    position: fixed;
+    top: 60px;
+    left: 10px;
+    z-index: 1000; /* 他の要素より上に表示 */
+    display: flex;
+    flex-direction: column; /* 縦に並べる場合。横なら row */
+    gap: 8px;
+}
+
+.btn-calc { background-color: #007bff; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 4px; }
+.btn-table { background-color: #28a745; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 4px; }
+
+/* モーダル（背景）のスタイル */
+.modal {
+    display: none; /* 初期状態は非表示 */
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7); /* 背景を暗くする */
+}
+
+/* モーダルの中身（白い箱） */
+.modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 20px;
+    width: 90%;
+    max-width: 1000px;
+    max-height: 80vh;
+    overflow-y: auto; /* 縦長になったらスクロール */
+    position: relative;
+    border-radius: 8px;
+}
+
+/* 閉じるボタン */
+.close-button {
+    position: absolute;
+    right: 20px;
+    top: 60px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* テーブル自体のスタイル調整（必要に応じて） */
+.quick-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.quick-table th, .quick-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+</style>
+    <style>
         body { font-family: sans-serif; max-width: 850px; margin: 0 auto; padding: 20px; }
         h2 { border-bottom: 2px solid #007bff; padding-bottom: 5px; color: #007bff; }
         h3 { border-left: 5px solid #007bff; padding-left: 10px; margin-top: 25px; }
@@ -632,8 +693,18 @@ document.addEventListener('click', function(event) {
             </div>
         </div>
         
-        <button type="button" onclick="calculateDamage()">ダメージ計算実行</button>
-        <button type="button" onclick="generateQuickTable()" style="background-color: #28a745; margin-left: 10px;">ダメージ早見表を作成</button>
+        <div id="fixed-button-container">
+    <button type="button" onclick="calculateDamage()" class="btn-calc">ダメージ計算実行</button>
+    <button type="button" onclick="openQuickTableModal()" class="btn-table">ダメージ早見表を作成</button>
+</div>
+
+<div id="quick-table-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-button" onclick="closeQuickTableModal()">&times;</span>
+        <div id="quick-table-container">
+            </div>
+    </div>
+</div>
         <div id="quick-table-container" style="margin-top: 30px; overflow-x: auto;">
     </div>
     </form>
@@ -3805,6 +3876,35 @@ function startCountdown() {
         }
     }, 1000);
 }
+</script>
+<script>
+// モーダルを開いて早見表を作成する
+function openQuickTableModal() {
+    // まずテーブルを生成
+    generateQuickTable();
+    
+    // データが正しく生成されたか（ポケモンが選択されているか）チェック
+    const container = document.getElementById('quick-table-container');
+    if (container.innerHTML !== "") {
+        document.getElementById('quick-table-modal').style.display = "block";
+    }
+}
+
+// モーダルを閉じる
+function closeQuickTableModal() {
+    document.getElementById('quick-table-modal').style.display = "none";
+}
+
+// モーダルの外側をクリックした時も閉じるようにする設定
+window.onclick = function(event) {
+    const modal = document.getElementById('quick-table-modal');
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+// 既存の generateQuickTable を少し修正
+// （元のコードの冒頭にある alert チェックなどはそのまま活かしてください）
 </script>
 </body>
 </html>
