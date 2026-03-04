@@ -1373,6 +1373,7 @@ if (ability === "HADRONENGINE" && isElectricTerrain && move?.Category === "Speci
     calculateDamage();
 });
 
+
 document.getElementById("defender-ability").addEventListener("change", () => {
     const ability = document.getElementById("defender-ability").value;
     const moveName = document.getElementById("move-name").value;
@@ -1469,6 +1470,7 @@ if (["MULTISCALE","SHADOWSHIELD"].includes(ability)) {
 
 
 
+
         async function loadPokemonData() {
     try {
         console.time('LoadData');
@@ -1554,7 +1556,8 @@ function initAppDisplay(moveDataLoaded) {
     }
 }
         
-        function calculateEffectiveness(attackerName, defenderName, moveName) {
+        function calculateEffectiveness(attackerName, defenderName, moveName, attackerAbilityID) {
+            const ability = document.getElementById("attacker-ability").value;
     const normalizedAttackerName = hiraganaToKatakana(attackerName);
     const normalizedDefenderName = hiraganaToKatakana(defenderName);
     const normalizedMoveName = hiraganaToKatakana(moveName);
@@ -1564,26 +1567,33 @@ function initAppDisplay(moveDataLoaded) {
     const moveData = MOVEDATA_MAP[normalizedMoveName];
 
     const moveType = moveData ? moveData.Type : null;
-    
-    // 【判定用】現在の技がフリーズドライかどうか
     const isFreezeDry = (normalizedMoveName === "フリーズドライ");
 
-    if (!moveType) {
-        return { affinity: 1.0, stab: 1.0 }; 
-    }
+    if (!moveType) return { affinity: 1.0, stab: 1.0 }; 
 
+    // --- ① タイプ一致補正 (STAB) の計算 ---
     let stab = 1.0;
     if (attackerKey) {
-        const attackerTypes = POKEDATA_MAP[attackerKey].Types.filter(t => t !== null && t);
+        const attackerTypes = POKEDATA_MAP[attackerKey].Types.filter(t => t);
         const moveTypeUpper = moveType.toUpperCase();
-        if (attackerTypes.includes(moveTypeUpper)) {
-            stab = 1.5;
+        
+        // 特性による判定
+        const isHengen = (ability === "PROTEAN" || ability === "LIBERO");
+        const isTekio = (ability === "ADAPTABILITY");
+
+        if (isHengen) {
+            // 変幻自在・リベロ：技が何タイプでも一致（1.5倍）
+            stab = 1.5; 
+        } else if (attackerTypes.includes(moveTypeUpper)) {
+            // 元のタイプと一致している場合：適応力なら2.0、それ以外は1.5
+            stab = isTekio ? 2.0 : 1.5;
         }
     }
     
+    // --- ② 相性倍率 (Affinity) の計算 ---
     let affinity = 1.0;
     if (defenderKey) {
-        const defenderTypes = POKEDATA_MAP[defenderKey].Types.filter(t => t !== null && t);
+        const defenderTypes = POKEDATA_MAP[defenderKey].Types.filter(t => t);
         const moveTypeUpper = moveType.toUpperCase();
         
         for (const defType of defenderTypes) {
@@ -1592,13 +1602,10 @@ function initAppDisplay(moveDataLoaded) {
                                 ? typeEffectiveness[defType] 
                                 : 1.0;
 
-            // --- フリーズドライの専用処理 ---
-            // 技がフリーズドライ、かつ、相手のタイプが WATER（みず）なら
-            // 本来の 0.5倍 を無視して 2.0倍 にする
+            // フリーズドライ専用処理
             if (isFreezeDry && defType === "WATER") {
                 multiplier = 2.0;
             }
-            // -----------------------------
 
             affinity *= multiplier;
         }
@@ -1716,6 +1723,8 @@ function updateBasicEffectiveness() {
     const attackerName = document.getElementById('attacker-pokemon-name').value;
     const defenderName = document.getElementById('defender-pokemon-name').value;
     const moveName = document.getElementById('move-name').value;
+
+    const attackerAbility = document.getElementById('attacker-ability').value;
 
     const { affinity, stab } = calculateEffectiveness(attackerName, defenderName, moveName);
     
@@ -2711,32 +2720,40 @@ function handlePokemonUpdate(role, inputElement) {
     calculateDamage();
 }
 
-/**
- * 技更新時の統合処理
- * ボディプレス、体重依存技、アシストパワー、ジャイロボール、HP依存技すべてに対応
- */
-function handleMoveUpdate(inputElement) {
+async function handleMoveUpdate(inputElement) {
     const moveInput = inputElement.value;
     const moveNameKatakana = hiraganaToKatakana(moveInput);
-    // ① まず技の基本データを読み込む（ここで一度威力はDBの値にリセットされる）
-    updateMoveDataAndRecalculate(moveInput); 
-    // --- 追加：連続技UIの更新を呼び出し ---
-    updateMultiHitUI();
-    // ② リセットされた「後」に、特殊計算で威力を上書きする
-    const moveData = MOVEDATA_MAP[moveNameKatakana];
-    // ② 特殊計算が必要な技を判定して威力を上書き
-    const hpDependentMoves = ["シオフキ", "フンカ", "ドラゴンエナジー"]; // カタカナで判定
-    const weightMoves = ["ヘビーボンバー", "ヒートスタンプ", "ケタグリ", "クサムスビ"];
-    const x15Moves = ["ハタキオトス", "Gノチカラ", "ミストバースト","ワイドフォース"];
-    const x20Moves = ["ウップンバラシ", "エラガミ","カタキウチ","キツケ","キマグレーザー","クロスサンダー","クロスフレイム","ジシン","タタリメ","ダメオシ","デンゲキクチバシ","ドクバリセンボン","ナミノリ","ハードローラー","フミツケ", "メザマシビンタ","ヤケッパチ","ユキナダレ","ライジングボルト", "リベンジ", "シオミズ", "ベノムショック", "カラゲンキ"];
 
+    // ① まず技の基本データを読み込む
+    await updateMoveDataAndRecalculate(moveInput); 
+    
+    // ② 連続技UIの更新
+    updateMultiHitUI();
+    
+    // ③ 分類（物理・特殊）の判定
+    getStatKeys(); 
+
+    // ④ ポケモンの実数値計算（性格・努力値の反映）
+    // ★ここを先に終わらせる！
+    const attackerName = document.getElementById('attacker-pokemon-name').value;
+    const defenderName = document.getElementById('defender-pokemon-name').value;
+    if (attackerName) updateStatsAndRecalculate('attacker', attackerName);
+    if (defenderName) updateStatsAndRecalculate('defender', defenderName);
+
+    // ⑤ 【最重要】特殊威力の計算・上書き
+    // すべての準備が整った「最後」に威力を書き換える
+    const moveData = MOVEDATA_MAP[moveNameKatakana];
     if (moveData) {
+        const hpDependentMoves = ["シオフキ", "フンカ", "ドラゴンエナジー"];
+        const weightMoves = ["ヘビーボンバー", "ヒートスタンプ", "ケタグリ", "クサムスビ"];
+        const x15Moves = ["ハタキオトス", "Gノチカラ", "ミストバースト","ワイドフォース"];
+        const x20Moves = ["ウップンバラシ", "エラガミ","カタキウチ","キツケ","キマグレーザー","クロスサンダー","クロスフレイム","ジシン","タタリメ","ダメオシ","デンゲキクチバシ","ドクバリセンボン","ナミノリ","ハードローラー","フミツケ", "メザマシビンタ","ヤケッパチ","ユキナダレ","ライジングボルト", "リベンジ", "シオミズ", "ベノムショック", "カラゲンキ"];
+
         if (moveNameKatakana === "アシストパワー" || moveNameKatakana === "ツケアガル") {
             updateStoredPower(); 
         } else if (moveNameKatakana === "ジャイロボール") {
             updateGyroPower(); 
         } else if (hpDependentMoves.includes(moveNameKatakana)) {
-            // --- HP依存技の処理を追加 ---
             updateHPDependentPower(); 
         } else if (x15Moves.includes(moveNameKatakana) || x20Moves.includes(moveNameKatakana)) {
             updateConditionalPower();
@@ -2744,18 +2761,13 @@ function handleMoveUpdate(inputElement) {
             updateRageFistPower();
         } else if (moveNameKatakana === "オハカマイリ") {
             updateLastRespectsPower();
-        } else if (weightMoves.includes(moveNameKatakana)) { // ★ここを明示的に判定
-        refreshWeightBasedPower(); 
+        } else if (weightMoves.includes(moveNameKatakana)) { 
+            refreshWeightBasedPower(); // 体重技の威力を計算して画面にセット
         }
     }
-    // ③ ボディプレスなどの判定（分類に基づいて攻撃側のステータスAかBかを決める）
-    getStatKeys(); 
-    // ④ ポケモン側の実数値を再計算（性格補正や努力値を反映）
-    const attackerName = document.getElementById('attacker-pokemon-name').value;
-    const defenderName = document.getElementById('defender-pokemon-name').value;
-    if (attackerName) updateStatsAndRecalculate('attacker', attackerName);
-    if (defenderName) updateStatsAndRecalculate('defender', defenderName);
-    // ⑤ 最後に全データを元にダメージ計算を実行
+
+    // ⑥ 最後に相性表示の更新とダメージ計算
+    updateBasicEffectiveness(); // 先ほど作った相性表示関数
     calculateDamage();
 }
 
@@ -3321,11 +3333,32 @@ function getRankMultiplier(rank) {
 ].forEach(id => {
     document.getElementById(id).addEventListener('input', updateGyroPower);
 });
+
+// 技名が変更されたときの処理をまとめる
+const triggerAbilitySync = () => {
+    // 特性セレクトボックスに「値が変わったよ！」と通知を送る
+    const atkAb = document.getElementById("attacker-ability");
+    const defAb = document.getElementById("defender-ability");
+    if (atkAb) atkAb.dispatchEvent(new Event('change'));
+    if (defAb) defAb.dispatchEvent(new Event('change'));
+};
 // ポケモン名を変えるだけで実数値計算と威力の更新が連鎖します。
 // リスナー登録（既存のまま）
-moveNameInput.addEventListener('change', (e) => handleMoveUpdate(e.target));
-moveNameInput.addEventListener('blur', (e) => handleMoveUpdate(e.target));
-moveNameInput.addEventListener('input', (e) => handleMoveUpdate(e.target)); // inputイベントも追加するとより即時性が増します
+moveNameInput.addEventListener('change', (e) => {
+    handleMoveUpdate(e.target);
+    triggerAbilitySync(); // ⭐追加
+});
+
+moveNameInput.addEventListener('blur', (e) => {
+    handleMoveUpdate(e.target);
+    triggerAbilitySync(); // ⭐追加
+});
+
+moveNameInput.addEventListener('input', (e) => {
+    handleMoveUpdate(e.target);
+    // 入力中のリアルタイム更新（必要に応じて）
+    triggerAbilitySync(); // ⭐追加
+});
             
             attackerNameInput.addEventListener('input', (e) => handlePokemonUpdate('attacker', e.target));
             attackerNameInput.addEventListener('change', (e) => handlePokemonUpdate('attacker', e.target));
@@ -3446,7 +3479,7 @@ document.getElementById('other-multiplier-group').addEventListener('change', (ev
 // ⭐ 4. わざわい特性補正のチェックボックスが変更されたら補正を再計算
 document.getElementById('ruin-abilities-group').addEventListener('change', (event) => {
     if (event.target.type === 'checkbox') {
-        updateAbilityEffects();
+        updateAbilitySelector();
     }
 });
 // 5. NEW: 場に出た時のダメージを計算
