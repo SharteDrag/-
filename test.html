@@ -250,8 +250,10 @@
         .nav-link:hover { background: #f0f0f0; color: #007bff; }
         /* --- スマホ向けの表示調整 --- */
 @media screen and (max-width: 600px) {
+    /* コンテンツが固定ボタンに被らないよう上部に余白を確保 */
     body {
-        padding: 10px; /* 余白を少し削って画面を広く使う */
+        padding: 10px;
+        padding-top: 80px !important; /* ボタンの高さ分、上に余白を作る */
     }
 
     /* 横並びのグループを縦並びに変更 */
@@ -262,35 +264,39 @@
 
     /* 入力欄とセレクトボックスを大きくする */
     input[type="number"], input[type="text"], select {
-        padding: 12px; /* タップしやすく高くする */
-        font-size: 16px; /* iPhoneでズームされるのを防ぐため16px以上を推奨 */
+        padding: 12px;
+        font-size: 16px;
     }
 
-    /* ボタン類を押しやすく大きくする */
-    button, .ev-button, .btn-calc, .btn-table {
-        padding: 15px;
-        font-size: 1.1em;
-        width: 100%; /* 横幅いっぱいに広げる */
-        margin-top: 10px;
-    }
-
-    /* 左上の固定ボタンの位置調整 */
+    /* 【重要】ボタンコンテナを右上に固定する設定 */
     #fixed-button-container {
-        position: static; /* 画面に固定せず、流れの中に配置 */
-        width: 100%;
-        margin-top: 20px;
+        position: fixed;    /* 画面に固定 */
+        top: 15px;          /* 上からの位置（ハンバーガーメニューと合わせる） */
+        right: 15px;        /* 右側に配置（左側はメニューがあるため） */
+        left: auto;         /* PC用の left: 90px を解除 */
+        width: auto;        /* 横幅いっぱいを解除 */
+        display: flex;      /* ボタンを並べる */
+        flex-direction: row; /* 横並びにする */
+        gap: 8px;           /* ボタン同士の隙間 */
+        z-index: 10001;     /* ハンバーガーメニュー(10000)より手前に表示 */
+        margin-top: 0;
     }
 
-    /* チェックボックスのラベルを大きくして押しやすくする */
-    .checkbox-group {
-        padding: 10px 0;
+    /* 固定ボタン自体の見た目を調整（コンパクトかつ押しやすく） */
+    .btn-calc, .btn-table {
+        padding: 10px 15px !important;
+        font-size: 14px !important;
+        width: auto !important; /* width: 100% を解除 */
+        margin-top: 0 !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        white-space: nowrap;    /* 文字の折り返しを防ぐ */
     }
-    
+
+    /* チェックボックスなどの調整 */
     .checkbox-group input[type="checkbox"], 
     .checkbox-group input[type="radio"] {
         width: 20px;
         height: 20px;
-        margin-right: 10px;
     }
 
     /* モーダルの幅を画面いっぱいに */
@@ -3993,4 +3999,5 @@ window.onclick = function(event) {
 // （元のコードの冒頭にある alert チェックなどはそのまま活かしてください）
 </script>
 </body>
+
 </html>
