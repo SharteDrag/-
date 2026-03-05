@@ -622,22 +622,6 @@ document.addEventListener('click', function(event) {
                     <input type="checkbox" id="critical_m_check">
                 </div>
 
-    <div>
-    <label>ヒット数
-        <select id="hit_count">
-            <option value="1">1</option><option value="2">2</option>
-            <option value="3">3</option><option value="4">4</option>
-            <option value="5">5</option>
-        </select>
-    </label>
-    <label>急所回数: 
-        <select id="crit_hit_count"><option value="0">0</option></select>
-    </label>
-    <label for="conditions_m_check">
-        <input type="checkbox" id="conditions_m_check"> 条件達成
-    </label>
-</div>
-
 <div id="result-area"></div>
                 
                 <div class="checkbox-group">
@@ -2490,7 +2474,7 @@ for (let i = 0; i < hitCount; i++) {
     if (atkAbility === "PARENTALBOND") {
         if (i > 0) {
             // 親子愛の2発目は1024（約0.25倍）
-            currentHitArgs.ability_m_atk = 1024;
+            currentHitArgs.range_m = 0.25;
         }
     }
 
@@ -2849,6 +2833,7 @@ function updateMultiHitUI() {
     const moveInput = document.getElementById('move-name');
     const moveNameKatakana = hiraganaToKatakana(moveInput.value);
     const hitSelect = document.getElementById('hit_count');
+    const attackerAbility = document.getElementById('attacker-ability').value; // 特性を取得
 
     // 判定用リスト（小文字開始に統一）
     const hit2Moves = ["ドラゴンアロー", "タキオンカッター", "ダブルニードル", "ニドゲリ", "ダブルアタック", "ダブルパンツァー", "ダブルウイング", "ホネブーメラン", "ギアソーサー", "ダブルチョップ", "ツインビーム"];
@@ -2861,6 +2846,14 @@ function updateMultiHitUI() {
     else if (hit3Moves.includes(moveNameKatakana)) maxHits = 3;
     else if (hit5Moves.includes(moveNameKatakana)) maxHits = 5;
     else if (hit10Moves.includes(moveNameKatakana)) maxHits = 10;
+
+    // --- ⭐ おやこあいの判定を追加 ---
+    // 既に連続技(maxHits > 1)の場合はそのまま、単発技かつ「おやこあい」なら2回固定にする
+    const isParentalBond = (attackerAbility === "PARENTALBOND");
+    if (maxHits === 1 && isParentalBond) {
+        // おやこあいで2回攻撃になる技（変化技や一部の技を除外するロジックが本来は必要ですが、簡易的には一律2回化）
+        maxHits = 2;
+    }
 
     // 現在の選択肢の数を確認し、同じなら作り直さない（ループ防止）
     if (hitSelect.options.length !== maxHits) {
@@ -3404,6 +3397,15 @@ function getRankMultiplier(rank) {
 ].forEach(id => {
     document.getElementById(id).addEventListener('input', updateGyroPower);
 });
+
+// DOMContentLoaded内に追加
+const attackerAbilitySelect = document.getElementById('attacker-ability');
+if (attackerAbilitySelect) {
+    attackerAbilitySelect.addEventListener('change', () => {
+        updateMultiHitUI(); // 特性が変わったらUIを再チェック
+        calculateDamage();
+    });
+}
 
 // 技名が変更されたときの処理をまとめる
 const triggerAbilitySync = () => {
