@@ -3952,20 +3952,28 @@ if (btnDefender) {
     let countdownInterval;
 
 function startCountdown() {
-    // 既に動いている場合はリセット
-    clearInterval(countdownInterval);
-    
     const display = document.getElementById('timer-display');
     const timeLeftSpan = document.getElementById('time-left');
-    display.style.display = 'block'; // タイマーを表示
 
-    let totalSeconds = 20 * 60; // 20分を秒に変換
+    // 【修正】すでにタイマーが表示されている（作動中）なら停止して隠す
+    if (display.style.display === 'block') {
+        clearInterval(countdownInterval);
+        display.style.display = 'none';
+        return; // ここで処理を終了
+    }
+    
+    // 以下、開始処理
+    display.style.display = 'block'; 
+    timeLeftSpan.style.color = "#00ff00"; // 色を元に戻す（終了後に再開する場合用）
+    let totalSeconds = 20 * 60; 
+
+    // 初回の表示を即座に行う（1秒のラグを防ぐ）
+    timeLeftSpan.textContent = "20:00";
 
     countdownInterval = setInterval(() => {
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
 
-        // 画面の表示を更新 (00:00 形式)
         timeLeftSpan.textContent = 
             `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
