@@ -380,7 +380,7 @@ document.addEventListener('click', function(event) {
 <div id="timer-display" style="display: none; position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: #00ff00; padding: 10px 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 24px; z-index: 1000; border: 2px solid #00ff00; box-shadow: 0 0 10px rgba(0,255,0,0.5);">
     残り時間: <span id="time-left">20:00</span>
 </div>
-    <h2>ポケモン ダメージ計算ツール (シーテャkids)</h2>
+    <h2>ダメ計ツール(シーテャkids)</h2>
     <p>※ ポケモン名・技名を選択/入力確定すると、**能力値・威力・相性補正**が自動入力されます。</p>
 
     <form id="damageForm">
@@ -2760,30 +2760,34 @@ if (itemDefKey === "obon") {
 
         resultDiv.innerHTML = outputHTML + notes;
 
-        // ▼▼▼ ここから挿入 ▼▼▼
-        // 倒れなかった場合のみ、残りHP割合を計算して反映ボタンを表示する
-        const currentHPVal = parseInt(document.getElementById('current_hp_val')?.innerText) || hp;
-        
-        // 条件：最大乱数ダメージ(totalMax)が現在の残りHP(currentHPVal)を下回っている場合（＝倒れない）
-        if (totalMax < currentHPVal) {
-            const nextHP = currentHPVal - totalMax;
-            const maxHPOrig = parseFloat(document.getElementById('hp').value) || 1; // 元の最大HP
-            const nextPercent = (Math.max(0, (nextHP / maxHPOrig) * 100)).toFixed(1);
+       // ▼▼▼ 修正版：最大ダメージ割合に基づいた残りHP反映 ▼▼▼
 
-            const updateBtnHtml = `
-                <div style="margin-top:15px; padding:10px; background:#eef2f7; border-radius:8px; border:1px solid #ced4da;">
-                    <p style="margin:0 0 8px 0; font-size:0.9em; color:#495057;">
-                        🛡️ 攻撃を耐えた後の残りHP予測（最大ダメージ時）: <strong>${nextPercent}%</strong>
-                    </p>
-                    <button type="button" onclick="updatePercentAndRecalc(${nextPercent})" 
-                            style="cursor:pointer; padding:6px 12px; background:#007bff; color:white; border:none; border-radius:4px; font-weight:bold;">
-                        このHP割合を反映して再計算
-                    </button>
-                </div>
-            `;
-            resultDiv.insertAdjacentHTML('beforeend', updateBtnHtml);
-        }
-        // ▲▲▲ ここまで挿入 ▲▲▲
+// 1. 最大HPに対する最大ダメージの割合を算出（例: 70.1%）
+const maxDamagePercent = (totalMax / effectiveTargetHP) * 100;
+
+// 2. 100%からそのダメージを引いた「耐え後のHP割合」を計算（例: 100 - 70.1 = 29.9%）
+// ※ 0を下回らないように Math.max を使用
+const afterHPPercent = Math.max(0, (100 - maxDamagePercent)).toFixed(1);
+
+ document.getElementById('current_hp_val').innerText = effectiveTargetHP - totalMax;
+
+// 条件：最大ダメージを受けても生存する場合（割合が0%より大きい）
+if (maxDamagePercent < 100) {
+    const updateBtnHtml = `
+        <div style="margin-top:15px; padding:12px; background:#f0f7ff; border-radius:8px; border:1px solid #b8daff;">
+            <p style="margin:0 0 8px 0; font-size:0.9em; color:#004085;">
+                🛡️ <strong>この攻撃を耐えた後の残りHP予測: ${afterHPPercent}%</strong>
+                <br><span style="font-size:0.8em; color:#666;">(最大HPから最大ダメージ ${totalMax} を引いた数値)</span>
+            </p>
+            <button type="button" onclick="updatePercentAndRecalc(${afterHPPercent})" 
+                    style="cursor:pointer; width:100%; padding:10px; background:#007bff; color:white; border:none; border-radius:6px; font-weight:bold;">
+                HP ${afterHPPercent}% を反映
+            </button>
+        </div>
+    `;
+    resultDiv.insertAdjacentHTML('beforeend', updateBtnHtml);
+}
+// ▲▲▲ ここまで ▲▲▲
 
     } catch (error) {
         console.error("ダメージ計算中に致命的なエラーが発生しました:", error);
