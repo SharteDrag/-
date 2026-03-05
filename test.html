@@ -3,6 +3,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ポケモン ダメージ計算ツール (シーテャkids)</title>
     <style>
 /* 左上固定ボタンのスタイル */
@@ -63,6 +64,58 @@
     border: 1px solid #ddd;
     padding: 8px;
     text-align: center;
+}
+/* --- スマホ向けの表示調整 --- */
+@media screen and (max-width: 600px) {
+    body {
+        padding: 10px; /* 余白を少し削って画面を広く使う */
+    }
+
+    /* 横並びのグループを縦並びに変更 */
+    .pokemon-select-group, .input-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* 入力欄とセレクトボックスを大きくする */
+    input[type="number"], input[type="text"], select {
+        padding: 12px; /* タップしやすく高くする */
+        font-size: 16px; /* iPhoneでズームされるのを防ぐため16px以上を推奨 */
+    }
+
+    /* ボタン類を押しやすく大きくする */
+    button, .ev-button, .btn-calc, .btn-table {
+        padding: 15px;
+        font-size: 1.1em;
+        width: 100%; /* 横幅いっぱいに広げる */
+        margin-top: 10px;
+    }
+
+    /* 左上の固定ボタンの位置調整 */
+    #fixed-button-container {
+        position: static; /* 画面に固定せず、流れの中に配置 */
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    /* チェックボックスのラベルを大きくして押しやすくする */
+    .checkbox-group {
+        padding: 10px 0;
+    }
+    
+    .checkbox-group input[type="checkbox"], 
+    .checkbox-group input[type="radio"] {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+    }
+
+    /* モーダルの幅を画面いっぱいに */
+    .modal-content {
+        width: 95%;
+        margin: 2% auto;
+        padding: 10px;
+    }
 }
 </style>
     <style>
@@ -208,6 +261,58 @@
         }
         .nav-link:last-child { border-bottom: none; }
         .nav-link:hover { background: #f0f0f0; color: #007bff; }
+        /* --- スマホ向けの表示調整 --- */
+@media screen and (max-width: 600px) {
+    body {
+        padding: 10px; /* 余白を少し削って画面を広く使う */
+    }
+
+    /* 横並びのグループを縦並びに変更 */
+    .pokemon-select-group, .input-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* 入力欄とセレクトボックスを大きくする */
+    input[type="number"], input[type="text"], select {
+        padding: 12px; /* タップしやすく高くする */
+        font-size: 16px; /* iPhoneでズームされるのを防ぐため16px以上を推奨 */
+    }
+
+    /* ボタン類を押しやすく大きくする */
+    button, .ev-button, .btn-calc, .btn-table {
+        padding: 15px;
+        font-size: 1.1em;
+        width: 100%; /* 横幅いっぱいに広げる */
+        margin-top: 10px;
+    }
+
+    /* 左上の固定ボタンの位置調整 */
+    #fixed-button-container {
+        position: static; /* 画面に固定せず、流れの中に配置 */
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    /* チェックボックスのラベルを大きくして押しやすくする */
+    .checkbox-group {
+        padding: 10px 0;
+    }
+    
+    .checkbox-group input[type="checkbox"], 
+    .checkbox-group input[type="radio"] {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+    }
+
+    /* モーダルの幅を画面いっぱいに */
+    .modal-content {
+        width: 95%;
+        margin: 2% auto;
+        padding: 10px;
+    }
+}
     </style>
 </head>
 <script>
