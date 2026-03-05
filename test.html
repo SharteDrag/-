@@ -305,6 +305,14 @@
         margin: 2% auto;
         padding: 10px;
     }
+
+    /* 【追記】タイマーの表示位置を少し下にずらす */
+    #timer-display {
+        top: 70px !important;   /* 元の 10px から 70px に変更（ボタンと被らない高さ） */
+        right: 10px !important;
+        font-size: 20px !important; /* 少しコンパクトに */
+        padding: 8px 15px !important;
+    }
 }
     </style>
 </head>
@@ -337,8 +345,11 @@ document.addEventListener('click', function(event) {
         <a href="test.html" class="nav-link">⚡ ダメージ計算</a>
     </nav>
 </div>
-        <div id="fixed-button-container">
-    <button type="button" onclick="calculateDamage()" class="btn-calc">ダメ計実行</button>
+<div id="fixed-button-container">
+    <button type="button" 
+            onclick="calculateDamage(); document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });" 
+            class="btn-calc">ダメ計実行</button>
+    
     <button type="button" onclick="openQuickTableModal()" class="btn-table">早見表作成</button>
 </div>
 
