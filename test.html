@@ -9,8 +9,8 @@
 /* 左上固定ボタンのスタイル */
 #fixed-button-container {
     position: fixed;
-    top: 60px;
-    left: 10px;
+    top: 10px;
+    left: 90px;
     z-index: 1000; /* 他の要素より上に表示 */
     display: flex;
     flex-direction: column; /* 縦に並べる場合。横なら row */
@@ -67,33 +67,41 @@
 }
 /* --- スマホ向けの表示調整 --- */
 @media screen and (max-width: 600px) {
-    /* 中略（他の設定はそのまま） */
-
-    /* 固定ボタンのコンテナを画面上部に完全に固定 */
-    #fixed-button-container {
-        position: fixed; /* 固定 */
-        top: 0;         /* 一番上 */
-        left: 0;
-        width: 100%;    /* 横幅いっぱい */
-        background: rgba(255, 255, 255, 0.95); /* 背後を少し透かす */
-        padding: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        flex-direction: row; /* ボタンを横に並べる */
-        z-index: 10000;      /* 最前面 */
-        box-sizing: border-box;
-    }
-
-    /* 各ボタンの調整 */
-    #fixed-button-container button {
-        flex: 1;         /* ボタンを均等な大きさに */
-        margin-top: 0;   /* 上の余白を消す */
-        padding: 12px;   /* 押しやすい高さ */
-        font-size: 0.9em;
-    }
-
-    /* ボタンに隠れないよう、コンテンツ全体を下にずらす */
+    /* コンテンツがボタンに被らないよう余白を確保 */
     body {
-        padding-top: 80px !important; 
+        padding-top: 70px !important;
+    }
+
+    /* ボタンコンテナを右上に固定 */
+    #fixed-button-container {
+        position: fixed;
+        top: 15px;      /* ハンバーガーメニューと高さを合わせる */
+        left: auto;     /* 左固定を解除 */
+        right: 15px;    /* 右側に配置 */
+        width: auto;    /* 幅を自動に */
+        flex-direction: row; /* 横に並べる */
+        gap: 5px;       /* ボタン同士の隙間 */
+        z-index: 10001; /* ハンバーガーメニュー(10000)より少し手前に */
+        margin-top: 0;
+    }
+
+    /* 固定ボタン自体の見た目を調整（コンパクトに） */
+    .btn-calc, .btn-table {
+        padding: 10px 15px !important; /* スマホで押しやすく、かつ邪魔にならないサイズ */
+        font-size: 14px !important;
+        width: auto !important; /* 横幅いっぱいを解除 */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        margin-top: 0 !important;
+    }
+
+    /* 計算実行ボタンの色を少し目立たせる（任意） */
+    .btn-calc {
+        background-color: #007bff;
+    }
+    
+    /* 早見表ボタン */
+    .btn-table {
+        background-color: #28a745;
     }
 }
 </style>
@@ -322,6 +330,10 @@ document.addEventListener('click', function(event) {
         <a href="party_memo.html" class="nav-link">📋 構築メモ</a>
         <a href="test.html" class="nav-link">⚡ ダメージ計算</a>
     </nav>
+</div>
+        <div id="fixed-button-container">
+    <button type="button" onclick="calculateDamage()" class="btn-calc">ダメ計実行</button>
+    <button type="button" onclick="openQuickTableModal()" class="btn-table">早見表作成</button>
 </div>
 
 <div style="background: #f0f4f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d1d9e0;">
@@ -760,11 +772,6 @@ document.addEventListener('click', function(event) {
 
             </div>
         </div>
-        
-        <div id="fixed-button-container">
-    <button type="button" onclick="calculateDamage()" class="btn-calc">ダメ計実行</button>
-    <button type="button" onclick="openQuickTableModal()" class="btn-table">早見表作成</button>
-</div>
 
 <div id="quick-table-modal" class="modal">
     <div class="modal-content">
@@ -2206,8 +2213,8 @@ function calculateEntryHazardDamage(defenderKey, maxHP) {
     if (substituteHP > 0) {
         const minSubPercent = ((minResult / targetHP) * 100).toFixed(1);
         const maxSubPercent = ((maxResult / targetHP) * 100).toFixed(1);
-        percentageText = `みがわりHPに対する割合: **${minSubPercent}%** 〜 **${maxSubPercent}%**`;
-        substituteText = `<div class="substitute-info">【みがわり判定】 みがわりHP: ${targetHP} (${(targetHP / maxHP * 100).toFixed(1)}% / ${maxHP})</div>`;
+        percentageText = `HPに対する割合: **${minSubPercent}%** 〜 **${maxSubPercent}%**`;
+        substituteText = `<div class="substitute-info">HP: ${targetHP}</div>`;
     } else {
         const minPercent = ((minResult / targetHP) * 100).toFixed(1);
         const maxPercent = ((maxResult / targetHP) * 100).toFixed(1);
@@ -2732,14 +2739,7 @@ if (itemDefKey === "obon") {
         
         const { attackerStatKey, defenderStatKey, final_attack, final_defense, defenseCalcString, weather_m } = standardResult;
 
-        let notes = `<br><br>
-            <strong>適用された威力補正 (M)</strong>: <strong>${weather_m}倍</strong>
-            <br>
-            <strong>適用能力値</strong><br>
-            <ul>
-                <li><strong>攻撃側 (${attackerStatKey})</strong>: ${effect.atk} × ${getRankMultiplier(effect.atkRank, isCriticalChecked, true)} = <strong>${final_attack}</strong></li>
-                <li><strong>防御側 (${defenderStatKey})</strong>: ${defenseCalcString} = <strong>${final_defense}</strong></li>
-            </ul>`;
+        let notes = `<br><br>`;
 
         resultDiv.innerHTML = outputHTML + notes;
 
