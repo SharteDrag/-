@@ -8,103 +8,63 @@
         /* ハンバーガーメニュー */
         .hamburger-menu { position: fixed; top: 20px; left: 20px; z-index: 10000; }
         .hamburger-btn {
-            width: 50px;
-            height: 50px;
-            background: #007bff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 6px;
-            padding: 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-        .hamburger-btn:hover { background: #0056b3; }
-        .hamburger-btn span {
-            width: 25px;
-            height: 3px;
-            background: white;
-            display: block;
-            border-radius: 2px;
-            transition: all 0.3s ease;
+            width: 50px; height: 50px; background: #007bff; border: none; border-radius: 4px;
+            cursor: pointer; display: flex; flex-direction: column; justify-content: center;
+            align-items: center; gap: 6px; padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         .hamburger-btn.active span:nth-child(1) { transform: rotate(45deg) translate(8px, 8px); }
         .hamburger-btn.active span:nth-child(2) { opacity: 0; }
         .hamburger-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(7px, -7px); }
-        
+        .hamburger-btn span { width: 25px; height: 3px; background: white; display: block; border-radius: 2px; transition: all 0.3s ease; }
+
         .nav-menu {
-            position: fixed;
-            top: 80px;
-            left: 20px;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: none;
-            flex-direction: column;
-            min-width: 180px;
-            z-index: 9999;
+            position: fixed; top: 80px; left: 20px; background: white; border: 1px solid #ccc;
+            border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none;
+            flex-direction: column; min-width: 180px; z-index: 9999;
         }
         .nav-menu.open { display: flex; }
-        .nav-link {
-            padding: 12px 16px;
-            text-decoration: none;
-            color: #333;
-            border-bottom: 1px solid #eee;
-            transition: background 0.2s;
-            display: block;
-        }
-        .nav-link:last-child { border-bottom: none; }
-        .nav-link:hover { background: #f0f0f0; color: #007bff; }
+        .nav-link { padding: 12px 16px; text-decoration: none; color: #333; border-bottom: 1px solid #eee; display: block; }
         
         :root { --primary: #007bff; --bg: #f8f9fa; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 20px; font-size: 13px; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; font-size: 14px; }
         .container { max-width: 1400px; margin: 0 auto; }
-        .party-controls { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px; }
-        .party-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 15px; }
-        .pokemon-card { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        
-        /* アイコン表示エリア */
-        .icon-container {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 10px;
-            overflow: hidden;
-            background-repeat: no-repeat;
-            background-size: 128px 64px;
-            display: none; /* 初期は非表示 */
+
+        /* コントロールエリア（スマホでボタンが崩れないよう修正） */
+        .party-controls { 
+            background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-wrap: wrap; align-items: center; gap: 10px; 
+        }
+        .party-controls h2 { width: 100%; margin: 0 0 5px 0; font-size: 18px; }
+
+        .party-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        @media (min-width: 900px) {
+            .party-grid { grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
         }
 
+        .pokemon-card { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        input, select, textarea { font-size: 16px !important; }
         .search-container { position: relative; width: 100%; }
-        .search-input { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .search-input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         .suggestion-list { 
             position: absolute; width: 100%; max-height: 200px; overflow-y: auto; 
             background: white; border: 1px solid #ddd; z-index: 1000; display: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 0 0 4px 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .suggestion-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #eee; }
-        .suggestion-item:hover { background-color: #e9ecef; }
+        .suggestion-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
 
         .stat-table { width: 100%; border-collapse: collapse; margin: 8px 0; }
-        .stat-table th, .stat-table td { padding: 4px; border-bottom: 1px solid #eee; text-align: center; }
-        .ev-input, .iv-input { width: 45px !important; text-align: center; padding: 3px; border: 1px solid #ccc; border-radius: 3px; }
-        .ev-input { font-weight: bold; }
-        .total-display { font-weight: bold; min-width: 70px; display: inline-block; }
-        .ev-counter { font-size: 11px; color: #666; text-align: right; margin-bottom: 5px; }
+        .stat-table th, .stat-table td { padding: 6px 4px; border-bottom: 1px solid #eee; text-align: center; }
+        .ev-input, .iv-input { width: 50px !important; height: 35px; text-align: center; border: 1px solid #ccc; border-radius: 3px; }
+        .total-display { font-weight: bold; min-width: 60px; display: inline-block; }
+        .ev-counter { font-size: 12px; color: #666; text-align: right; margin-bottom: 10px; }
         .ev-over { color: red; font-weight: bold; }
         .nature-up { color: #d9534f; }
         .nature-down { color: #0275d8; }
         
-        .memo-area { width: 100%; height: 60px; margin-top: 10px; padding: 5px; border: 1px solid #eee; border-radius: 4px; resize: none; font-size: 12px; box-sizing: border-box; background: #fffdf0; }
-        
-        button { padding: 8px 15px; cursor: pointer; background: var(--primary); color: white; border: none; border-radius: 4px; }
-        button:hover { opacity: 0.8; }
-        select { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+        .memo-area { width: 100%; height: 80px; margin-top: 10px; padding: 8px; border: 1px solid #eee; border-radius: 4px; resize: none; box-sizing: border-box; background: #fffdf0; }
+        button { padding: 10px 15px; cursor: pointer; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; }
 
-        /* タイプ別カラー（技入力用） */
+        /* 技のタイプ別背景色 */
         .type-normal { background-color: #A8A878 !important; color: white; }
         .type-fire { background-color: #F08030 !important; color: white; }
         .type-water { background-color: #6890F0 !important; color: white; }
@@ -123,65 +83,13 @@
         .type-dark { background-color: #705848 !important; color: white; }
         .type-steel { background-color: #B8B8D0 !important; color: black; }
         .type-fairy { background-color: #EE99AC !important; color: white; }
-
-        /* フォントサイズを16px以上にすると、iPhoneでフォーカス時の自動ズームを防げます */
-input, select, textarea {
-    font-size: 16px !important; 
-}
-
-/* スマホ用のレイアウト調整 */
-.party-grid {
-    display: grid;
-    grid-template-columns: 1fr; /* デフォルトは1列（スマホ） */
-    gap: 15px;
-}
-
-/* PCなど広い画面では2列以上にする */
-@media (min-width: 900px) {
-    .party-grid {
-        grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-    }
-}
-
-/* 数値入力欄を指でタップしやすいサイズに */
-.ev-input, .iv-input {
-    width: 50px !important;
-    height: 35px; /* 少し高くする */
-    padding: 5px;
-}
-
-/* 保存・読込ボタンを押しやすく */
-.party-controls button {
-    padding: 12px 20px;
-    font-weight: bold;
-}
     </style>
 </head>
-<script>
-function toggleMenu() {
-    const btn = document.querySelector('.hamburger-btn');
-    const menu = document.getElementById('navMenu');
-    btn.classList.toggle('active');
-    menu.classList.toggle('open');
-}
-
-document.addEventListener('click', function(event) {
-    const hamburger = document.getElementById('hamburgerMenu');
-    if (!hamburger.contains(event.target)) {
-        const btn = document.querySelector('.hamburger-btn');
-        if(btn) btn.classList.remove('active');
-        const nav = document.getElementById('navMenu');
-        if(nav) nav.classList.remove('open');
-    }
-});
-</script>
 <body>
 
 <div id="hamburgerMenu" class="hamburger-menu">
     <div class="hamburger-btn" onclick="toggleMenu()">
-        <span></span>
-        <span></span>
-        <span></span>
+        <span></span><span></span><span></span>
     </div>
     <nav id="navMenu" class="nav-menu">
         <a href="party_memo.html" class="nav-link">📋 構築メモ</a>
@@ -191,9 +99,9 @@ document.addEventListener('click', function(event) {
 
 <div class="container">
     <div class="party-controls">
-        <h2 style="margin:0; font-size: 18px;">構築メモ(シーテャkids)</h2>
-        <input type="text" id="partyName" placeholder="パーティ名" style="width: 150px; padding:8px; border:1px solid #ccc; border-radius:4px;">
-        <select id="saveSlot" style="width: 120px;"></select>
+        <h2>構築メモ(シーテャkids)</h2>
+        <input type="text" id="partyName" placeholder="パーティ名" style="flex: 1; min-width: 150px; padding:8px; border:1px solid #ccc; border-radius:4px;">
+        <select id="saveSlot" style="width: 110px;"></select>
         <button onclick="saveParty()">保存</button>
         <button onclick="loadParty()">読込</button>
     </div>
@@ -213,8 +121,12 @@ const NATURES = {
     "まじめ": {up:0, down:0}
 };
 
-let db = { species: [], items: [], moves: [], movesRaw: [], abilities: {} };
-let iconFrames = {}; // 0: left, 1: right
+let db = { species: [], items: [], moves: [], abilities: {} };
+
+function toggleMenu() {
+    document.querySelector('.hamburger-btn').classList.toggle('active');
+    document.getElementById('navMenu').classList.toggle('open');
+}
 
 async function init() {
     try {
@@ -233,30 +145,16 @@ async function init() {
         ]);
 
         db.species = Object.keys(sp).map(k => ({ id: k, name: sp[k].Name, data: sp[k] }));
-        db.movesRaw = mv;
         db.moves = mv.map(m => ({ id: m.ID, name: m.Name, type: m.Type }));
         db.items = it.items.map(i => ({ id: i.id, name: i.name }));
         db.abilities = ab || {};
 
         setupSaveSlots();
         createPartyUI();
-        startIconAnimation();
     } catch (e) {
         console.error(e);
         alert("データの読み込みに失敗しました。");
     }
-}
-
-function startIconAnimation() {
-    setInterval(() => {
-        const icons = document.querySelectorAll('.icon-container');
-        icons.forEach(icon => {
-            if (icon.style.display === 'block') {
-                const currentPos = icon.style.backgroundPositionX;
-                icon.style.backgroundPositionX = (currentPos === '0px' || currentPos === '') ? '-64px' : '0px';
-            }
-        });
-    }, 500);
 }
 
 function setupSaveSlots() {
@@ -270,6 +168,14 @@ function setupSaveSlots() {
 
 function toKatakana(str) {
     return str.replace(/[ぁ-ん]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60));
+}
+
+function updateMoveColor(input, type) {
+    // 全てのタイプクラスを一度削除
+    input.className = 'search-input move-input';
+    if (type) {
+        input.classList.add(`type-${type.toLowerCase()}`);
+    }
 }
 
 function setupSearchableInput(container, dataList, onSelectCallback) {
@@ -305,21 +211,13 @@ function setupSearchableInput(container, dataList, onSelectCallback) {
     input.addEventListener('blur', () => {
         setTimeout(() => {
             list.style.display = 'none';
-            // 手動入力された場合の色同期
+            // 手動入力時も色を反映させる
             if (input.classList.contains('move-input')) {
                 const found = dataList.find(m => m.name === input.value);
                 updateMoveColor(input, found ? found.type : "");
             }
         }, 200);
     });
-}
-
-function updateMoveColor(input, type) {
-    // 既存のタイプクラスを削除
-    input.className = 'search-input move-input';
-    if (type) {
-        input.classList.add(`type-${type.toLowerCase()}`);
-    }
 }
 
 function createPartyUI() {
@@ -330,7 +228,6 @@ function createPartyUI() {
         card.className = 'pokemon-card';
         card.id = `pokemon-${i}`;
         card.innerHTML = `
-            <div class="icon-container" id="icon-${i}"></div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
                 <div class="search-container">
                     <input type="text" class="search-input sp-input" placeholder="ポケモン名">
@@ -349,56 +246,40 @@ function createPartyUI() {
                 </select>
             </div>
             <table class="stat-table">
-    <thead><tr><th>能力</th><th>種族</th><th>個体(IV)</th><th>努力(EV)</th><th>実数値</th></tr></thead>
-    ${['HP','攻撃','防御','特攻','特防','素早'].map((label, j) => `
-        <tr class="stats-row">
-            <td style="font-size:11px; color:#666;">${label}</td>
-            <td class="base-val">0</td>
-            <td><input type="number" class="iv-input" value="31" min="0" max="31" inputmode="numeric" oninput="calcStats(${i})"></td>
-            <td><input type="number" class="ev-input" value="0" min="0" max="32" inputmode="numeric" oninput="validateEV(this, ${i})"></td>
-            <td class="total-display">0</td>
-        </tr>`).join('')}
-</table>
-            <div class="ev-counter">合計努力値: <span class="ev-sum">0</span> / 66</div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+                <thead><tr><th>能力</th><th>種族</th><th>個体</th><th>努力</th><th>実数</th></tr></thead>
+                ${['HP','攻撃','防御','特攻','特防','素早'].map((label, j) => `
+                    <tr class="stats-row">
+                        <td style="font-size:11px; color:#666;">${label}</td>
+                        <td class="base-val">0</td>
+                        <td><input type="number" class="iv-input" value="31" min="0" max="31" inputmode="numeric" oninput="calcStats(${i})"></td>
+                        <td><input type="number" class="ev-input" value="0" min="0" max="32" inputmode="numeric" oninput="validateEV(this, ${i})"></td>
+                        <td class="total-display">0</td>
+                    </tr>`).join('')}
+            </table>
+            <div class="ev-counter">努力値合計: <span class="ev-sum">0</span> / 66</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
                 ${[1,2,3,4].map(() => `
                     <div class="search-container">
                         <input type="text" class="search-input move-input" placeholder="技">
                         <div class="suggestion-list"></div>
                     </div>`).join('')}
             </div>
-            <textarea class="memo-area" placeholder="調整メモ、役割など..."></textarea>
+            <textarea class="memo-area" placeholder="調整メモ..."></textarea>
         `;
         grid.appendChild(card);
 
-        setupSearchableInput(card.querySelector('.sp-input').parentNode, db.species, (item) => updateSpecies(i, item));
+        setupSearchableInput(card.querySelector('.sp-input').parentNode, db.species, (item) => updateSpecies(i, item.data));
         setupSearchableInput(card.querySelector('.item-input').parentNode, db.items);
         card.querySelectorAll('.move-input').forEach(mvInput => setupSearchableInput(mvInput.parentNode, db.moves));
 
-        // 数値入力欄をタップした時に中身を全選択する処理
-grid.querySelectorAll('input[type="number"]').forEach(input => {
-    input.addEventListener('focus', function() {
-        this.select();
-    });
-});
+        card.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('focus', function() { this.select(); });
+        });
     }
 }
 
-function updateSpecies(idx, item) {
-    const speciesData = item.data;
+function updateSpecies(idx, speciesData) {
     const card = document.getElementById(`pokemon-${idx}`);
-    
-    // アイコンの更新
-    const icon = document.getElementById(`icon-${idx}`);
-    const iconUrl = `Icons/${item.id}.png`;
-    const img = new Image();
-    img.onload = () => {
-        icon.style.backgroundImage = `url(${iconUrl})`;
-        icon.style.display = 'block';
-    };
-    img.onerror = () => icon.style.display = 'none';
-    img.src = iconUrl;
-
     const bases = [speciesData.HP, speciesData.Atk, speciesData.Def, speciesData.SpAtk, speciesData.SpDef, speciesData.Speed];
     card.querySelectorAll('.base-val').forEach((td, i) => td.textContent = bases[i]);
     const abSelect = card.querySelector('.ability-select');
@@ -411,15 +292,12 @@ function validateEV(input, idx) {
     let val = parseInt(input.value);
     if (val > MAX_SINGLE_EV) input.value = MAX_SINGLE_EV;
     if (val < 0 || isNaN(val)) val = 0;
-
     const card = document.getElementById(`pokemon-${idx}`);
     const evs = [...card.querySelectorAll('.ev-input')];
     let sum = evs.reduce((acc, cur) => acc + (parseInt(cur.value) || 0), 0);
-    
     const sumDisplay = card.querySelector('.ev-sum');
     sumDisplay.textContent = sum;
     sumDisplay.classList.toggle('ev-over', sum > MAX_TOTAL_EV);
-
     calcStats(idx);
 }
 
@@ -432,7 +310,6 @@ function calcStats(idx) {
         const base = parseInt(row.querySelector('.base-val').textContent) || 0;
         const iv = parseInt(row.querySelector('.iv-input').value) || 0;
         const ev = parseInt(row.querySelector('.ev-input').value) || 0;
-        
         let val = 0;
         if (i === 0) {
             val = (base === 1) ? 1 : Math.floor((base * 2 + iv) * 50 / 100) + 60 + ev;
@@ -456,17 +333,10 @@ function saveParty() {
     const slot = document.getElementById('saveSlot').value;
     const partyName = document.getElementById('partyName').value || `パーティ${slot}`;
     const storageKey = `p_slot_66_v3_${slot}`;
-    
     const existingData = localStorage.getItem(storageKey);
-    if (existingData) {
-        const oldData = JSON.parse(existingData);
-        if (!confirm(`スロット ${slot} には既に「${oldData.name}」が保存されています。\n上書きしてもよろしいですか？`)) return;
-    }
+    if (existingData && !confirm(`スロット ${slot} を上書きしますか？`)) return;
 
-    const data = {
-        name: partyName,
-        members: []
-    };
+    const data = { name: partyName, members: [] };
     for (let i = 0; i < 6; i++) {
         const c = document.getElementById(`pokemon-${i}`);
         data.members.push({
@@ -483,13 +353,13 @@ function saveParty() {
         });
     }
     localStorage.setItem(storageKey, JSON.stringify(data));
-    alert("保存完了しました");
+    alert("保存完了");
 }
 
 function loadParty() {
     const slot = document.getElementById('saveSlot').value;
     const raw = localStorage.getItem(`p_slot_66_v3_${slot}`);
-    if (!raw) return alert("データが見つかりません");
+    if (!raw) return alert("データがありません");
     const data = JSON.parse(raw);
     document.getElementById('partyName').value = data.name;
     data.members.forEach((m, i) => {
@@ -497,10 +367,8 @@ function loadParty() {
         const spInp = c.querySelector('.sp-input');
         spInp.value = m.spName;
         spInp.dataset.selectedId = m.spId;
-        
         const speciesObj = db.species.find(s => s.id === m.spId);
-        if (speciesObj) updateSpecies(i, speciesObj);
-
+        if (speciesObj) updateSpecies(i, speciesObj.data);
         c.querySelector('.item-input').value = m.itName || "";
         c.querySelector('.item-input').dataset.selectedId = m.itId || "";
         c.querySelector('.nature-select').value = m.nt;
