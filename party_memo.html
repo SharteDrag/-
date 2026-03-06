@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ポケモン パーティ構築メモ(シーテャkids)</title>
     <style>
         /* ハンバーガーメニュー */
@@ -66,6 +67,17 @@
         .party-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 15px; }
         .pokemon-card { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         
+        /* アイコン表示エリア */
+        .icon-container {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 10px;
+            overflow: hidden;
+            background-repeat: no-repeat;
+            background-size: 128px 64px;
+            display: none; /* 初期は非表示 */
+        }
+
         .search-container { position: relative; width: 100%; }
         .search-input { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         .suggestion-list { 
@@ -91,6 +103,58 @@
         button { padding: 8px 15px; cursor: pointer; background: var(--primary); color: white; border: none; border-radius: 4px; }
         button:hover { opacity: 0.8; }
         select { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+
+        /* タイプ別カラー（技入力用） */
+        .type-normal { background-color: #A8A878 !important; color: white; }
+        .type-fire { background-color: #F08030 !important; color: white; }
+        .type-water { background-color: #6890F0 !important; color: white; }
+        .type-electric { background-color: #F8D030 !important; color: black; }
+        .type-grass { background-color: #78C850 !important; color: white; }
+        .type-ice { background-color: #98D8D8 !important; color: black; }
+        .type-fighting { background-color: #C03028 !important; color: white; }
+        .type-poison { background-color: #A040A0 !important; color: white; }
+        .type-ground { background-color: #E0C068 !important; color: white; }
+        .type-flying { background-color: #A890F0 !important; color: white; }
+        .type-psychic { background-color: #F85888 !important; color: white; }
+        .type-bug { background-color: #A8B820 !important; color: white; }
+        .type-rock { background-color: #B8A038 !important; color: white; }
+        .type-ghost { background-color: #705898 !important; color: white; }
+        .type-dragon { background-color: #7038F8 !important; color: white; }
+        .type-dark { background-color: #705848 !important; color: white; }
+        .type-steel { background-color: #B8B8D0 !important; color: black; }
+        .type-fairy { background-color: #EE99AC !important; color: white; }
+
+        /* フォントサイズを16px以上にすると、iPhoneでフォーカス時の自動ズームを防げます */
+input, select, textarea {
+    font-size: 16px !important; 
+}
+
+/* スマホ用のレイアウト調整 */
+.party-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* デフォルトは1列（スマホ） */
+    gap: 15px;
+}
+
+/* PCなど広い画面では2列以上にする */
+@media (min-width: 900px) {
+    .party-grid {
+        grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    }
+}
+
+/* 数値入力欄を指でタップしやすいサイズに */
+.ev-input, .iv-input {
+    width: 50px !important;
+    height: 35px; /* 少し高くする */
+    padding: 5px;
+}
+
+/* 保存・読込ボタンを押しやすく */
+.party-controls button {
+    padding: 12px 20px;
+    font-weight: bold;
+}
     </style>
 </head>
 <script>
@@ -101,18 +165,18 @@ function toggleMenu() {
     menu.classList.toggle('open');
 }
 
-// メニュー外をクリックしたら閉じる
 document.addEventListener('click', function(event) {
     const hamburger = document.getElementById('hamburgerMenu');
     if (!hamburger.contains(event.target)) {
-        document.querySelector('.hamburger-btn').classList.remove('active');
-        document.getElementById('navMenu').classList.remove('open');
+        const btn = document.querySelector('.hamburger-btn');
+        if(btn) btn.classList.remove('active');
+        const nav = document.getElementById('navMenu');
+        if(nav) nav.classList.remove('open');
     }
 });
 </script>
 <body>
 
-<!-- ハンバーガーメニュー -->
 <div id="hamburgerMenu" class="hamburger-menu">
     <div class="hamburger-btn" onclick="toggleMenu()">
         <span></span>
@@ -149,11 +213,8 @@ const NATURES = {
     "まじめ": {up:0, down:0}
 };
 
-let db = { species: [], items: [], moves: [], abilities: {} };
-
-function toKatakana(str) {
-    return str.replace(/[ぁ-ん]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60));
-}
+let db = { species: [], items: [], moves: [], movesRaw: [], abilities: {} };
+let iconFrames = {}; // 0: left, 1: right
 
 async function init() {
     try {
@@ -172,16 +233,30 @@ async function init() {
         ]);
 
         db.species = Object.keys(sp).map(k => ({ id: k, name: sp[k].Name, data: sp[k] }));
-        db.moves = mv.map(m => ({ id: m.ID, name: m.Name }));
+        db.movesRaw = mv;
+        db.moves = mv.map(m => ({ id: m.ID, name: m.Name, type: m.Type }));
         db.items = it.items.map(i => ({ id: i.id, name: i.name }));
         db.abilities = ab || {};
 
         setupSaveSlots();
         createPartyUI();
+        startIconAnimation();
     } catch (e) {
         console.error(e);
         alert("データの読み込みに失敗しました。");
     }
+}
+
+function startIconAnimation() {
+    setInterval(() => {
+        const icons = document.querySelectorAll('.icon-container');
+        icons.forEach(icon => {
+            if (icon.style.display === 'block') {
+                const currentPos = icon.style.backgroundPositionX;
+                icon.style.backgroundPositionX = (currentPos === '0px' || currentPos === '') ? '-64px' : '0px';
+            }
+        });
+    }, 500);
 }
 
 function setupSaveSlots() {
@@ -193,6 +268,10 @@ function setupSaveSlots() {
     }
 }
 
+function toKatakana(str) {
+    return str.replace(/[ぁ-ん]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60));
+}
+
 function setupSearchableInput(container, dataList, onSelectCallback) {
     const input = container.querySelector('.search-input');
     const list = container.querySelector('.suggestion-list');
@@ -200,7 +279,11 @@ function setupSearchableInput(container, dataList, onSelectCallback) {
     input.addEventListener('input', () => {
         const query = toKatakana(input.value.toLowerCase());
         list.innerHTML = '';
-        if (!query) { list.style.display = 'none'; return; }
+        if (!query) { 
+            list.style.display = 'none'; 
+            if(input.classList.contains('move-input')) updateMoveColor(input, "");
+            return; 
+        }
         const filtered = dataList.filter(item => toKatakana(item.name).includes(query)).slice(0, 20);
         if (filtered.length > 0) {
             filtered.forEach(item => {
@@ -212,13 +295,31 @@ function setupSearchableInput(container, dataList, onSelectCallback) {
                     input.dataset.selectedId = item.id;
                     list.style.display = 'none';
                     if (onSelectCallback) onSelectCallback(item);
+                    if (input.classList.contains('move-input')) updateMoveColor(input, item.type);
                 };
                 list.appendChild(div);
             });
             list.style.display = 'block';
         } else { list.style.display = 'none'; }
     });
-    input.addEventListener('blur', () => setTimeout(() => list.style.display = 'none', 200));
+    input.addEventListener('blur', () => {
+        setTimeout(() => {
+            list.style.display = 'none';
+            // 手動入力された場合の色同期
+            if (input.classList.contains('move-input')) {
+                const found = dataList.find(m => m.name === input.value);
+                updateMoveColor(input, found ? found.type : "");
+            }
+        }, 200);
+    });
+}
+
+function updateMoveColor(input, type) {
+    // 既存のタイプクラスを削除
+    input.className = 'search-input move-input';
+    if (type) {
+        input.classList.add(`type-${type.toLowerCase()}`);
+    }
 }
 
 function createPartyUI() {
@@ -229,6 +330,7 @@ function createPartyUI() {
         card.className = 'pokemon-card';
         card.id = `pokemon-${i}`;
         card.innerHTML = `
+            <div class="icon-container" id="icon-${i}"></div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
                 <div class="search-container">
                     <input type="text" class="search-input sp-input" placeholder="ポケモン名">
@@ -247,16 +349,16 @@ function createPartyUI() {
                 </select>
             </div>
             <table class="stat-table">
-                <thead><tr><th>能力</th><th>種族</th><th>個体(IV)</th><th>努力(EV)</th><th>実数値</th></tr></thead>
-                ${['HP','攻撃','防御','特攻','特防','素早'].map((label, j) => `
-                    <tr class="stats-row">
-                        <td style="font-size:11px; color:#666;">${label}</td>
-                        <td class="base-val">0</td>
-                        <td><input type="number" class="iv-input" value="31" min="0" max="31" oninput="calcStats(${i})"></td>
-                        <td><input type="number" class="ev-input" value="0" min="0" max="32" oninput="validateEV(this, ${i})"></td>
-                        <td class="total-display">0</td>
-                    </tr>`).join('')}
-            </table>
+    <thead><tr><th>能力</th><th>種族</th><th>個体(IV)</th><th>努力(EV)</th><th>実数値</th></tr></thead>
+    ${['HP','攻撃','防御','特攻','特防','素早'].map((label, j) => `
+        <tr class="stats-row">
+            <td style="font-size:11px; color:#666;">${label}</td>
+            <td class="base-val">0</td>
+            <td><input type="number" class="iv-input" value="31" min="0" max="31" inputmode="numeric" oninput="calcStats(${i})"></td>
+            <td><input type="number" class="ev-input" value="0" min="0" max="32" inputmode="numeric" oninput="validateEV(this, ${i})"></td>
+            <td class="total-display">0</td>
+        </tr>`).join('')}
+</table>
             <div class="ev-counter">合計努力値: <span class="ev-sum">0</span> / 66</div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
                 ${[1,2,3,4].map(() => `
@@ -269,10 +371,40 @@ function createPartyUI() {
         `;
         grid.appendChild(card);
 
-        setupSearchableInput(card.querySelector('.sp-input').parentNode, db.species, (item) => updateSpecies(i, item.data));
+        setupSearchableInput(card.querySelector('.sp-input').parentNode, db.species, (item) => updateSpecies(i, item));
         setupSearchableInput(card.querySelector('.item-input').parentNode, db.items);
         card.querySelectorAll('.move-input').forEach(mvInput => setupSearchableInput(mvInput.parentNode, db.moves));
+
+        // 数値入力欄をタップした時に中身を全選択する処理
+grid.querySelectorAll('input[type="number"]').forEach(input => {
+    input.addEventListener('focus', function() {
+        this.select();
+    });
+});
     }
+}
+
+function updateSpecies(idx, item) {
+    const speciesData = item.data;
+    const card = document.getElementById(`pokemon-${idx}`);
+    
+    // アイコンの更新
+    const icon = document.getElementById(`icon-${idx}`);
+    const iconUrl = `Icons/${item.id}.png`;
+    const img = new Image();
+    img.onload = () => {
+        icon.style.backgroundImage = `url(${iconUrl})`;
+        icon.style.display = 'block';
+    };
+    img.onerror = () => icon.style.display = 'none';
+    img.src = iconUrl;
+
+    const bases = [speciesData.HP, speciesData.Atk, speciesData.Def, speciesData.SpAtk, speciesData.SpDef, speciesData.Speed];
+    card.querySelectorAll('.base-val').forEach((td, i) => td.textContent = bases[i]);
+    const abSelect = card.querySelector('.ability-select');
+    const abs = [...(speciesData.Abilities || []), ...(speciesData.HiddenAbilities || [])];
+    abSelect.innerHTML = abs.map(a => `<option value="${a}">${db.abilities[a]?.name || a}</option>`).join('');
+    calcStats(idx);
 }
 
 function validateEV(input, idx) {
@@ -288,16 +420,6 @@ function validateEV(input, idx) {
     sumDisplay.textContent = sum;
     sumDisplay.classList.toggle('ev-over', sum > MAX_TOTAL_EV);
 
-    calcStats(idx);
-}
-
-function updateSpecies(idx, speciesData) {
-    const card = document.getElementById(`pokemon-${idx}`);
-    const bases = [speciesData.HP, speciesData.Atk, speciesData.Def, speciesData.SpAtk, speciesData.SpDef, speciesData.Speed];
-    card.querySelectorAll('.base-val').forEach((td, i) => td.textContent = bases[i]);
-    const abSelect = card.querySelector('.ability-select');
-    const abs = [...(speciesData.Abilities || []), ...(speciesData.HiddenAbilities || [])];
-    abSelect.innerHTML = abs.map(a => `<option value="${a}">${db.abilities[a]?.name || a}</option>`).join('');
     calcStats(idx);
 }
 
@@ -335,16 +457,11 @@ function saveParty() {
     const partyName = document.getElementById('partyName').value || `パーティ${slot}`;
     const storageKey = `p_slot_66_v3_${slot}`;
     
-    // --- 追加: 上書き確認のロジック ---
     const existingData = localStorage.getItem(storageKey);
     if (existingData) {
         const oldData = JSON.parse(existingData);
-        const confirmMsg = `スロット ${slot} には既に「${oldData.name}」が保存されています。\n上書きしてもよろしいですか？`;
-        if (!confirm(confirmMsg)) {
-            return; // 「いいえ」を選んだらここで処理を終了する
-        }
+        if (!confirm(`スロット ${slot} には既に「${oldData.name}」が保存されています。\n上書きしてもよろしいですか？`)) return;
     }
-    // -------------------------------
 
     const data = {
         name: partyName,
@@ -382,7 +499,7 @@ function loadParty() {
         spInp.dataset.selectedId = m.spId;
         
         const speciesObj = db.species.find(s => s.id === m.spId);
-        if (speciesObj) updateSpecies(i, speciesObj.data);
+        if (speciesObj) updateSpecies(i, speciesObj);
 
         c.querySelector('.item-input').value = m.itName || "";
         c.querySelector('.item-input').dataset.selectedId = m.itId || "";
@@ -393,6 +510,8 @@ function loadParty() {
         c.querySelectorAll('.move-input').forEach((el, j) => {
             el.value = m.mv[j].name;
             el.dataset.selectedId = m.mv[j].id;
+            const foundMove = db.moves.find(mv => mv.name === el.value);
+            updateMoveColor(el, foundMove ? foundMove.type : "");
         });
         c.querySelector('.memo-area').value = m.memo || "";
     });
