@@ -827,6 +827,7 @@ document.addEventListener('click', function(event) {
         let defenderSpDefMult = 1.0;
         let defenderAtkMult = 1.0;
         let defenderSpAtkMult = 1.0;
+        let originMaxHP = 150;
         
         let POKEDATA_MAP = {}; 
         // lists used for search filtering
@@ -960,23 +961,27 @@ function applyCurrentHPAsMax() {
     }
 }
 
-/**
- * 既存の updateHPByPercent も、current_hp_val を確実に更新するように調整
- */
 function updateHPByPercent() {
     const hpInput = document.getElementById('hp');
     const percentInput = document.getElementById('hp_percent');
+    const displaySpan = document.getElementById('current_hp_val');
     
-    const maxHP = parseInt(hpInput.value) || 1;
-    const percent = parseFloat(percentInput.value) || 0;
+    // ％を取得
+    let percent = parseFloat(percentInput.value);
+    if (isNaN(percent)) percent = 100;
+
+    // ★重要：保存しておいた「本来の最大HP」に％を掛ける
+    const calculatedHP = Math.floor(originMaxHP * (percent / 100));
     
-    // 実数値の計算
-    const currentHP = Math.floor(maxHP * (percent / 100));
+    // 防御側最大HPの入力欄を書き換える
+    hpInput.value = calculatedHP;
     
-    // 表示の更新
-    document.getElementById('current_hp_val').innerText = currentHP;
+    // 表示用の数値（赤字の部分など）も更新
+    if (displaySpan) {
+        displaySpan.innerText = calculatedHP;
+    }
     
-    // ダメージ計算の実行（この関数が定義されている前提）
+    // ダメージ計算を実行
     if (typeof calculateDamage === "function") {
         calculateDamage();
     }
@@ -1627,6 +1632,11 @@ if (["MULTISCALE","SHADOWSHIELD"].includes(ability)) {
         document.getElementById("ability_m_def").value = "0.5";
     }
 
+// 特性: ばけのかわ の判定
+if (["DISGUISE"].includes(ability)) {
+        document.getElementById("hp_percent").value = "87.5";
+    }
+
     calculateDamage();
 });
 
@@ -1818,6 +1828,13 @@ function initAppDisplay(moveDataLoaded) {
     const nameInputId = (role === 'attacker') ? "attacker-pokemon-name" : "defender-pokemon-name";
     const abilitySelectId = (role === 'attacker') ? "attacker-ability" : "defender-ability";
     updateAbilitySelector(nameInputId, abilitySelectId);
+
+    // 計算されたHP（100%の状態）を基準値としてバックアップ
+    const hpInput = document.getElementById('hp');
+    originMaxHP = parseInt(hpInput.value) || 1;
+    
+    // パーセントが100%以外になっている可能性を考慮して再計算
+    updateHPByPercent();
 
     // ポケモンデータが見つからない場合の早期リターン
     if (!ids || ids.length === 0) {
@@ -4022,5 +4039,6 @@ window.onclick = function(event) {
 // （元のコードの冒頭にある alert チェックなどはそのまま活かしてください）
 </script>
 </body>
+
 
 </html>
