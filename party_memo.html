@@ -339,7 +339,7 @@ function saveParty() {
     const existingData = localStorage.getItem(storageKey);
     if (existingData && !confirm(`スロット ${slot} を上書きしますか？`)) return;
 
-    const data = { name: partyName, members: [] };
+    const data = { name: partyName, partyMemo: partyMemo, members: [] };
     for (let i = 0; i < 6; i++) {
         const c = document.getElementById(`pokemon-${i}`);
         data.members.push({
