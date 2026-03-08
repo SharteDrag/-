@@ -98,13 +98,14 @@
 </div>
 
 <div class="container">
-    <div class="party-controls">
-        <h2>構築メモ(シーテャkids)</h2>
-        <input type="text" id="partyName" placeholder="パーティ名" style="flex: 1; min-width: 150px; padding:8px; border:1px solid #ccc; border-radius:4px;">
-        <select id="saveSlot" style="width: 110px;"></select>
-        <button onclick="saveParty()">保存</button>
-        <button onclick="loadParty()">読込</button>
-    </div>
+   <div class="party-controls">
+    <h2>構築メモ(シーテャkids)</h2>
+    <input type="text" id="partyName" placeholder="パーティ名" style="flex: 1; min-width: 150px; padding:8px; border:1px solid #ccc; border-radius:4px;">
+    <select id="saveSlot" style="width: 110px;"></select>
+    <button onclick="saveParty()">保存</button>
+    <button onclick="loadParty()">読込</button>
+    <button onclick="exportPartyImage()" style="background: #28a745;">画像として保存</button>
+</div>
     <div id="partyGrid" class="party-grid"></div>
         <textarea id="partyMemo" placeholder="パーティ全体のメモ（苦手なポケモン、選出パターンなど）" 
               style="width: 100%; height: 60px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; resize: vertical;"></textarea>
@@ -157,6 +158,144 @@ async function init() {
         console.error(e);
         alert("データの読み込みに失敗しました。");
     }
+}
+
+async function exportPartyImage() {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = 1250;
+    canvas.height = 900;
+    
+    // 背景
+    ctx.fillStyle = "#f8f9fa";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // タイトル
+    const partyName = document.getElementById('partyName').value || "無題のパーティ";
+    ctx.fillStyle = "#333";
+    ctx.font = "bold 32px sans-serif";
+    ctx.fillText(`構築メモ: ${partyName}`, 40, 60);
+
+    const cards = document.querySelectorAll('.pokemon-card');
+    const loadImages = [];
+
+    const typeColors = {
+        normal: '#A8A878', fire: '#F08030', water: '#6890F0', electric: '#F8D030',
+        grass: '#78C850', ice: '#98D8D8', fighting: '#C03028', poison: '#A040A0',
+        ground: '#E0C068', flying: '#A890F0', psychic: '#F85888', bug: '#A8B820',
+        rock: '#B8A038', ghost: '#705898', dragon: '#7038F8', dark: '#705848',
+        steel: '#B8B8D0', fairy: '#EE99AC'
+    };
+
+    for (let i = 0; i < 6; i++) {
+        const card = cards[i];
+        const x = (i % 3) * 400 + 40;
+        const y = Math.floor(i / 3) * 380 + 100;
+
+        // カード外枠
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.roundRect(x, y, 380, 360, 10);
+        ctx.fill();
+        ctx.strokeStyle = "#ddd";
+        ctx.stroke();
+
+        const name = card.querySelector('.sp-input').value;
+        const item = card.querySelector('.item-input').value;
+        const abValue = card.querySelector('.ability-select').value;
+        const abilityName = db.abilities[abValue]?.name || abValue || "---";
+        const natureName = card.querySelector('.nature-select').value;
+        const nature = NATURES[natureName] || {up:0, down:0};
+        const spId = card.querySelector('.sp-input').dataset.selectedId;
+
+        // 1. 名前（最上段：左側にアイコン、右に名前）
+        ctx.fillStyle = "#000";
+        ctx.font = "bold 22px sans-serif";
+        ctx.fillText(name || "???", x + 85, y + 40);
+        
+        // 2. 特性・持ち物（二段目：横並び）
+        ctx.font = "14px sans-serif";
+        ctx.fillStyle = "#555";
+        ctx.fillText(`特性: ${abilityName}`, x + 85, y + 65);
+        ctx.fillText(`持: ${item || "なし"}`, x + 230, y + 65);
+
+        // ステータス描画（実数値に補正色を適用）
+        const totals = card.querySelectorAll('.total-display');
+        const evs = card.querySelectorAll('.ev-input');
+        const labels = ['H', 'A', 'B', 'C', 'D', 'S'];
+        
+        labels.forEach((label, j) => {
+            const rowY = y + 105 + (j * 26);
+            ctx.fillStyle = "#666";
+            ctx.font = "14px monospace";
+            ctx.fillText(label, x + 20, rowY);
+            
+            let statColor = "#000";
+            if (j !== 0) {
+                if (nature.up === j) statColor = "#d9534f";   // 上昇補正（赤）
+                if (nature.down === j) statColor = "#0275d8"; // 下降補正（青）
+            }
+            
+            ctx.fillStyle = statColor;
+            ctx.font = "bold 17px monospace";
+            ctx.fillText(totals[j].textContent.padStart(3, ' '), x + 45, rowY);
+
+            const evVal = evs[j].value;
+            if (evVal > 0) {
+                ctx.fillStyle = "#28a745";
+                ctx.font = "11px sans-serif";
+                ctx.fillText(`(+${evVal})`, x + 85, rowY);
+            }
+        });
+
+        // 技描画
+        const moves = card.querySelectorAll('.move-input');
+        moves.forEach((mv, j) => {
+            const mName = mv.value;
+            const mData = db.moves.find(m => m.name === mName);
+            const mY = y + 105 + (j * 38);
+            const mX = x + 165;
+
+            ctx.fillStyle = (mData && mData.type) ? typeColors[mData.type.toLowerCase()] : "#eee";
+            ctx.beginPath();
+            ctx.roundRect(mX, mY, 195, 32, 4);
+            ctx.fill();
+
+            ctx.fillStyle = (mData) ? "#fff" : "#333";
+            ctx.font = "bold 14px sans-serif";
+            ctx.fillText(mName || "-", mX + 10, mY + 21);
+        });
+
+        // 調整メモ
+        const memo = card.querySelector('.memo-area').value;
+        if (memo) {
+            ctx.fillStyle = "#444";
+            ctx.font = "12px sans-serif";
+            ctx.fillText(memo.substring(0, 35), x + 20, y + 275); 
+        }
+
+        // アイコン描画
+        if (spId) {
+            const img = new Image();
+            img.src = `Icons/${spId.padStart(4, '0')}.png`;
+            const p = new Promise((resolve) => {
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0, 64, 64, x + 10, y + 10, 64, 64);
+                    resolve();
+                };
+                img.onerror = () => resolve();
+            });
+            loadImages.push(p);
+        }
+    }
+
+    await Promise.all(loadImages);
+
+    const link = document.createElement('a');
+    link.download = `${partyName}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
 }
 
 function setupSaveSlots() {
