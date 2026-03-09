@@ -207,20 +207,44 @@ async function exportPartyImage() {
         const abilityName = db.abilities[abValue]?.name || abValue || "---";
         const natureName = card.querySelector('.nature-select').value;
         const nature = NATURES[natureName] || {up:0, down:0};
+
+        // --- アイコン読み込み処理 (IDベース: Icons/P/PIKACHU.png) ---
+        // data-selected-id に保存されている英名ID（PIKACHU等）を取得
         const spId = card.querySelector('.sp-input').dataset.selectedId;
 
-        // 1. 名前（最上段：左側にアイコン、右に名前）
+        if (spId) {
+            // IDの1文字目（例：PIKACHU -> P）
+            const initial = spId.charAt(0).toUpperCase();
+            const img = new Image();
+            
+            // パス構築: Icons/P/PIKACHU.png
+            img.src = `Icons/${initial}/${spId.toUpperCase()}.png`; 
+            
+            const p = new Promise((resolve) => {
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0, 64, 64, x + 10, y + 10, 64, 64)
+                    resolve();
+                };
+                img.onerror = () => {
+                    console.warn(`Icon load failed: ${img.src}`);
+                    resolve(); 
+                };
+            });
+            loadImages.push(p);
+        }
+
+        // 1. 名前（右側にずらして表示）
         ctx.fillStyle = "#000";
         ctx.font = "bold 22px sans-serif";
         ctx.fillText(name || "???", x + 85, y + 40);
         
-        // 2. 特性・持ち物（二段目：横並び）
+        // 2. 特性・持ち物
         ctx.font = "14px sans-serif";
         ctx.fillStyle = "#555";
         ctx.fillText(`特性: ${abilityName}`, x + 85, y + 65);
         ctx.fillText(`持: ${item || "なし"}`, x + 230, y + 65);
 
-        // ステータス描画（実数値に補正色を適用）
+        // ステータス描画
         const totals = card.querySelectorAll('.total-display');
         const evs = card.querySelectorAll('.ev-input');
         const labels = ['H', 'A', 'B', 'C', 'D', 'S'];
@@ -233,8 +257,8 @@ async function exportPartyImage() {
             
             let statColor = "#000";
             if (j !== 0) {
-                if (nature.up === j) statColor = "#d9534f";   // 上昇補正（赤）
-                if (nature.down === j) statColor = "#0275d8"; // 下降補正（青）
+                if (nature.up === j) statColor = "#d9534f";
+                if (nature.down === j) statColor = "#0275d8";
             }
             
             ctx.fillStyle = statColor;
@@ -272,24 +296,12 @@ async function exportPartyImage() {
         if (memo) {
             ctx.fillStyle = "#444";
             ctx.font = "12px sans-serif";
-            ctx.fillText(memo.substring(0, 35), x + 20, y + 275); 
-        }
-
-        // アイコン描画
-        if (spId) {
-            const img = new Image();
-            img.src = `Icons/${spId.padStart(4, '0')}.png`;
-            const p = new Promise((resolve) => {
-                img.onload = () => {
-                    ctx.drawImage(img, 0, 0, 64, 64, x + 10, y + 10, 64, 64);
-                    resolve();
-                };
-                img.onerror = () => resolve();
-            });
-            loadImages.push(p);
+            // メモが長い場合に備えて簡易的な切り詰め
+            ctx.fillText(memo.substring(0, 35), x + 20, y + 285); 
         }
     }
 
+    // すべての画像読み込み完了を待機してからダウンロード
     await Promise.all(loadImages);
 
     const link = document.createElement('a');
