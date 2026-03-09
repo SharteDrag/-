@@ -560,8 +560,10 @@ document.addEventListener('click', function(event) {
                 <label for="hp_ev">防御側 HP 努力値 (EV: 0-32)</label>
                 <input type="number" id="hp_ev" value="32" min="0" max="32" step="1">
                 <div class="checkbox-group">
-                    <button type="button" class="ev-button" data-stat="hp" data-ev="0">HP 0振り</button>
-                    <button type="button" class="ev-button" data-stat="hp" data-ev="32">HP ぶっぱ</button>
+                    <button type="button" class="ev-button" data-stat="hp" data-ev="0">0振り</button>
+                    <button type="button" class="ev-button" data-stat="hp" data-ev="32">ぶっぱ</button>
+                    <button type="button" class="ev-button" data-stat="hp" data-step="1">+</button>
+                    <button type="button" class="ev-button" data-stat="hp" data-step="-1">-</button>
                 </div>
                 <label for="move_type">技の分類 (自動選択)</label>
                 <div class="checkbox-group">
@@ -593,6 +595,8 @@ document.addEventListener('click', function(event) {
                 <div class="checkbox-group">
                     <button type="button" class="ev-button" data-stat="attacker" data-ev="0">0振り</button>
                     <button type="button" class="ev-button" data-stat="attacker" data-ev="32">ぶっぱ</button>
+                    <button type="button" class="ev-button" data-stat="attacker" data-step="1">+</button>
+                    <button type="button" class="ev-button" data-stat="attacker" data-step="-1">-</button>
                 </div>
                 <label for="nature_attack">攻撃側 性格補正 (実数値に適用)</label>
                 <select id="nature_attack">
@@ -626,6 +630,8 @@ document.addEventListener('click', function(event) {
                 <div class="checkbox-group">
                     <button type="button" class="ev-button" data-stat="defender" data-ev="0">0振り</button>
                     <button type="button" class="ev-button" data-stat="defender" data-ev="32">ぶっぱ</button>
+                    <button type="button" class="ev-button" data-stat="defender" data-step="1">+</button>
+                    <button type="button" class="ev-button" data-stat="defender" data-step="-1">-</button>
                 </div>
                 <label for="nature_defense">防御側 性格補正 (実数値に適用)</label>
                 <select id="nature_defense">
@@ -1487,7 +1493,7 @@ if (ability === "NORMALIZE") {
 // ⭐ ひひいろのこどう (Orichalcum Pulse)
     if (ability === "ORICHALCUMPULSE" && isSun && move?.Category === "Physical") {
     // 4 / 3 の計算結果を abilityAtkMult に設定
-    abilityAtkMult = 4 / 3; 
+    abilityAtkMult = 5461/4096; 
     
     // 攻撃実数値が変わるため、攻撃側能力値の再計算をトリガー
     const attackerName = document.getElementById('attacker-pokemon-name').value;
@@ -1497,7 +1503,7 @@ if (ability === "NORMALIZE") {
 // ⭐ ハドロンエンジン
 if (ability === "HADRONENGINE" && isElectricTerrain && move?.Category === "Special") {
     // 4 / 3 の計算結果を abilityAtkMult に設定
-    abilityAtkMult = 4 / 3; 
+    abilityAtkMult = 5461/4096; 
     
     // 攻撃実数値が変わるため、攻撃側能力値の再計算をトリガー
     const attackerName = document.getElementById('attacker-pokemon-name').value;
@@ -1745,7 +1751,7 @@ function initAppDisplay(moveDataLoaded) {
         
         ['hp_ev', 'attacker_ev', 'defender_ev'].forEach(id => {
             const el = document.getElementById(id);
-            if(el) el.value = 32;
+            if(el) el.value = 0;
         });
 
         updateStatsAndRecalculate('attacker', initialAttacker);
@@ -3648,27 +3654,56 @@ moveNameInput.addEventListener('input', (e) => {
                 calculateDamage();
             });
 
-            // NEW: EV button listeners
-            document.querySelectorAll('.ev-button').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const stat = e.target.getAttribute('data-stat');
-                    const evValue = e.target.getAttribute('data-ev');
-                    const attackerName = document.getElementById('attacker-pokemon-name').value;
-                    const defenderName = document.getElementById('defender-pokemon-name').value;
+           document.querySelectorAll('.ev-button').forEach(button => {
+    button.addEventListener('click', (e) => {
 
-                    if (stat === 'hp') {
-                        document.getElementById('hp_ev').value = evValue;
-                        if (defenderName) updateStatsAndRecalculate('defender', defenderName);
-                    } else if (stat === 'attacker') {
-                        document.getElementById('attacker_ev').value = evValue;
-                        if (attackerName) updateStatsAndRecalculate('attacker', attackerName);
-                    } else if (stat === 'defender') {
-                        document.getElementById('defender_ev').value = evValue;
-                        if (defenderName) updateStatsAndRecalculate('defender', defenderName);
-                    }
-                    calculateDamage(); // 念のため再計算
-                });
-            });
+        const stat = e.target.getAttribute('data-stat');
+        const evValue = e.target.getAttribute('data-ev');
+        const step = e.target.getAttribute('data-step');
+
+        const attackerName = document.getElementById('attacker-pokemon-name').value;
+        const defenderName = document.getElementById('defender-pokemon-name').value;
+
+        let input;
+
+        if (stat === 'hp') {
+            input = document.getElementById('hp_ev');
+        } else if (stat === 'attacker') {
+            input = document.getElementById('attacker_ev');
+        } else if (stat === 'defender') {
+            input = document.getElementById('defender_ev');
+        }
+
+        if (!input) return;
+
+        // 0振り・ぶっぱ
+        if (evValue !== null) {
+            input.value = evValue;
+        }
+
+        // +1 -1
+        if (step !== null) {
+            let value = parseInt(input.value);
+            value += parseInt(step);
+
+            const min = parseInt(input.min) || 0;
+            const max = parseInt(input.max) || 32;
+
+            value = Math.max(min, Math.min(max, value));
+
+            input.value = value;
+        }
+
+        // 再計算
+        if (stat === 'hp' || stat === 'defender') {
+            if (defenderName) updateStatsAndRecalculate('defender', defenderName);
+        } else {
+            if (attackerName) updateStatsAndRecalculate('attacker', attackerName);
+        }
+
+        calculateDamage();
+    });
+});
             
 // EV入力欄が変更されたら能力値とダメージ計算を再実行
     document.getElementById('hp_ev').addEventListener('change', (e) => updateStatsAndRecalculate('defender', document.getElementById('defender-pokemon-name').value));
