@@ -692,23 +692,6 @@ document.addEventListener('click', function(event) {
                 <label for="ability_m_def">防御側 特性補正 (場合による)</label>
                 <input type="number" id="ability_m_def" value="1.0" step="0.0001" min="0.0">
             </div>
-<div id="other-multiplier-group">
-    <h3>その他の補正 (O) / 味方・フィールド特性補正 (M)</h3>
-    <div class="input-group">
-        <div>
-            <h4>オーラ/属性補正</h4>
-            <label class="checkbox-group"><input type="checkbox" id="dark_aura"> ダークオーラ</label>
-            <label class="checkbox-group"><input type="checkbox" id="fairy_aura"> フェアリーオーラ</label>
-            <label class="checkbox-group"><input type="checkbox" id="steely_spirit"> はがねのせいしん</label>
-        </div>
-        <div>
-            <h4>汎用/集中補正</h4>
-            <label class="checkbox-group"><input type="checkbox" id="power_spot"> パワースポット</label>
-            <label class="checkbox-group"><input type="checkbox" id="battery"> バッテリー</label>
-            <label class="checkbox-group"><input type="checkbox" id="charge"> じゅうでん</label>
-        </div>
-    </div>
-</div>
 
 <div class="checkbox-section" style="margin-top: 20px;">
     <p>場に出た時のダメージ (固定ダメージ)</p>
@@ -764,12 +747,6 @@ document.addEventListener('click', function(event) {
                     </optgroup>
                 </select>
 
-    <div id="ruin-group">
-    <label><input type="checkbox" id="ruin_def"> わざわいのつるぎ (B 3/4)</label>
-    <label><input type="checkbox" id="ruin_spdef"> わざわいのたま (D 3/4)</label>
-    <label><input type="checkbox" id="ruin_atk"> わざわいのつるぎ (A 3/4)</label>
-    <label><input type="checkbox" id="ruin_spatk"> わざわいのたま (C 3/4)</label>
-    </div>
                 
                 <div class="checkbox-section">
                     <p>特殊な補正</p>
@@ -1160,33 +1137,47 @@ async function loadAbilityData() {
     }
 }
 
-        function updateAbilitySelector(pokemonInputId, abilitySelectId) {
+    function updateAbilitySelector(pokemonInputId, abilitySelectId) {
     const pokeName = document.getElementById(pokemonInputId).value;
     const key = NAME_TO_KEY_MAP[hiraganaToKatakana(pokeName)] || NAME_TO_KEY_MAP[pokeName.toUpperCase()];
     const sel = document.getElementById(abilitySelectId);
 
-    // ★修正：現在選択されている値を一時保存
     const currentSelected = sel.value;
-
     sel.innerHTML = '<option value="">（特性なし）</option>';
 
     if (!key || !POKEDATA_MAP[key]) return;
 
     const data = POKEDATA_MAP[key];
     let list = [];
+
+    // すべての特性を一つの配列にまとめる（スプレッド構文なので7つ以上あっても制限なし）
     if (Array.isArray(data.Abilities)) list.push(...data.Abilities);
     if (Array.isArray(data.HiddenAbilities)) list.push(...data.HiddenAbilities);
 
+    // ★重要：リストをループして「そうだいしょう」があれば1～5に展開する
+    let finalList = [];
     list.forEach(abID => {
+        if (abID === "SUPREMEOVERLORD") {
+            // そうだいしょう本体に加えて1～5を追加
+            finalList.push("SUPREMEOVERLORD", "SUPREMEOVERLORD1", "SUPREMEOVERLORD2", "SUPREMEOVERLORD3", "SUPREMEOVERLORD4", "SUPREMEOVERLORD5");
+        } else {
+            finalList.push(abID);
+        }
+    });
+
+    // 重複を削除（念のため）
+    finalList = [...new Set(finalList)];
+
+    finalList.forEach(abID => {
         const opt = document.createElement("option");
         opt.value = abID;
+        
+        // ABILITIES_DBに名前がなければIDをそのまま表示
         opt.textContent = ABILITIES_DB[abID]?.name || abID;
         
-        // ★修正：もし保存していた値と同じIDなら、それを選択状態にする
         if (abID === currentSelected) {
             opt.selected = true;
         }
-        
         sel.appendChild(opt);
     });
 }
@@ -1307,6 +1298,27 @@ document.getElementById("attacker-ability").addEventListener("change", () => {
         document.getElementById("ability_m_atk").value = "5325";
     }
 
+    // そうだいしょう
+    if (ability === "SUPREMEOVERLORD1") {
+        document.getElementById("ability_m_atk").value = "4505";
+    }
+
+    if (ability === "SUPREMEOVERLORD2") {
+        document.getElementById("ability_m_atk").value = "4915";
+    }
+
+    if (ability === "SUPREMEOVERLORD3") {
+        document.getElementById("ability_m_atk").value = "5325";
+    }
+
+    if (ability === "SUPREMEOVERLORD4") {
+        document.getElementById("ability_m_atk").value = "5734";
+    }
+
+    if (ability === "SUPREMEOVERLORD5") {
+        document.getElementById("ability_m_atk").value = "6144";
+    }
+
      // アナライズ
     if (ability === "ANALYTIC") {
         document.getElementById("ability_m_atk").value = "5325";
@@ -1325,6 +1337,25 @@ document.getElementById("attacker-ability").addEventListener("change", () => {
         // ちからもち / ヨガパワー（攻撃実数値2倍）
     if ((ability === "HUGEPOWER" || ability === "PUREPOWER") && move?.Category === "Physical") {
         document.getElementById("ability_m_atk").value = "8192";
+    }
+            // オーラ
+    if (["DARKAURA"].includes(ability)) {
+        if (move?.Type === "DARK") {
+            document.getElementById("ability_m_atk").value = "5448";
+        }
+    }
+            // オーラ
+    if (["FAIRYAURA"].includes(ability)) {
+        if (move?.Type === "FAIRY") {
+            document.getElementById("ability_m_atk").value = "5448";
+        }
+    }
+
+                // はがねのせいしん
+    if (["STEELYSPIRIT"].includes(ability)) {
+        if (move?.Type === "STEEL") {
+            document.getElementById("ability_m_atk").value = "6144";
+        }
     }
 
         //いろめがね
@@ -4039,6 +4070,7 @@ window.onclick = function(event) {
 // （元のコードの冒頭にある alert チェックなどはそのまま活かしてください）
 </script>
 </body>
+
 
 
 </html>
