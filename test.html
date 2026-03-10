@@ -37,7 +37,7 @@
     background-color: #fff;
     margin: 5% auto;
     padding: 20px;
-    width: 90%;
+    width: 60%;
     max-width: 1000px;
     max-height: 80vh;
     overflow-y: auto; /* 縦長になったらスクロール */
@@ -111,7 +111,10 @@
         h3 { border-left: 5px solid #007bff; padding-left: 10px; margin-top: 25px; }
         h4 { color: #007bff; border-bottom: 1px solid #ccc; padding-bottom: 3px; margin-top: 20px; }
         label { display: block; margin-top: 10px; font-weight: bold; }
-        input[type="number"], input[type="text"], select { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; }
+        input[type="number"], input[type="text"], select { width: 60%; padding: 6px; margin-top: 2px; box-sizing: border-box; border: 1px solid #ccc; }
+        #attacker-pokemon-name,#defender-pokemon-name,#move-name { width: 100%; max-width: 400px; }
+        input[type="number"] { width: 5em; }
+        #hp_ev, #attacker_ev, #defender_ev { width: 4em;}
         .fixed-level, .fixed-value { background-color: #f0f0f0; color: #555; font-style: italic; }
         .input-group { display: flex; gap: 20px; }
         .input-group > div { flex: 1; }
@@ -134,14 +137,14 @@
         
         /* New style for EV buttons */
         .ev-button {
-            padding: 5px 10px;
-            margin-right: 10px;
+            padding: 3px 8px;
+            margin-right: 4px;
             background-color: #5cb85c;
             color: white;
             border: none;
             cursor: pointer;
             border-radius: 4px;
-            font-size: 0.9em;
+            font-size: 0.85em;
             margin-bottom: 5px;
         }
         .ev-button:hover {
@@ -265,6 +268,7 @@
     /* 入力欄とセレクトボックスを大きくする */
     input[type="number"], input[type="text"], select {
         padding: 12px;
+        width: 6em !important;
         font-size: 16px;
     }
 
@@ -540,7 +544,7 @@ document.addEventListener('click', function(event) {
                 <input type="number" id="level" value="50" disabled class="fixed-level">
                 
                 <label for="hp">防御側最大HP</label>
-<div style="display: flex; gap: 10px; align-items: center;">
+<div style="display: flex; gap: 8px; align-items: center;">
     <input type="number" id="hp" value="150" min="1" oninput="updateHPByPercent()" style="flex: 2;">
     <span>/</span>
     <div style="flex: 3; display: flex; align-items: center; gap: 5px;">
@@ -549,12 +553,7 @@ document.addEventListener('click', function(event) {
     </div>
 </div>
 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
-    <div id="hp_status_display" style="font-size: 0.9em; color: #666;">
-        計算対象HP: <span id="current_hp_val" style="font-weight: bold; color: #d9534f;">150</span>
-    </div>
-    <button type="button" onclick="applyCurrentHPAsMax()" style="font-size: 0.8em; padding: 2px 8px; cursor: pointer;">
-        この数値を最大HPに設定
-    </button>
+
 </div>
                 
                 <label for="hp_ev">防御側 HP 努力値 (EV: 0-32)</label>
@@ -788,7 +787,12 @@ document.addEventListener('click', function(event) {
         **計算結果**<br>
         ここにダメージ範囲とHP割合、KO判定が表示されます。
     </div>
-
+        <div id="hp_status_display" style="font-size: 0.9em; color: #666;">
+        計算対象HP: <span id="current_hp_val" style="font-weight: bold; color: #d9534f;">150</span>
+    </div>
+    <button type="button" onclick="applyCurrentHPAsMax()" style="font-size: 0.8em; padding: 2px 8px; cursor: pointer;">
+        この数値を最大HPに設定
+    </button>
     <div class="note">
         **補正適用順序**: 範囲 → 急所 → 天候/フィールド → 壁 → **乱数** → タイプ一致 → 相性 → やけど → 攻撃側持ち物 → 攻撃側特性 → 防御側持ち物 → 防御側特性。各ステップで指定の丸め処理 (**五捨五超入/切り捨て**) を行っています。
         <br>
