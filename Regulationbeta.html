@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>ランダム画像抽選（A-Z対応）</title>
+<style>
+  body { font-family: sans-serif; text-align: center; background: #f0f0f0; padding: 20px; }
+  .container { background: white; padding: 20px; border-radius: 15px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+  input[type=number] { width: 60px; padding: 5px; }
+  button { padding: 10px 15px; cursor: pointer; border: none; border-radius: 5px; background: #007bff; color: white; font-weight: bold; margin: 5px; }
+  button:hover { background: #0056b3; }
+  
+  /* 結果表示エリア（ここが重要！） */
+  #result { 
+    margin-top: 20px; 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
+    gap: 10px; 
+    padding: 10px;
+    background: #fff;
+    min-height: 100px;
+    border-radius: 10px;
+  }
+  #result img { 
+    width: 100px; height: 100px;
+    border-radius: 8px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+    object-fit: cover;
+    object-position: left;
+  }
+  .error-msg { color: red; margin: 10px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>レギュレーションβ</h1>
+  
+  <label>グループ選択：</label>
+  <select id="groupSelect">
+    <option value="all">準伝説あり</option>
+    <option value="ae">一般グループ</option>
+    <option value="fj">リトルグループ</option>
+  </select>
+
+  <label>抽選枚数：</label>
+  <input type="number" id="countInput" value="50" min="1">
+  <button onclick="startDraw()">抽選開始</button>
+  <button onclick="saveAsImage()" style="background: #28a745;">PNGで保存</button>
+  <div id="message"></div>
+</div>
+
+<div id="result"></div>
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+<script>
+// 設定値の追加
+const BASE_PATH = "Icons/"; // 画像フォルダのパス
+const excludeList = [];    // 除外したいファイル名（あれば入れる）
+
+const imageCollections = {
+  all: [
+    "A/ABOMASNOW.png", "A/ABRA.png", "A/ABSOL.png", "A/ACCELGOR.png", "A/AEGISLASH.png",
+"A/AERODACTYL.png", "A/AGGRON.png", "A/AIPOM.png", "A/ALAKAZAM.png", "A/ALCREMIE.png",
+"A/ALOMOMOLA.png", "A/ALTARIA.png", "A/AMAURA.png", "A/AMBIPOM.png", "A/AMOONGUSS.png",
+"A/AMPHAROS.png", "A/ANNIHILAPE.png", "A/ANORITH.png", "A/APPLETUN.png", "A/APPLIN.png",
+"A/ARAQUANID.png", "A/ARBOK.png", "A/ARBOLIVA.png", "A/ARCANINE.png", "A/ARCHALUDON.png",
+"A/ARCHEN.png", "A/ARCHEOPS.png", "A/ARCTIBAX.png", "A/ARCTOVISH.png", "A/ARCTOZOLT.png",
+"A/ARIADOS.png", "A/ARMALDO.png", "A/ARMAROUGE.png", "A/AROMATISSE.png", "A/ARON.png",
+"A/ARROKUDA.png", "A/ARTICUNO.png", "A/AUDINO.png", "A/AURORUS.png", "A/AVALUGG.png",
+"A/AXEW.png", "A/AZELF.png", "A/AZUMARILL.png", "A/AZURILL.png",
+"B/BAGON.png", "B/BALTOY.png", "B/BANETTE.png", "B/BARBARACLE.png", "B/BARBOACH.png",
+"B/BARRASKEWDA.png", "B/BASCULEGION.png", "B/BASCULIN.png", "B/BASTIODON.png", "B/BAXCALIBUR.png",
+"B/BAYLEEF.png", "B/BEARTIC.png", "B/BEAUTIFLY.png", "B/BEEDRILL.png", "B/BEHEEYEM.png",
+"B/BELDUM.png", "B/BELLIBOLT.png", "B/BELLOSSOM.png", "B/BELLSPROUT.png", "B/BERGMITE.png",
+"B/BEWEAR.png", "B/BIBAREL.png", "B/BIDOOF.png", "B/BINACLE.png", "B/BISHARP.png",
+"B/BLACEPHALON.png", "B/BLASTOISE.png", "B/BLAZIKEN.png", "B/BLIPBUG.png", "B/BLISSEY.png",
+"B/BLITZLE.png", "B/BOLDORE.png", "B/BOLTUND.png", "B/BOMBIRDIER.png", "B/BONSLY.png",
+"B/BOUFFALANT.png", "B/BOUNSWEET.png", "B/BRAIXEN.png", "B/BRAMBLEGHAST.png", "B/BRAMBLIN.png",
+"B/BRAVIARY.png", "B/BRELOOM.png", "B/BRIONNE.png", "B/BRONZONG.png", "B/BRONZOR.png",
+"B/BRUTEBONNET.png", "B/BRUXISH.png", "B/BUDEW.png", "B/BUIZEL.png", "B/BULBASAUR.png",
+"B/BUNEARY.png", "B/BUNNELBY.png", "B/BURMY.png", "B/BUTTERFREE.png", "B/BUZZWOLE.png",
+"C/CACNEA.png", "C/CACTURNE.png", "C/CAMERUPT.png", "C/CAPSAKID.png", "C/CARBINK.png",
+"C/CARKOL.png", "C/CARNIVINE.png", "C/CARRACOSTA.png", "C/CARVANHA.png", "C/CASTFORM.png",
+"C/CASCOON.png", "C/CATERPIE.png", "C/CELESTEELA.png", "C/CENTISKORCH.png", "C/CERULEDGE.png",
+"C/CETITAN.png", "C/CETODDLE.png", "C/CHANDELURE.png", "C/CHANSEY.png", "C/CHARCADET.png",
+"C/CHARIZARD.png", "C/CHARJABUG.png", "C/CHARMANDER.png", "C/CHARMELEON.png", "C/CHATOT.png",
+"C/CHERRIM.png", "C/CHERUBI.png", "C/CHESNAUGHT.png", "C/CHESPIN.png", "C/CHEWTLE.png",
+"C/CHIENPAO.png", "C/CHIKORITA.png", "C/CHIMCHAR.png", "C/CHIMECHO.png", "C/CHINCHOU.png",
+"C/CHINGLING.png", "C/CHIYU.png", "C/CINCCINO.png", "C/CINDERACE.png", "C/CLAMPERL.png",
+"C/CLAUNCHER.png", "C/CLAWITZER.png", "C/CLAYDOL.png", "C/CLEFABLE.png", "C/CLEFAIRY.png",
+"C/CLEFFA.png", "C/CLOBBOPUS.png", "C/CLODSIRE.png", "C/CLOYSTER.png", "C/COALOSSAL.png",
+"C/COBALION.png", "C/COFAGRIGUS.png", "C/COMBEE.png", "C/COMBUSKEN.png", "C/COMFEY.png",
+"C/CONKELDURR.png", "C/COPPERAJAH.png", "C/CORPHISH.png", "C/CORSOLA.png", "C/CORVIKNIGHT.png",
+"C/CORVISQUIRE.png", "C/COTTONEE.png", "C/CRABOMINABLE.png", "C/CRABRAWLER.png", "C/CRADILY.png",
+"C/CRAMORANT.png", "C/CRANIDOS.png", "C/CRAWDAUNT.png", "C/CRESSELIA.png", "C/CROAGUNK.png",
+"C/CROBAT.png", "C/CROCALOR.png", "C/CROCONAW.png", "C/CRUSTLE.png", "C/CRYOGONAL.png",
+"C/CUBCHOO.png", "C/CUBONE.png", "C/CUFANT.png", "C/CURSOLA.png", "C/CUTIEFLY.png",
+"C/CYCLIZAR.png", "C/CYNDAQUIL.png",
+"D/DACHSBUN.png", "D/DARMANITAN.png", "D/DARTRIX.png", "D/DARUMAKA.png", "D/DECIDUEYE.png",
+"D/DEDENNE.png", "D/DEERLING.png", "D/DEINO.png", "D/DELCATTY.png", "D/DELIBIRD.png",
+"D/DELPHOX.png", "D/DEWGONG.png", "D/DEWOTT.png", "D/DEWPIDER.png", "D/DHELMISE.png",
+"D/DIGGERSBY.png", "D/DIGLETT.png", "D/DIPPLIN.png", "D/DITTO.png", "D/DODRIO.png",
+"D/DODUO.png", "D/DOLLIV.png", "D/DONDOZO.png", "D/DONPHAN.png", "D/DOTTLER.png",
+"D/DOUBLADE.png", "D/DRACOVISH.png", "D/DRACOZOLT.png", "D/DRAGALGE.png", "D/DRAGAPULT.png",
+"D/DRAGONAIR.png", "D/DRAGONITE.png", "D/DRAKLOAK.png", "D/DRAMPA.png", "D/DRAPION.png",
+"D/DRATINI.png", "D/DREDNAW.png", "D/DREEPY.png", "D/DRIFBLIM.png", "D/DRIFLOON.png",
+"D/DRILBUR.png", "D/DRIZZILE.png", "D/DROWZEE.png", "D/DRUDDIGON.png", "D/DUBWOOL.png",
+"D/DUCKLETT.png", "D/DUDUNSPARCE.png", "D/DUGTRIO.png", "D/DUNSPARCE.png", "D/DUOSION.png",
+"D/DURALUDON.png", "D/DURANT.png", "D/DUSCLOPS.png", "D/DUSKNOIR.png", "D/DUSKULL.png",
+"D/DUSTOX.png", "D/DWEBBLE.png",
+"E/EELEKTRIK.png", "E/EELEKTROSS.png", "E/EEVEE.png", "E/EISCUE.png", "E/EKANS.png",
+"E/ELDEGOSS.png", "E/ELECTABUZZ.png", "E/ELECTIVIRE.png", "E/ELECTRIKE.png", "E/ELECTRODE.png",
+"E/ELEKID.png", "E/ELGYEM.png", "E/EMBOAR.png", "E/EMOLGA.png", "E/EMPOLEON.png",
+"E/ENAMORUS.png", "E/ENTEI.png", "E/ESCAVALIER.png", "E/ESPATHRA.png", "E/ESPEON.png",
+"E/ESPURR.png", "E/EXCADRILL.png", "E/EXEGGCUTE.png", "E/EXEGGUTOR.png", "E/EXPLOUD.png",
+"F/FALINKS.png", "F/FARFETCHD.png", "F/FARIGIRAF.png", "F/FEAROW.png", "F/FEEBAS.png",
+"F/FENNEKIN.png", "F/FERALIGATR.png", "F/FERROSEED.png", "F/FERROTHORN.png", "F/FEZANDIPITI.png",
+"F/FIDOUGH.png", "F/FINIZEN.png", "F/FINNEON.png", "F/FLAAFFY.png", "F/FLABEBE.png",
+"F/FLAMIGO.png", "F/FLAPPLE.png", "F/FLAREON.png", "F/FLETCHINDER.png", "F/FLETCHLING.png",
+"F/FLITTLE.png", "F/FLOATZEL.png", "F/FLOETTE.png", "F/FLORAGATO.png", "F/FLORGES.png",
+"F/FLUTTERMANE.png", "F/FLYGON.png", "F/FOMANTIS.png", "F/FOONGUS.png", "F/FORRETRESS.png",
+"F/FRAXURE.png", "F/FRIGIBAX.png", "F/FRILLISH.png", "F/FROAKIE.png", "F/FROGADIER.png",
+"F/FROSLASS.png", "F/FROSMOTH.png", "F/FUECOCO.png", "F/FURFROU.png", "F/FURRET.png",
+"G/GABITE.png", "G/GALLADE.png", "G/GALVANTULA.png", "G/GARBODOR.png", "G/GARCHOMP.png",
+"G/GARDEVOIR.png", "G/GARGANACL.png", "G/GASTLY.png", "G/GASTRODON.png", "G/GENGAR.png",
+"G/GEODUDE.png", "G/GHOLDENGO.png", "G/GIBLE.png", "G/GIGALITH.png", "G/GIMMIGHOUL.png",
+"G/GIRAFARIG.png", "G/GLACEON.png", "G/GLALIE.png", "G/GLAMEOW.png", "G/GLASTRIER.png",
+"G/GLIGAR.png", "G/GLIMMET.png", "G/GLIMMORA.png", "G/GLISCOR.png", "G/GLOOM.png",
+"G/GOGOAT.png", "G/GOLBAT.png", "G/GOLDEEN.png", "G/GOLDUCK.png", "G/GOLEM.png",
+"G/GOLETT.png", "G/GOLISOPOD.png", "G/GOLURK.png", "G/GOODRA.png", "G/GOOMY.png",
+"G/GOREBYSS.png", "G/GOSSIFLEUR.png", "G/GOTHITA.png", "G/GOTHITELLE.png", "G/GOTHORITA.png",
+"G/GOUGINGFIRE.png", "G/GOURGEIST.png", "G/GRAFAIAI.png", "G/GRANBULL.png", "G/GRAPPLOCT.png",
+"G/GRAVELER.png", "G/GREATTUSK.png", "G/GREAVARD.png", "G/GREEDENT.png", "G/GRENINJA.png",
+"G/GRIMER.png", "G/GRIMMSNARL.png", "G/GROOKEY.png", "G/GROTLE.png", "G/GROVYLE.png",
+"G/GROWLITHE.png", "G/GRUBBIN.png", "G/GRUMPIG.png", "G/GULPIN.png", "G/GUMSHOOS.png",
+"G/GURDURR.png", "G/GUZZLORD.png", "G/GYARADOS.png",
+"H/HAKAMOO.png", "H/HAPPINY.png", "H/HARIYAMA.png", "H/HATENNA.png", "H/HATTERENE.png",
+"H/HATTREM.png", "H/HAUNTER.png", "H/HAWLUCHA.png", "H/HAXORUS.png", "H/HEATMOR.png",
+"H/HEATRAN.png", "H/HELIOLISK.png", "H/HELIOPTILE.png", "H/HERACROSS.png", "H/HERDIER.png",
+"H/HIPPOPOTAS.png", "H/HIPPOWDON.png", "H/HITMONCHAN.png", "H/HITMONLEE.png", "H/HITMONTOP.png",
+"H/HONCHKROW.png", "H/HONEDGE.png", "H/HOOTHOOT.png", "H/HOPPIP.png", "H/HORSEA.png",
+"H/HOUNDOOM.png", "H/HOUNDOUR.png", "H/HOUNDSTONE.png", "H/HUNTAIL.png", "H/HYDRAPPLE.png",
+"H/HYDREIGON.png", "H/HYPNO.png",
+"I/IGGLYBUFF.png", "I/ILLUMISE.png", "I/IMPIDIMP.png", "I/INCINEROAR.png", "I/INDEEDEE.png",
+"I/INFERNAPE.png", "I/INKAY.png", "I/INTELEON.png", "I/IRONBOULDER.png", "I/IRONBUNDLE.png",
+"I/IRONCROWN.png", "I/IRONHANDS.png", "I/IRONJUGULIS.png", "I/IRONLEAVES.png", "I/IRONMOTH.png",
+"I/IRONTHORNS.png", "I/IRONTREADS.png", "I/IRONVALIANT.png", "I/IVYSAUR.png",
+"J/JANGMOO.png", "J/JELLICENT.png", "J/JIGGLYPUFF.png", "J/JOLTEON.png", "J/JOLTIK.png",
+"J/JUMPLUFF.png", "J/JYNX.png",
+"K/KABUTO.png", "K/KABUTOPS.png", "K/KADABRA.png", "K/KAKUNA.png", "K/KANGASKHAN.png",
+"K/KARRABLAST.png", "K/KARTANA.png", "K/KECLEON.png", "K/KILOWATTREL.png", "K/KINGAMBIT.png",
+"K/KINGDRA.png", "K/KINGLER.png", "K/KIRLIA.png", "K/KLANG.png", "K/KLAWF.png",
+"K/KLEAVOR.png", "K/KLEFKI.png", "K/KLINK.png", "K/KLINKLANG.png", "K/KOFFING.png",
+"K/KOMALA.png", "K/KOMMOO.png", "K/KRABBY.png", "K/KRICKETOT.png", "K/KRICKETUNE.png",
+"K/KROKOROK.png", "K/KROOKODILE.png", "K/KUBFU.png",
+"L/LAIRON.png", "L/LAMPENT.png", "L/LANDORUS.png", "L/LANTURN.png", "L/LAPRAS.png",
+"L/LARVESTA.png", "L/LARVITAR.png", "L/LATIAS.png", "L/LATIOS.png", "L/LEAFEON.png",
+"L/LEAVANNY.png", "L/LECHONK.png", "L/LEDIAN.png", "L/LEDYBA.png", "L/LICKILICKY.png",
+"L/LICKITUNG.png", "L/LIEPARD.png", "L/LILEEP.png", "L/LILLIGANT.png", "L/LILLIPUP.png",
+"L/LINOONE.png", "L/LITLEO.png", "L/LITTEN.png", "L/LITWICK.png", "L/LOKIX.png",
+"L/LOMBRE.png", "L/LOPUNNY.png", "L/LOTAD.png", "L/LOUDRED.png", "L/LUCARIO.png",
+"L/LUDICOLO.png", "L/LUMINEON.png", "L/LUNATONE.png", "L/LURANTIS.png", "L/LUVDISC.png",
+"L/LUXIO.png", "L/LUXRAY.png", "L/LYCANROC.png",
+"M/MABOSSTIFF.png", "M/MACHAMP.png", "M/MACHOKE.png", "M/MACHOP.png", "M/MAGBY.png",
+"M/MAGCARGO.png", "M/MAGIKARP.png", "M/MAGMAR.png", "M/MAGMORTAR.png", "M/MAGNEMITE.png",
+"M/MAGNETON.png", "M/MAGNEZONE.png", "M/MAKUHITA.png", "M/MALAMAR.png", "M/MAMOSWINE.png",
+"M/MANDIBUZZ.png", "M/MANECTRIC.png", "M/MANKEY.png", "M/MANTINE.png", "M/MANTYKE.png",
+"M/MARACTUS.png", "M/MAREANIE.png", "M/MAREEP.png", "M/MARILL.png", "M/MAROWAK.png",
+"M/MARSHTOMP.png", "M/MASCHIFF.png", "M/MASQUERAIN.png", "M/MAUSHOLD.png", "M/MAWILE.png",
+"M/MEDICHAM.png", "M/MEDITITE.png", "M/MEGANIUM.png", "M/MEOWSCARADA.png", "M/MEOWSTIC.png",
+"M/MEOWTH.png", "M/MESPRIT.png", "M/METAGROSS.png", "M/METANG.png", "M/METAPOD.png",
+"M/MIENFOO.png", "M/MIENSHAO.png", "M/MIGHTYENA.png", "M/MILCERY.png", "M/MILOTIC.png",
+"M/MILTANK.png", "M/MIMEJR.png", "M/MIMIKYU.png", "M/MINCCINO.png", "M/MINIOR.png",
+"M/MINUN.png", "M/MISDREAVUS.png", "M/MISMAGIUS.png", "M/MOLTRES.png", "M/MONFERNO.png",
+"M/MORELULL.png", "M/MORGREM.png", "M/MORPEKO.png", "M/MOTHIM.png", "M/MRMIME.png",
+"M/MRRIME.png", "M/MUDBRAY.png", "M/MUDKIP.png", "M/MUDSDALE.png", "M/MUK.png",
+"M/MUNCHLAX.png", "M/MUNKIDORI.png", "M/MUNNA.png", "M/MURKROW.png", "M/MUSHARNA.png",
+"N/NACLI.png", "N/NACLSTACK.png", "N/NAGANADEL.png", "N/NATU.png", "N/NICKIT.png",
+"N/NIDOKING.png", "N/NIDOQUEEN.png", "N/NIDORANfE.png", "N/NIDORANmA.png", "N/NIDORINA.png",
+"N/NIDORINO.png", "N/NIHILEGO.png", "N/NINCADA.png", "N/NINETALES.png", "N/NINJASK.png",
+"N/NOCTOWL.png", "N/NOIBAT.png", "N/NOIVERN.png", "N/NOSEPASS.png", "N/NUMEL.png",
+"N/NUZLEAF.png", "N/NYMBLE.png",
+"O/OBSTAGOON.png", "O/OCTILLERY.png", "O/ODDISH.png", "O/OGERPON.png", "O/OINKOLOGNE.png",
+"O/OKIDOGI.png", "O/OMANYTE.png", "O/OMASTAR.png", "O/ONIX.png", "O/ORANGURU.png",
+"O/ORBEETLE.png", "O/ORICORIO.png", "O/ORTHWORM.png", "O/OSHAWOTT.png", "O/OVERQWIL.png",
+"P/PACHIRISU.png", "P/PALAFIN.png", "P/PALOSSAND.png", "P/PALPITOAD.png", "P/PANCHAM.png",
+"P/PANGORO.png", "P/PANPOUR.png", "P/PANSAGE.png", "P/PANSEAR.png", "P/PARAS.png",
+"P/PARASECT.png", "P/PASSIMIAN.png", "P/PATRAT.png", "P/PAWMI.png", "P/PAWMO.png",
+"P/PAWMOT.png", "P/PAWNIARD.png", "P/PELIPPER.png", "P/PERRSERKER.png", "P/PERSIAN.png",
+"P/PETILIL.png", "P/PHANPY.png", "P/PHANTUMP.png", "P/PHEROMOSA.png", "P/PICHU.png",
+"P/PIDGEOT.png", "P/PIDGEOTTO.png", "P/PIDGEY.png", "P/PIDOVE.png", "P/PIGNITE.png",
+"P/PIKACHU.png", "P/PILOSWINE.png", "P/PINCURCHIN.png", "P/PINECO.png", "P/PINSIR.png",
+"P/PIPLUP.png", "P/PLUSLE.png", "P/POIPOLE.png", "P/POLITOED.png", "P/POLIWAG.png",
+"P/POLIWHIRL.png", "P/POLIWRATH.png", "P/POLTCHAGEIST.png", "P/POLTEAGEIST.png", "P/PONYTA.png",
+"P/POOCHYENA.png", "P/POPPLIO.png", "P/PORYGON.png", "P/PORYGON2.png", "P/PORYGONZ.png",
+"P/PRIMARINA.png", "P/PRIMEAPE.png", "P/PRINPLUP.png", "P/PROBOPASS.png", "P/PSYDUCK.png",
+"P/PUMPKABOO.png", "P/PUPITAR.png", "P/PURRLOIN.png", "P/PURUGLY.png", "P/PYROAR.png",
+"P/PYUKUMUKU.png",
+"Q/QUAGSIRE.png", "Q/QUAQUAVAL.png", "Q/QUAXLY.png", "Q/QUAXWELL.png", "Q/QUILAVA.png",
+"Q/QUILLADIN.png", "Q/QWILFISH.png",
+"R/RABOOT.png", "R/RABSCA.png", "R/RAGINGBOLT.png", "R/RAICHU.png", "R/RAIKOU.png",
+"R/RALTS.png", "R/RAMPARDOS.png", "R/RAPIDASH.png", "R/RATICATE.png", "R/RATTATA.png",
+"R/REGICE.png", "R/REGIDRAGO.png", "R/REGIELEKI.png", "R/REGIGIGAS.png", "R/REGIROCK.png",
+"R/REGISTEEL.png", "R/RELICANTH.png", "R/RELLOR.png", "R/REMORAID.png", "R/REUNICLUS.png",
+"R/REVAVROOM.png", "R/RHYDON.png", "R/RHYHORN.png", "R/RHYPERIOR.png", "R/RIBOMBEE.png",
+"R/RILLABOOM.png", "R/RIOLU.png", "R/ROARINGMOON.png", "R/ROCKRUFF.png", "R/ROGGENROLA.png",
+"R/ROLYCOLY.png", "R/ROOKIDEE.png", "R/ROSELIA.png", "R/ROSERADE.png", "R/ROTOM.png",
+"R/ROWLET.png", "R/RUFFLET.png", "R/RUNERIGUS.png",
+"S/SABLEYE.png", "S/SALAMENCE.png", "S/SALANDIT.png", "S/SALAZZLE.png", "S/SAMUROTT.png",
+"S/SANDACONDA.png", "S/SANDILE.png", "S/SANDSHREW.png", "S/SANDSLASH.png", "S/SANDYGAST.png",
+"S/SANDYSHOCKS.png", "S/SAWK.png", "S/SAWSBUCK.png", "S/SCATTERBUG.png", "S/SCEPTILE.png",
+"S/SCIZOR.png", "S/SCOLIPEDE.png", "S/SCORBUNNY.png", "S/SCOVILLAIN.png", "S/SCRAFTY.png",
+"S/SCRAGGY.png", "S/SCREAMTAIL.png", "S/SCYTHER.png", "S/SEADRA.png", "S/SEAKING.png",
+"S/SEALEO.png", "S/SEEDOT.png", "S/SEEL.png", "S/SEISMITOAD.png", "S/SENTRET.png",
+"S/SERPERIOR.png", "S/SERVINE.png", "S/SEVIPER.png", "S/SEWADDLE.png", "S/SHARPEDO.png",
+"S/SHEDINJA.png", "S/SHELGON.png", "S/SHELLDER.png", "S/SHELLOS.png", "S/SHELMET.png",
+"S/SHIELDON.png", "S/SHIFTRY.png", "S/SHIINOTIC.png", "S/SHINX.png", "S/SHROODLE.png",
+"S/SHROOMISH.png", "S/SHUCKLE.png", "S/SHUPPET.png", "S/SIGILYPH.png", "S/SILCOON.png",
+"S/SILICOBRA.png", "S/SILVALLY.png", "S/SIMIPOUR.png", "S/SIMISAGE.png", "S/SIMISEAR.png",
+"S/SINISTCHA.png", "S/SINISTEA.png", "S/SIRFETCHD.png", "S/SIZZLIPEDE.png", "S/SKARMORY.png",
+"S/SKELEDIRGE.png", "S/SKIDDO.png", "S/SKIPLOOM.png", "S/SKITTY.png", "S/SKORUPI.png",
+"S/SKRELP.png", "S/SKUNTANK.png", "S/SKWOVET.png", "S/SLAKING.png", "S/SLAKOTH.png",
+"S/SLIGGOO.png", "S/SLITHERWING.png", "S/SLOWBRO.png", "S/SLOWKING.png", "S/SLOWPOKE.png",
+"S/SLUGMA.png", "S/SLURPUFF.png", "S/SMEARGLE.png", "S/SMOLIV.png", "S/SMOOCHUM.png",
+"S/SNEASEL.png", "S/SNEASLER.png", "S/SNIVY.png", "S/SNOM.png", "S/SNORLAX.png",
+"S/SNORUNT.png", "S/SNOVER.png", "S/SNUBBULL.png", "S/SOBBLE.png", "S/SOLOSIS.png",
+"S/SOLROCK.png", "S/SPEAROW.png", "S/SPECTRIER.png", "S/SPEWPA.png", "S/SPHEAL.png",
+"S/SPIDOPS.png", "S/SPINARAK.png", "S/SPINDA.png", "S/SPIRITOMB.png", "S/SPOINK.png",
+"S/SPRIGATITO.png", "S/SPRITZEE.png", "S/SQUAWKABILLY.png", "S/SQUIRTLE.png", "S/STAKATAKA.png",
+"S/STANTLER.png", "S/STARAPTOR.png", "S/STARAVIA.png", "S/STARLY.png", "S/STARMIE.png",
+"S/STARYU.png", "S/STEELIX.png", "S/STEENEE.png", "S/STONJOURNER.png", "S/STOUTLAND.png",
+"S/STUFFUL.png", "S/STUNFISK.png", "S/STUNKY.png", "S/SUDOWOODO.png", "S/SUICUNE.png",
+"S/SUNFLORA.png", "S/SUNKERN.png", "S/SURSKIT.png", "S/SWABLU.png", "S/SWADLOON.png",
+"S/SWALOT.png", "S/SWAMPERT.png", "S/SWANNA.png", "S/SWELLOW.png", "S/SWINUB.png",
+"S/SWIRLIX.png", "S/SWOOBAT.png", "S/SYLVEON.png",
+"T/TADBULB.png", "T/TAILLOW.png", "T/TALONFLAME.png", "T/TANDEMAUS.png", "T/TANGELA.png",
+"T/TANGROWTH.png", "T/TAPUBULU.png", "T/TAPUFINI.png", "T/TAPUKOKO.png", "T/TAPULELE.png",
+"T/TAROUNTULA.png", "T/TATSUGIRI.png", "T/TAUROS.png", "T/TEDDIURSA.png", "T/TENTACOOL.png",
+"T/TENTACRUEL.png", "T/TEPIG.png", "T/TERRAKION.png", "T/THIEVUL.png", "T/THROH.png",
+"T/THUNDURUS.png", "T/THWACKEY.png", "T/TIMBURR.png", "T/TINGLU.png", "T/TINKATINK.png",
+"T/TINKATON.png", "T/TINKATUFF.png", "T/TIRTOUGA.png", "T/TOEDSCOOL.png", "T/TOEDSCRUEL.png",
+"T/TOGEDEMARU.png", "T/TOGEKISS.png", "T/TOGEPI.png", "T/TOGETIC.png", "T/TORCHIC.png",
+"T/TORKOAL.png", "T/TORNADUS.png", "T/TORRACAT.png", "T/TORTERRA.png", "T/TOTODILE.png",
+"T/TOUCANNON.png", "T/TOXAPEX.png", "T/TOXEL.png", "T/TOXICROAK.png", "T/TOXTRICITY.png",
+"T/TRANQUILL.png", "T/TRAPINCH.png", "T/TREECKO.png", "T/TREVENANT.png", "T/TROPIUS.png",
+"T/TRUBBISH.png", "T/TRUMBEAK.png", "T/TSAREENA.png", "T/TURTONATOR.png", "T/TURTWIG.png",
+"T/TYMPOLE.png", "T/TYNAMO.png", "T/TYPENULL.png", "T/TYPHLOSION.png", "T/TYRANITAR.png",
+"T/TYRANTRUM.png", "T/TYROGUE.png", "T/TYRUNT.png",
+"U/UMBREON.png", "U/UNFEZANT.png", "U/UNOWN.png", "U/URSALUNA.png", "U/URSARING.png",
+"U/URSHIFU.png", "U/UXIE.png",
+"V/VANILLISH.png", "V/VANILLITE.png", "V/VANILLUXE.png", "V/VAPOREON.png", "V/VAROOM.png",
+"V/VELUZA.png", "V/VENIPEDE.png", "V/VENOMOTH.png", "V/VENONAT.png", "V/VENUSAUR.png",
+"V/VESPIQUEN.png", "V/VIBRAVA.png", "V/VICTREEBEL.png", "V/VIGOROTH.png", "V/VIKAVOLT.png",
+"V/VILEPLUME.png", "V/VIRIZION.png", "V/VIVILLON.png", "V/VOLBEAT.png", "V/VOLCARONA.png",
+"V/VOLTORB.png", "V/VULLABY.png", "V/VULPIX.png",
+"W/WAILMER.png", "W/WAILORD.png", "W/WALKINGWAKE.png", "W/WALREIN.png", "W/WARTORTLE.png",
+"W/WATCHOG.png", "W/WATTREL.png", "W/WEAVILE.png", "W/WEEDLE.png", "W/WEEPINBELL.png",
+"W/WEEZING.png", "W/WHIMSICOTT.png", "W/WHIRLIPEDE.png", "W/WHISCASH.png", "W/WHISMUR.png",
+"W/WIGGLYTUFF.png", "W/WIGLETT.png", "W/WIMPOD.png", "W/WINGULL.png", "W/WISHIWASHI.png",
+"W/WOBBUFFET.png", "W/WOCHIEN.png", "W/WOOBAT.png", "W/WOOLOO.png", "W/WOOPER.png",
+"W/WORMADAM.png", "W/WUGTRIO.png", "W/WURMPLE.png", "W/WYNAUT.png", "W/WYRDEER.png",
+"X/XATU.png", "X/XURKITREE.png",
+"Y/YAMASK.png", "Y/YAMPER.png", "Y/YANMA.png", "Y/YANMEGA.png", "Y/YUNGOOS.png",
+"Z/ZANGOOSE.png", "Z/ZAPDOS.png", "Z/ZEBSTRIKA.png", "Z/ZIGZAGOON.png", "Z/ZOROARK.png",
+"Z/ZORUA.png", "Z/ZUBAT.png", "Z/ZWEILOUS.png"
+  ],
+  ae: [
+    "A/ABOMASNOW.png", "A/ABRA.png", "A/ABSOL.png", "A/ACCELGOR.png", "A/AEGISLASH.png",
+"A/AERODACTYL.png", "A/AGGRON.png", "A/AIPOM.png", "A/ALAKAZAM.png", "A/ALCREMIE.png",
+"A/ALOMOMOLA.png", "A/ALTARIA.png", "A/AMAURA.png", "A/AMBIPOM.png", "A/AMOONGUSS.png",
+"A/AMPHAROS.png", "A/ANNIHILAPE.png", "A/ANORITH.png", "A/APPLETUN.png", "A/APPLIN.png",
+"A/ARAQUANID.png", "A/ARBOK.png", "A/ARBOLIVA.png", "A/ARCANINE.png", "A/ARCHALUDON.png",
+"A/ARCHEN.png", "A/ARCHEOPS.png", "A/ARCTIBAX.png", "A/ARCTOVISH.png", "A/ARCTOZOLT.png",
+"A/ARIADOS.png", "A/ARMALDO.png", "A/ARMAROUGE.png", "A/AROMATISSE.png", "A/ARON.png",
+"A/ARROKUDA.png", "A/AUDINO.png", "A/AURORUS.png", "A/AVALUGG.png",
+"A/AXEW.png", "A/AZUMARILL.png", "A/AZURILL.png",
+"B/BAGON.png", "B/BALTOY.png", "B/BANETTE.png", "B/BARBARACLE.png", "B/BARBOACH.png",
+"B/BARRASKEWDA.png", "B/BASCULEGION.png", "B/BASCULIN.png", "B/BASTIODON.png", "B/BAXCALIBUR.png",
+"B/BAYLEEF.png", "B/BEARTIC.png", "B/BEAUTIFLY.png", "B/BEEDRILL.png", "B/BEHEEYEM.png",
+"B/BELDUM.png", "B/BELLIBOLT.png", "B/BELLOSSOM.png", "B/BELLSPROUT.png", "B/BERGMITE.png",
+"B/BEWEAR.png", "B/BIBAREL.png", "B/BIDOOF.png", "B/BINACLE.png", "B/BISHARP.png",
+"B/BLASTOISE.png", "B/BLAZIKEN.png", "B/BLIPBUG.png", "B/BLISSEY.png",
+"B/BLITZLE.png", "B/BOLDORE.png", "B/BOLTUND.png", "B/BOMBIRDIER.png", "B/BONSLY.png",
+"B/BOUFFALANT.png", "B/BOUNSWEET.png", "B/BRAIXEN.png", "B/BRAMBLEGHAST.png", "B/BRAMBLIN.png",
+"B/BRAVIARY.png", "B/BRELOOM.png", "B/BRIONNE.png", "B/BRONZONG.png", "B/BRONZOR.png",
+"B/BRUXISH.png", "B/BUDEW.png", "B/BUIZEL.png", "B/BULBASAUR.png",
+"B/BUNEARY.png", "B/BUNNELBY.png", "B/BURMY.png", "B/BUTTERFREE.png",
+"C/CACNEA.png", "C/CACTURNE.png", "C/CAMERUPT.png", "C/CAPSAKID.png", "C/CARBINK.png",
+"C/CARKOL.png", "C/CARNIVINE.png", "C/CARRACOSTA.png", "C/CARVANHA.png", "C/CASTFORM.png",
+"C/CASCOON.png", "C/CATERPIE.png", "C/CENTISKORCH.png", "C/CERULEDGE.png",
+"C/CETITAN.png", "C/CETODDLE.png", "C/CHANDELURE.png", "C/CHANSEY.png", "C/CHARCADET.png",
+"C/CHARIZARD.png", "C/CHARJABUG.png", "C/CHARMANDER.png", "C/CHARMELEON.png", "C/CHATOT.png",
+"C/CHERRIM.png", "C/CHERUBI.png", "C/CHESNAUGHT.png", "C/CHESPIN.png", "C/CHEWTLE.png",
+"C/CHIKORITA.png", "C/CHIMCHAR.png", "C/CHIMECHO.png", "C/CHINCHOU.png",
+"C/CHINGLING.png", "C/CINCCINO.png", "C/CINDERACE.png", "C/CLAMPERL.png",
+"C/CLAUNCHER.png", "C/CLAWITZER.png", "C/CLAYDOL.png", "C/CLEFABLE.png", "C/CLEFAIRY.png",
+"C/CLEFFA.png", "C/CLOBBOPUS.png", "C/CLODSIRE.png", "C/CLOYSTER.png", "C/COALOSSAL.png",
+"C/COFAGRIGUS.png", "C/COMBEE.png", "C/COMBUSKEN.png", "C/COMFEY.png",
+"C/CONKELDURR.png", "C/COPPERAJAH.png", "C/CORPHISH.png", "C/CORSOLA.png", "C/CORVIKNIGHT.png",
+"C/CORVISQUIRE.png", "C/COTTONEE.png", "C/CRABOMINABLE.png", "C/CRABRAWLER.png", "C/CRADILY.png",
+"C/CRAMORANT.png", "C/CRANIDOS.png", "C/CRAWDAUNT.png", "C/CROAGUNK.png",
+"C/CROBAT.png", "C/CROCALOR.png", "C/CROCONAW.png", "C/CRUSTLE.png", "C/CRYOGONAL.png",
+"C/CUBCHOO.png", "C/CUBONE.png", "C/CUFANT.png", "C/CURSOLA.png", "C/CUTIEFLY.png",
+"C/CYCLIZAR.png", "C/CYNDAQUIL.png",
+"D/DACHSBUN.png", "D/DARMANITAN.png", "D/DARTRIX.png", "D/DARUMAKA.png", "D/DECIDUEYE.png",
+"D/DEDENNE.png", "D/DEERLING.png", "D/DEINO.png", "D/DELCATTY.png", "D/DELIBIRD.png",
+"D/DELPHOX.png", "D/DEWGONG.png", "D/DEWOTT.png", "D/DEWPIDER.png", "D/DHELMISE.png",
+"D/DIGGERSBY.png", "D/DIGLETT.png", "D/DIPPLIN.png", "D/DITTO.png", "D/DODRIO.png",
+"D/DODUO.png", "D/DOLLIV.png", "D/DONDOZO.png", "D/DONPHAN.png", "D/DOTTLER.png",
+"D/DOUBLADE.png", "D/DRACOVISH.png", "D/DRACOZOLT.png", "D/DRAGALGE.png", "D/DRAGAPULT.png",
+"D/DRAGONAIR.png", "D/DRAGONITE.png", "D/DRAKLOAK.png", "D/DRAMPA.png", "D/DRAPION.png",
+"D/DRATINI.png", "D/DREDNAW.png", "D/DREEPY.png", "D/DRIFBLIM.png", "D/DRIFLOON.png",
+"D/DRILBUR.png", "D/DRIZZILE.png", "D/DROWZEE.png", "D/DRUDDIGON.png", "D/DUBWOOL.png",
+"D/DUCKLETT.png", "D/DUDUNSPARCE.png", "D/DUGTRIO.png", "D/DUNSPARCE.png", "D/DUOSION.png",
+"D/DURALUDON.png", "D/DURANT.png", "D/DUSCLOPS.png", "D/DUSKNOIR.png", "D/DUSKULL.png",
+"D/DUSTOX.png", "D/DWEBBLE.png",
+"E/EELEKTRIK.png", "E/EELEKTROSS.png", "E/EEVEE.png", "E/EISCUE.png", "E/EKANS.png",
+"E/ELDEGOSS.png", "E/ELECTABUZZ.png", "E/ELECTIVIRE.png", "E/ELECTRIKE.png", "E/ELECTRODE.png",
+"E/ELEKID.png", "E/ELGYEM.png", "E/EMBOAR.png", "E/EMOLGA.png", "E/EMPOLEON.png",
+"E/ESCAVALIER.png", "E/ESPATHRA.png", "E/ESPEON.png",
+"E/ESPURR.png", "E/EXCADRILL.png", "E/EXEGGCUTE.png", "E/EXEGGUTOR.png", "E/EXPLOUD.png",
+"F/FALINKS.png", "F/FARFETCHD.png", "F/FARIGIRAF.png", "F/FEAROW.png", "F/FEEBAS.png",
+"F/FENNEKIN.png", "F/FERALIGATR.png", "F/FERROSEED.png", "F/FERROTHORN.png",
+"F/FIDOUGH.png", "F/FINIZEN.png", "F/FINNEON.png", "F/FLAAFFY.png", "F/FLABEBE.png",
+"F/FLAMIGO.png", "F/FLAPPLE.png", "F/FLAREON.png", "F/FLETCHINDER.png", "F/FLETCHLING.png",
+"F/FLITTLE.png", "F/FLOATZEL.png", "F/FLOETTE.png", "F/FLORAGATO.png", "F/FLORGES.png",
+"F/FLYGON.png", "F/FOMANTIS.png", "F/FOONGUS.png", "F/FORRETRESS.png",
+"F/FRAXURE.png", "F/FRIGIBAX.png", "F/FRILLISH.png", "F/FROAKIE.png", "F/FROGADIER.png",
+"F/FROSLASS.png", "F/FROSMOTH.png", "F/FUECOCO.png", "F/FURFROU.png", "F/FURRET.png",
+"G/GABITE.png", "G/GALLADE.png", "G/GALVANTULA.png", "G/GARBODOR.png", "G/GARCHOMP.png",
+"G/GARDEVOIR.png", "G/GARGANACL.png", "G/GASTLY.png", "G/GASTRODON.png", "G/GENGAR.png",
+"G/GEODUDE.png", "G/GHOLDENGO.png", "G/GIBLE.png", "G/GIGALITH.png", "G/GIMMIGHOUL.png",
+"G/GIRAFARIG.png", "G/GLACEON.png", "G/GLALIE.png", "G/GLAMEOW.png",
+"G/GLIGAR.png", "G/GLIMMET.png", "G/GLIMMORA.png", "G/GLISCOR.png", "G/GLOOM.png",
+"G/GOGOAT.png", "G/GOLBAT.png", "G/GOLDEEN.png", "G/GOLDUCK.png", "G/GOLEM.png",
+"G/GOLETT.png", "G/GOLISOPOD.png", "G/GOLURK.png", "G/GOODRA.png", "G/GOOMY.png",
+"G/GOREBYSS.png", "G/GOSSIFLEUR.png", "G/GOTHITA.png", "G/GOTHITELLE.png", "G/GOTHORITA.png",
+"G/GOURGEIST.png", "G/GRAFAIAI.png", "G/GRANBULL.png", "G/GRAPPLOCT.png",
+"G/GRAVELER.png", "G/GREAVARD.png", "G/GREEDENT.png", "G/GRENINJA.png",
+"G/GRIMER.png", "G/GRIMMSNARL.png", "G/GROOKEY.png", "G/GROTLE.png", "G/GROVYLE.png",
+"G/GROWLITHE.png", "G/GRUBBIN.png", "G/GRUMPIG.png", "G/GULPIN.png", "G/GUMSHOOS.png",
+"G/GURDURR.png", "G/GYARADOS.png",
+"H/HAKAMOO.png", "H/HAPPINY.png", "H/HARIYAMA.png", "H/HATENNA.png", "H/HATTERENE.png",
+"H/HATTREM.png", "H/HAUNTER.png", "H/HAWLUCHA.png", "H/HAXORUS.png", "H/HEATMOR.png",
+"H/HELIOLISK.png", "H/HELIOPTILE.png", "H/HERACROSS.png", "H/HERDIER.png",
+"H/HIPPOPOTAS.png", "H/HIPPOWDON.png", "H/HITMONCHAN.png", "H/HITMONLEE.png", "H/HITMONTOP.png",
+"H/HONCHKROW.png", "H/HONEDGE.png", "H/HOOTHOOT.png", "H/HOPPIP.png", "H/HORSEA.png",
+"H/HOUNDOOM.png", "H/HOUNDOUR.png", "H/HOUNDSTONE.png", "H/HUNTAIL.png", "H/HYDRAPPLE.png",
+"H/HYDREIGON.png", "H/HYPNO.png",
+"I/IGGLYBUFF.png", "I/ILLUMISE.png", "I/IMPIDIMP.png", "I/INCINEROAR.png", "I/INDEEDEE.png",
+"I/INFERNAPE.png", "I/INKAY.png", "I/INTELEON.png", "I/IVYSAUR.png",
+"J/JANGMOO.png", "J/JELLICENT.png", "J/JIGGLYPUFF.png", "J/JOLTEON.png", "J/JOLTIK.png",
+"J/JUMPLUFF.png", "J/JYNX.png",
+"K/KABUTO.png", "K/KABUTOPS.png", "K/KADABRA.png", "K/KAKUNA.png", "K/KANGASKHAN.png",
+"K/KARRABLAST.png", "K/KECLEON.png", "K/KILOWATTREL.png", "K/KINGAMBIT.png",
+"K/KINGDRA.png", "K/KINGLER.png", "K/KIRLIA.png", "K/KLANG.png", "K/KLAWF.png",
+"K/KLEAVOR.png", "K/KLEFKI.png", "K/KLINK.png", "K/KLINKLANG.png", "K/KOFFING.png",
+"K/KOMALA.png", "K/KOMMOO.png", "K/KRABBY.png", "K/KRICKETOT.png", "K/KRICKETUNE.png",
+"K/KROKOROK.png", "K/KROOKODILE.png",
+"L/LAIRON.png", "L/LAMPENT.png", "L/LANTURN.png", "L/LAPRAS.png",
+"L/LARVESTA.png", "L/LARVITAR.png", "L/LEAFEON.png",
+"L/LEAVANNY.png", "L/LECHONK.png", "L/LEDIAN.png", "L/LEDYBA.png", "L/LICKILICKY.png",
+"L/LICKITUNG.png", "L/LIEPARD.png", "L/LILEEP.png", "L/LILLIGANT.png", "L/LILLIPUP.png",
+"L/LINOONE.png", "L/LITLEO.png", "L/LITTEN.png", "L/LITWICK.png", "L/LOKIX.png",
+"L/LOMBRE.png", "L/LOPUNNY.png", "L/LOTAD.png", "L/LOUDRED.png", "L/LUCARIO.png",
+"L/LUDICOLO.png", "L/LUMINEON.png", "L/LUNATONE.png", "L/LURANTIS.png", "L/LUVDISC.png",
+"L/LUXIO.png", "L/LUXRAY.png", "L/LYCANROC.png",
+"M/MABOSSTIFF.png", "M/MACHAMP.png", "M/MACHOKE.png", "M/MACHOP.png", "M/MAGBY.png",
+"M/MAGCARGO.png", "M/MAGIKARP.png", "M/MAGMAR.png", "M/MAGMORTAR.png", "M/MAGNEMITE.png",
+"M/MAGNETON.png", "M/MAGNEZONE.png", "M/MAKUHITA.png", "M/MALAMAR.png", "M/MAMOSWINE.png",
+"M/MANDIBUZZ.png", "M/MANECTRIC.png", "M/MANKEY.png", "M/MANTINE.png", "M/MANTYKE.png",
+"M/MARACTUS.png", "M/MAREANIE.png", "M/MAREEP.png", "M/MARILL.png", "M/MAROWAK.png",
+"M/MARSHTOMP.png", "M/MASCHIFF.png", "M/MASQUERAIN.png", "M/MAUSHOLD.png", "M/MAWILE.png",
+"M/MEDICHAM.png", "M/MEDITITE.png", "M/MEGANIUM.png", "M/MEOWSCARADA.png", "M/MEOWSTIC.png",
+"M/MEOWTH.png", "M/METAGROSS.png", "M/METANG.png", "M/METAPOD.png",
+"M/MIENFOO.png", "M/MIENSHAO.png", "M/MIGHTYENA.png", "M/MILCERY.png", "M/MILOTIC.png",
+"M/MILTANK.png", "M/MIMEJR.png", "M/MIMIKYU.png", "M/MINCCINO.png", "M/MINIOR.png",
+"M/MINUN.png", "M/MISDREAVUS.png", "M/MISMAGIUS.png", "M/MONFERNO.png",
+"M/MORELULL.png", "M/MORGREM.png", "M/MORPEKO.png", "M/MOTHIM.png", "M/MRMIME.png",
+"M/MRRIME.png", "M/MUDBRAY.png", "M/MUDKIP.png", "M/MUDSDALE.png", "M/MUK.png",
+"M/MUNCHLAX.png", "M/MUNNA.png", "M/MURKROW.png", "M/MUSHARNA.png",
+"N/NACLI.png", "N/NACLSTACK.png", "N/NATU.png", "N/NICKIT.png",
+"N/NIDOKING.png", "N/NIDOQUEEN.png", "N/NIDORANfE.png", "N/NIDORANmA.png", "N/NIDORINA.png",
+"N/NIDORINO.png", "N/NINCADA.png", "N/NINETALES.png", "N/NINJASK.png",
+"N/NOCTOWL.png", "N/NOIBAT.png", "N/NOIVERN.png", "N/NOSEPASS.png", "N/NUMEL.png",
+"N/NUZLEAF.png", "N/NYMBLE.png",
+"O/OBSTAGOON.png", "O/OCTILLERY.png", "O/ODDISH.png", "O/OINKOLOGNE.png",
+"O/OMANYTE.png", "O/OMASTAR.png", "O/ONIX.png", "O/ORANGURU.png",
+"O/ORBEETLE.png", "O/ORICORIO.png", "O/ORTHWORM.png", "O/OSHAWOTT.png", "O/OVERQWIL.png",
+"P/PACHIRISU.png", "P/PALAFIN.png", "P/PALOSSAND.png", "P/PALPITOAD.png", "P/PANCHAM.png",
+"P/PANGORO.png", "P/PANPOUR.png", "P/PANSAGE.png", "P/PANSEAR.png", "P/PARAS.png",
+"P/PARASECT.png", "P/PASSIMIAN.png", "P/PATRAT.png", "P/PAWMI.png", "P/PAWMO.png",
+"P/PAWMOT.png", "P/PAWNIARD.png", "P/PELIPPER.png", "P/PERRSERKER.png", "P/PERSIAN.png",
+"P/PETILIL.png", "P/PHANPY.png", "P/PHANTUMP.png", "P/PICHU.png",
+"P/PIDGEOT.png", "P/PIDGEOTTO.png", "P/PIDGEY.png", "P/PIDOVE.png", "P/PIGNITE.png",
+"P/PIKACHU.png", "P/PILOSWINE.png", "P/PINCURCHIN.png", "P/PINECO.png", "P/PINSIR.png",
+"P/PIPLUP.png", "P/PLUSLE.png", "P/POLITOED.png", "P/POLIWAG.png",
+"P/POLIWHIRL.png", "P/POLIWRATH.png", "P/POLTCHAGEIST.png", "P/POLTEAGEIST.png", "P/PONYTA.png",
+"P/POOCHYENA.png", "P/POPPLIO.png", "P/PORYGON.png", "P/PORYGON2.png", "P/PORYGONZ.png",
+"P/PRIMARINA.png", "P/PRIMEAPE.png", "P/PRINPLUP.png", "P/PROBOPASS.png", "P/PSYDUCK.png",
+"P/PUMPKABOO.png", "P/PUPITAR.png", "P/PURRLOIN.png", "P/PURUGLY.png", "P/PYROAR.png",
+"P/PYUKUMUKU.png",
+"Q/QUAGSIRE.png", "Q/QUAQUAVAL.png", "Q/QUAXLY.png", "Q/QUAXWELL.png", "Q/QUILAVA.png",
+"Q/QUILLADIN.png", "Q/QWILFISH.png",
+"R/RABOOT.png", "R/RABSCA.png", "R/RAICHU.png",
+"R/RALTS.png", "R/RAMPARDOS.png", "R/RAPIDASH.png", "R/RATICATE.png", "R/RATTATA.png",
+"R/RELICANTH.png", "R/RELLOR.png", "R/REMORAID.png", "R/REUNICLUS.png",
+"R/REVAVROOM.png", "R/RHYDON.png", "R/RHYHORN.png", "R/RHYPERIOR.png", "R/RIBOMBEE.png",
+"R/RILLABOOM.png", "R/RIOLU.png", "R/ROCKRUFF.png", "R/ROGGENROLA.png",
+"R/ROLYCOLY.png", "R/ROOKIDEE.png", "R/ROSELIA.png", "R/ROSERADE.png", "R/ROTOM.png",
+"R/ROWLET.png", "R/RUFFLET.png", "R/RUNERIGUS.png",
+"S/SABLEYE.png", "S/SALAMENCE.png", "S/SALANDIT.png", "S/SALAZZLE.png", "S/SAMUROTT.png",
+"S/SANDACONDA.png", "S/SANDILE.png", "S/SANDSHREW.png", "S/SANDSLASH.png", "S/SANDYGAST.png",
+"S/SAWK.png", "S/SAWSBUCK.png", "S/SCATTERBUG.png", "S/SCEPTILE.png",
+"S/SCIZOR.png", "S/SCOLIPEDE.png", "S/SCORBUNNY.png", "S/SCOVILLAIN.png", "S/SCRAFTY.png",
+"S/SCRAGGY.png", "S/SCYTHER.png", "S/SEADRA.png", "S/SEAKING.png",
+"S/SEALEO.png", "S/SEEDOT.png", "S/SEEL.png", "S/SEISMITOAD.png", "S/SENTRET.png",
+"S/SERPERIOR.png", "S/SERVINE.png", "S/SEVIPER.png", "S/SEWADDLE.png", "S/SHARPEDO.png",
+"S/SHEDINJA.png", "S/SHELGON.png", "S/SHELLDER.png", "S/SHELLOS.png", "S/SHELMET.png",
+"S/SHIELDON.png", "S/SHIFTRY.png", "S/SHIINOTIC.png", "S/SHINX.png", "S/SHROODLE.png",
+"S/SHROOMISH.png", "S/SHUCKLE.png", "S/SHUPPET.png", "S/SIGILYPH.png", "S/SILCOON.png",
+"S/SILICOBRA.png", "S/SIMIPOUR.png", "S/SIMISAGE.png", "S/SIMISEAR.png",
+"S/SINISTCHA.png", "S/SINISTEA.png", "S/SIRFETCHD.png", "S/SIZZLIPEDE.png", "S/SKARMORY.png",
+"S/SKELEDIRGE.png", "S/SKIDDO.png", "S/SKIPLOOM.png", "S/SKITTY.png", "S/SKORUPI.png",
+"S/SKRELP.png", "S/SKUNTANK.png", "S/SKWOVET.png", "S/SLAKING.png", "S/SLAKOTH.png",
+"S/SLIGGOO.png", "S/SLOWBRO.png", "S/SLOWKING.png", "S/SLOWPOKE.png",
+"S/SLUGMA.png", "S/SLURPUFF.png", "S/SMEARGLE.png", "S/SMOLIV.png", "S/SMOOCHUM.png",
+"S/SNEASEL.png", "S/SNEASLER.png", "S/SNIVY.png", "S/SNOM.png", "S/SNORLAX.png",
+"S/SNORUNT.png", "S/SNOVER.png", "S/SNUBBULL.png", "S/SOBBLE.png", "S/SOLOSIS.png",
+"S/SOLROCK.png", "S/SPEAROW.png", "S/SPEWPA.png", "S/SPHEAL.png",
+"S/SPIDOPS.png", "S/SPINARAK.png", "S/SPINDA.png", "S/SPIRITOMB.png", "S/SPOINK.png",
+"S/SPRIGATITO.png", "S/SPRITZEE.png", "S/SQUAWKABILLY.png", "S/SQUIRTLE.png",
+"S/STANTLER.png", "S/STARAPTOR.png", "S/STARAVIA.png", "S/STARLY.png", "S/STARMIE.png",
+"S/STARYU.png", "S/STEELIX.png", "S/STEENEE.png", "S/STONJOURNER.png", "S/STOUTLAND.png",
+"S/STUFFUL.png", "S/STUNFISK.png", "S/STUNKY.png", "S/SUDOWOODO.png",
+"S/SUNFLORA.png", "S/SUNKERN.png", "S/SURSKIT.png", "S/SWABLU.png", "S/SWADLOON.png",
+"S/SWALOT.png", "S/SWAMPERT.png", "S/SWANNA.png", "S/SWELLOW.png", "S/SWINUB.png",
+"S/SWIRLIX.png", "S/SWOOBAT.png", "S/SYLVEON.png",
+"T/TADBULB.png", "T/TAILLOW.png", "T/TALONFLAME.png", "T/TANDEMAUS.png", "T/TANGELA.png",
+"T/TANGROWTH.png",
+"T/TAROUNTULA.png", "T/TATSUGIRI.png", "T/TAUROS.png", "T/TEDDIURSA.png", "T/TENTACOOL.png",
+"T/TENTACRUEL.png", "T/TEPIG.png", "T/THIEVUL.png", "T/THROH.png",
+"T/THWACKEY.png", "T/TIMBURR.png", "T/TINKATINK.png",
+"T/TINKATON.png", "T/TINKATUFF.png", "T/TIRTOUGA.png", "T/TOEDSCOOL.png", "T/TOEDSCRUEL.png",
+"T/TOGEDEMARU.png", "T/TOGEKISS.png", "T/TOGEPI.png", "T/TOGETIC.png", "T/TORCHIC.png",
+"T/TORKOAL.png", "T/TORRACAT.png", "T/TORTERRA.png", "T/TOTODILE.png",
+"T/TOUCANNON.png", "T/TOXAPEX.png", "T/TOXEL.png", "T/TOXICROAK.png", "T/TOXTRICITY.png",
+"T/TRANQUILL.png", "T/TRAPINCH.png", "T/TREECKO.png", "T/TREVENANT.png", "T/TROPIUS.png",
+"T/TRUBBISH.png", "T/TRUMBEAK.png", "T/TSAREENA.png", "T/TURTONATOR.png", "T/TURTWIG.png",
+"T/TYMPOLE.png", "T/TYNAMO.png", "T/TYPHLOSION.png", "T/TYRANITAR.png",
+"T/TYRANTRUM.png", "T/TYROGUE.png", "T/TYRUNT.png",
+"U/UMBREON.png", "U/UNFEZANT.png", "U/UNOWN.png", "U/URSALUNA.png", "U/URSARING.png",
+"V/VANILLISH.png", "V/VANILLITE.png", "V/VANILLUXE.png", "V/VAPOREON.png", "V/VAROOM.png",
+"V/VELUZA.png", "V/VENIPEDE.png", "V/VENOMOTH.png", "V/VENONAT.png", "V/VENUSAUR.png",
+"V/VESPIQUEN.png", "V/VIBRAVA.png", "V/VICTREEBEL.png", "V/VIGOROTH.png", "V/VIKAVOLT.png",
+"V/VILEPLUME.png", "V/VIVILLON.png", "V/VOLBEAT.png", "V/VOLCARONA.png",
+"V/VOLTORB.png", "V/VULLABY.png", "V/VULPIX.png",
+"W/WAILMER.png", "W/WAILORD.png", "W/WALREIN.png", "W/WARTORTLE.png",
+"W/WATCHOG.png", "W/WATTREL.png", "W/WEAVILE.png", "W/WEEDLE.png", "W/WEEPINBELL.png",
+"W/WEEZING.png", "W/WHIMSICOTT.png", "W/WHIRLIPEDE.png", "W/WHISCASH.png", "W/WHISMUR.png",
+"W/WIGGLYTUFF.png", "W/WIGLETT.png", "W/WIMPOD.png", "W/WINGULL.png", "W/WISHIWASHI.png",
+"W/WOBBUFFET.png", "W/WOOBAT.png", "W/WOOLOO.png", "W/WOOPER.png",
+"W/WORMADAM.png", "W/WUGTRIO.png", "W/WURMPLE.png", "W/WYNAUT.png", "W/WYRDEER.png",
+"X/XATU.png",
+"Y/YAMASK.png", "Y/YAMPER.png", "Y/YANMA.png", "Y/YANMEGA.png", "Y/YUNGOOS.png",
+"Z/ZANGOOSE.png", "Z/ZEBSTRIKA.png", "Z/ZIGZAGOON.png", "Z/ZOROARK.png",
+"Z/ZORUA.png", "Z/ZUBAT.png", "Z/ZWEILOUS.png"
+  ],
+  fj: [
+    "B/BULBASAUR.png", "G/GABITE.png", "H/HAKAMOO.png", "I/IGGLYBUFF.png", "J/JANGMOO.png"
+  ]
+};
+
+function startDraw() {
+  const resultDiv = document.getElementById("result");
+  const msg = document.getElementById("message");
+  const countInput = document.getElementById("countInput");
+  const groupSelect = document.getElementById("groupSelect");
+  
+  // resultDiv が存在するかチェック
+  if (!resultDiv) {
+    console.error("エラー: id='result' の要素が見つかりません。HTMLを確認してください。");
+    return;
+  }
+  
+  const count = parseInt(countInput.value) || 0;
+  const selectedGroup = groupSelect.value;
+  
+  resultDiv.innerHTML = "";
+
+  const currentList = imageCollections[selectedGroup];
+  const candidateImages = currentList.filter(path => !excludeList.includes(path));
+
+  if (candidateImages.length === 0) {
+    msg.innerHTML = "<span class='error-msg'>候補となる画像がありません。</span>";
+    return;
+  }
+
+  const shuffled = [...candidateImages];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  
+  const selected = shuffled.slice(0, count);
+
+  selected.forEach(path => {
+    const img = document.createElement("img");
+    img.src = BASE_PATH + path;
+    img.alt = path;
+    img.onerror = () => { img.style.display = "none"; };
+    resultDiv.appendChild(img);
+  });
+
+  msg.textContent = `全 ${candidateImages.length} 枚中、${selected.length} 枚を表示しました。`;
+}
+
+async function saveAsImage() {
+  const result = document.getElementById("result");
+  if (!result || !result.hasChildNodes()) {
+    alert("先に抽選してください");
+    return;
+  }
+
+  try {
+    const canvas = await html2canvas(result, { 
+      useCORS: true, 
+      scale: 2,
+      backgroundColor: "#ffffff"
+    });
+    const link = document.createElement("a");
+    link.download = "抽選結果.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  } catch (err) {
+    console.error(err);
+    alert("画像の保存に失敗しました。");
+  }
+}
+</script>
+</body>
+</html>
