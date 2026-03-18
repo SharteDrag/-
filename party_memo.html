@@ -291,13 +291,39 @@ async function exportPartyImage() {
             ctx.fillText(mName || "-", mX + 10, mY + 21);
         });
 
-        // 調整メモ
+        // 調整メモ（改行・自動折り返し対応）
         const memo = card.querySelector('.memo-area').value;
         if (memo) {
             ctx.fillStyle = "#444";
             ctx.font = "12px sans-serif";
-            // メモが長い場合に備えて簡易的な切り詰め
-            ctx.fillText(memo.substring(0, 35), x + 20, y + 285); 
+            const lineHeight = 16;
+            const maxWidth = 340; // カードの幅に合わせた最大横幅
+            const startX = x + 20;
+            const startY = y + 285;
+            
+            // 改行コードで分割し、さらに長すぎる行を折り返す
+            const lines = memo.split('\n');
+            let displayLines = [];
+            
+            lines.forEach(line => {
+                let currentLine = "";
+                for (let char of line) {
+                    let testLine = currentLine + char;
+                    let metrics = ctx.measureText(testLine);
+                    if (metrics.width > maxWidth && currentLine !== "") {
+                        displayLines.push(currentLine);
+                        currentLine = char;
+                    } else {
+                        currentLine = testLine;
+                    }
+                }
+                displayLines.push(currentLine);
+            });
+
+            // 最大3〜4行程度でクリップ（カードからはみ出さないよう制限）
+            displayLines.slice(0, 4).forEach((line, index) => {
+                ctx.fillText(line, startX, startY + (index * lineHeight));
+            });
         }
     }
 
