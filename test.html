@@ -1467,13 +1467,14 @@ if (ability === "NORMALIZE") {
     }
 }
     // スキン特性（タイプ変換+1.2倍）
-    if (["PIXILATE","REFRIGERATE","AERILATE","GALVANIZE"].includes(ability)) {
+    if (["PIXILATE","REFRIGERATE","AERILATE","GALVANIZE","DRAGONIZE"].includes(ability)) {
         if (move?.Type === "NORMAL") {
             let newType = {
                 PIXILATE: "FAIRY",
                 REFRIGERATE: "ICE",
                 AERILATE: "FLYING",
-                GALVANIZE: "ELECTRIC"
+                GALVANIZE: "ELECTRIC",
+                DRAGONIZE: "DRAGON"
             }[ability];
             move.Type = newType;
             document.getElementById("ability_m_atk").value = "4915";

@@ -24314,10 +24314,10 @@
     "SpDef": 115,
     "Weight": 201.0,
     "Abilities": [
-      "OVERGROW"
+      "MEGASOL"
     ],
     "HiddenAbilities": [
-      "LEAFGUARD"
+      "MEGASOL"
     ],
     "Name": "メガメガニウム"
   },
@@ -24333,10 +24333,10 @@
     "SpDef": 93,
     "Weight": 108.8,
     "Abilities": [
-      "TORRENT"
+      "DRAGONIZE"
     ],
     "HiddenAbilities": [
-      "SHEERFORCE"
+      "DRAGONIZE"
     ],
     "Name": "メガオーダイル"
   },
@@ -24394,10 +24394,10 @@
     "SpDef": 110,
     "Weight": 180.3,
     "Abilities": [
-      "BLAZE"
+      "MOLDBREAKER"
     ],
     "HiddenAbilities": [
-      "RECKLESS"
+      "MOLDBREAKER"
     ],
     "Name": "メガエンブオー"
   },
