@@ -24295,7 +24295,7 @@
     "SpDef": 125,
     "Weight": 290.0,
     "Abilities": [
-      "INNERFOCUS"
+      "MULTISCALE"
     ],
     "HiddenAbilities": [
       "MULTISCALE"
@@ -24374,10 +24374,10 @@
     "SpDef": 100,
     "Weight": 29.6,
     "Abilities": [
-      "SNOWCLOAK"
+      "SNOWWARNING"
     ],
     "HiddenAbilities": [
-      "CURSEDBODY"
+      "SNOWWARNING"
     ],
     "Name": "メガユキメノコ"
   },
