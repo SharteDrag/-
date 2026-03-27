@@ -425,12 +425,11 @@ function createPartyUI() {
                 </select>
             </div>
             <table class="stat-table">
-                <thead><tr><th>能力</th><th>種族</th><th>個体</th><th>努力</th><th>実数</th></tr></thead>
+                <thead><tr><th>能力</th><th>種族</th><th>努力</th><th>実数</th></tr></thead>
                 ${['HP','攻撃','防御','特攻','特防','素早'].map((label, j) => `
                     <tr class="stats-row">
                         <td style="font-size:11px; color:#666;">${label}</td>
                         <td class="base-val">0</td>
-                        <td><input type="number" class="iv-input" value="31" min="0" max="31" inputmode="numeric" oninput="calcStats(${i})"></td>
                         <td><input type="number" class="ev-input" value="0" min="0" max="32" inputmode="numeric" oninput="validateEV(this, ${i})"></td>
                         <td class="total-display">0</td>
                     </tr>`).join('')}
@@ -487,7 +486,7 @@ function calcStats(idx) {
 
     rows.forEach((row, i) => {
         const base = parseInt(row.querySelector('.base-val').textContent) || 0;
-        const iv = parseInt(row.querySelector('.iv-input').value) || 0;
+        const iv = 31;
         const ev = parseInt(row.querySelector('.ev-input').value) || 0;
         let val = 0;
         if (i === 0) {
@@ -526,7 +525,6 @@ function saveParty() {
             itId: c.querySelector('.item-input').dataset.selectedId,
             ab: c.querySelector('.ability-select').value,
             nt: c.querySelector('.nature-select').value,
-            iv: [...c.querySelectorAll('.iv-input')].map(el => el.value),
             ev: [...c.querySelectorAll('.ev-input')].map(el => el.value),
             mv: [...c.querySelectorAll('.move-input')].map(el => ({ name: el.value, id: el.dataset.selectedId })),
             memo: c.querySelector('.memo-area').value
@@ -553,7 +551,6 @@ function loadParty() {
         c.querySelector('.item-input').value = m.itName || "";
         c.querySelector('.item-input').dataset.selectedId = m.itId || "";
         c.querySelector('.nature-select').value = m.nt;
-        c.querySelectorAll('.iv-input').forEach((el, j) => el.value = m.iv ? m.iv[j] : 31);
         c.querySelectorAll('.ev-input').forEach((el, j) => { el.value = m.ev[j]; validateEV(el, i); });
         c.querySelector('.ability-select').value = m.ab;
         c.querySelectorAll('.move-input').forEach((el, j) => {
