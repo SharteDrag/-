@@ -353,7 +353,8 @@ document.addEventListener('click', function(event) {
             onclick="calculateDamage(); document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });" 
             class="btn-calc">ダメ計実行</button>
     
-    <button type="button" onclick="openQuickTableModal()" class="btn-table">早見表作成</button>
+    <button type="button" onclick="openQuickTableModal()" class="btn-table">技早見表</button>
+    <button type="button" onclick="openQuickTableModal2()" class="btn-table">調整早見表</button>
 </div>
 
 <div style="background: #f0f4f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d1d9e0;">
@@ -3880,6 +3881,8 @@ const effectiveHP = Math.max(1, hp - totalHazardDamage);
     container.innerHTML = html;
 }
 
+
+
 function loadFromPartyMemo(target) {
     const slot = document.getElementById('import-slot').value;
     const pokemonIdx = document.getElementById('import-pokemon-idx').value;
@@ -4107,6 +4110,125 @@ window.onclick = function(event) {
 
 // 既存の generateQuickTable を少し修正
 // （元のコードの冒頭にある alert チェックなどはそのまま活かしてください）
+</script>
+<script>
+    /**
+ * 努力値・性格補正によるダメージ早見表を生成してモーダルに表示する
+ */
+function openQuickTableModal2() {
+    const container = document.getElementById('quick-table-container');
+    container.innerHTML = ''; // クリア
+
+    // 現在の入力値を取得（技威力、相性、補正などは現在の設定を流用）
+    const moveName = document.getElementById('move-name').value;
+    const attackerName = document.getElementById('attacker-pokemon-name').value;
+    const defenderName = document.getElementById('defender-pokemon-name').value;
+    
+    // ポケモンデータ取得
+    const atkIds = NAME_TO_KEY_MAP[hiraganaToKatakana(attackerName)];
+    const defIds = NAME_TO_KEY_MAP[hiraganaToKatakana(defenderName)];
+    if (!atkIds || !defIds) {
+        alert("ポケモン名を正しく入力してください。");
+        return;
+    }
+    const atkPoke = POKEDATA_MAP[atkIds[0]];
+    const defPoke = POKEDATA_MAP[defIds[0]];
+
+    // 表のヘッダー（防御側：無振り、H252、H252+B補正など）
+    const defPatterns = [
+        { label: "無振り", hpEV: 0, defEV: 0, nature: 1.0 },
+        { label: "H10", hpEV: 10, defEV: 0, nature: 1.0 },
+        { label: "H20", hpEV: 20, defEV: 0, nature: 1.0 },
+        { label: "H32", hpEV: 32, defEV: 0, nature: 1.0 },
+        { label: "H32+", hpEV: 32, defEV: 0, nature: 1.1 },
+        { label: "BD10", hpEV: 0, defEV: 10, nature: 1.0 },
+        { label: "BD20", hpEV: 0, defEV: 20, nature: 1.0 },
+        { label: "BD32", hpEV: 0, defEV: 32, nature: 1.0 },
+        { label: "BD32+", hpEV: 0, defEV: 32, nature: 1.1 },
+        { label: "H32BD10", hpEV: 32, defEV: 10, nature: 1.0 },
+        { label: "H32BD20", hpEV: 32, defEV: 20, nature: 1.0 },
+        { label: "HBD32", hpEV: 32, defEV: 32, nature: 1.0 },
+        { label: "H32BD10+", hpEV: 32, defEV: 10, nature: 1.0 },
+        { label: "H32BD20+", hpEV: 32, defEV: 20, nature: 1.0 },
+        { label: "HBD特化", hpEV: 32, defEV: 32, nature: 1.1 }
+    ];
+
+    // 表の行（攻撃側：無振り、A252、A252+性格補正）
+    const atkPatterns = [
+        { label: "無振り", ev: 0, nature: 1.0 },
+        { label: "10", ev: 10, nature: 1.0 },
+        { label: "20", ev: 20, nature: 1.0 },
+        { label: "32", ev: 32, nature: 1.0 },
+        { label: "10+", ev: 10, nature: 1.1 },
+        { label: "20+", ev: 20, nature: 1.1 },
+        { label: "特化", ev: 32, nature: 1.1 }
+    ];
+
+    const table = document.createElement('table');
+    table.className = 'quick-table';
+    
+    // ヘッダー行作成
+    let thead = `<tr><th>攻撃＼防御</th>`;
+    defPatterns.forEach(p => thead += `<th>${p.label}</th>`);
+    thead += `</tr>`;
+    table.innerHTML = thead;
+
+    // 各行の計算
+    atkPatterns.forEach(atkP => {
+        let tr = document.createElement('tr');
+        tr.innerHTML = `<td class="power-cell">${atkP.label}</td>`;
+        
+        defPatterns.forEach(defP => {
+            // ステータスを仮想計算
+            const { attackerStatKey, defenderStatKey } = getStatKeys();
+            
+            // 攻撃側の能力値
+            const atkVal = calculateMaxStat(atkPoke[attackerStatKey] || atkPoke.Stats[attackerStatKey], false, atkP.nature, atkP.ev);
+            // 防御側のHPと防御値
+            const hpVal = calculateMaxStat(defPoke.HP || defPoke.Stats.HP, true, 1.0, defP.hpEV);
+            const defVal = calculateMaxStat(defPoke[defenderStatKey] || defPoke.Stats[defenderStatKey], false, defP.nature, defP.defEV);
+
+            // ダメージ計算用引数の組み立て（現在の画面設定をコピー）
+            const args = {
+                power: parseInt(document.getElementById('power').value),
+                base_attack: atkVal,
+                base_defense: defVal,
+                rank_attack_val: 1.0, nature_attack: 1.0, // 早見表内ではランク±0固定
+                rank_defense_val: 1.0, nature_defense: 1.0,
+                isBurnedChecked: document.getElementById('burn_m_check').checked,
+                stab_m: parseFloat(document.getElementById('stab').value),
+                affinity_m: parseFloat(document.getElementById('affinity').value),
+                item_m_atk: parseInt(document.getElementById('item_m_atk').value),
+                ability_m_atk: parseInt(document.getElementById('ability_m_atk').value),
+                item_m_def: 4096, ability_m_def: 1.0,
+                environment: document.getElementById('environment_m_select').value,
+                moveType: document.querySelector('input[name="move_type"]:checked').value,
+                wall_m: 1.0, range_m: 1.0, hp: hpVal, isSubstituteChecked: false, other_m: 1.0
+            };
+
+            const res = runDamageCalculation(false, args);
+            const minP = ((res.minResult / hpVal) * 100).toFixed(1);
+            const maxP = ((res.maxResult / hpVal) * 100).toFixed(1);
+
+            let color = res.minResult >= hpVal ? "#ffcccc" : (res.maxResult >= hpVal ? "#fff3cd" : "#d1e7dd");
+
+            tr.innerHTML += `
+                <td style="background-color: ${color}">
+                    <div class="damage-val">${res.minResult}～${res.maxResult}</div>
+                    <div class="percent-val">${minP}%～${maxP}%</div>
+                    <div style="font-size:0.75em; color:#555;">${res.koInfo.koText}</div>
+                </td>`;
+        });
+        table.appendChild(tr);
+    });
+
+    container.appendChild(table);
+    document.getElementById('quick-table-modal').style.display = 'block';
+}
+
+function closeQuickTableModal2() {
+    document.getElementById('quick-table-modal').style.display = 'none';
+}
 </script>
 </body>
 
