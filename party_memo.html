@@ -125,6 +125,7 @@ const NATURES = {
 };
 
 let db = { species: [], items: [], moves: [], abilities: {} };
+let currentForms = [0, 0, 0, 0, 0, 0];
 
 function toggleMenu() {
     document.querySelector('.hamburger-btn').classList.toggle('active');
@@ -153,10 +154,10 @@ async function init() {
         db.abilities = ab || {};
 
         setupSaveSlots();
-        createPartyUI();
+        createPartyUI(); // UI作成を最後にする
     } catch (e) {
         console.error(e);
-        alert("データの読み込みに失敗しました。");
+        alert("データの読み込みに失敗しました。ファイルパスやJSON形式を確認してください。");
     }
 }
 
@@ -456,13 +457,65 @@ function createPartyUI() {
     }
 }
 
+
 function updateSpecies(idx, speciesData) {
     const card = document.getElementById(`pokemon-${idx}`);
-    const bases = [speciesData.HP, speciesData.Atk, speciesData.Def, speciesData.SpAtk, speciesData.SpDef, speciesData.Speed];
-    card.querySelectorAll('.base-val').forEach((td, i) => td.textContent = bases[i]);
+    if (!card || !speciesData) return;
+
+    const name = speciesData.Name;
+    
+    // メガシンカ判定
+    const isMega = name.startsWith("メガ") && !["メガヤンマ", "メガニウム"].includes(name);
+    
+    // 既存ボタンのクリーンアップ
+    const container = card.querySelector('.sp-input').parentNode;
+    const oldBtn = container.querySelector('.mega-toggle-btn');
+    if (oldBtn) oldBtn.remove();
+
+    if (isMega) {
+        const btn = document.createElement('button');
+        btn.className = 'mega-toggle-btn';
+        btn.textContent = "メガシンカ前";
+        btn.dataset.mode = "mega"; // 初期状態はメガ
+        btn.style.cssText = "width:100%; padding:4px; font-size:11px; margin-top:5px; background:#6c757d; color:white; border:none; border-radius:4px; cursor:pointer;";
+        
+        btn.onclick = (e) => {
+            e.preventDefault(); // フォーム送信防止
+            const isShowingMega = btn.dataset.mode === "mega";
+            
+            if (isShowingMega) {
+                // 通常時の名前を推測（メガリザードンX → リザードン）
+                const baseName = name.replace("メガ", "").replace(/X$|Y$/, "");
+                const baseSpecies = db.species.find(s => s.name === baseName);
+                if (baseSpecies) {
+                    applyStats(idx, baseSpecies.data);
+                    btn.dataset.mode = "normal";
+                    btn.textContent = "メガシンカ後";
+                }
+            } else {
+                applyStats(idx, speciesData);
+                btn.dataset.mode = "mega";
+                btn.textContent = "メガシンカ前";
+            }
+        };
+        container.appendChild(btn);
+    }
+
+    applyStats(idx, speciesData);
+}
+
+function applyStats(idx, data) {
+    const card = document.getElementById(`pokemon-${idx}`);
+    const bases = [data.HP, data.Atk, data.Def, data.SpAtk, data.SpDef, data.Speed];
+    
+    card.querySelectorAll('.base-val').forEach((td, i) => {
+        td.textContent = bases[i] || 0;
+    });
+    
     const abSelect = card.querySelector('.ability-select');
-    const abs = [...(speciesData.Abilities || []), ...(speciesData.HiddenAbilities || [])];
+    const abs = [...(data.Abilities || []), ...(data.HiddenAbilities || [])];
     abSelect.innerHTML = abs.map(a => `<option value="${a}">${db.abilities[a]?.name || a}</option>`).join('');
+    
     calcStats(idx);
 }
 
