@@ -814,7 +814,7 @@ document.addEventListener('click', function(event) {
         let defenderSpDefMult = 1.0;
         let defenderAtkMult = 1.0;
         let defenderSpAtkMult = 1.0;
-        let originMaxHP = document.getElementById('hp');
+        let originMaxHP = 150;
         
         let POKEDATA_MAP = {}; 
         // lists used for search filtering
@@ -2069,6 +2069,29 @@ function calculateEntryHazardDamage(defenderKey, maxHP) {
 
     return { totalDamage: totalHazardDamage, details: hazardCalcDetails };
 }
+// 1. HP努力値の入力欄 (hp_ev) が変更されたときに再計算する
+document.getElementById('hp_ev').addEventListener('input', function() {
+    const defenderName = document.getElementById('defender-pokemon-name').value;
+    if (defenderName) {
+        // 防御側のステータスを再計算（これで originMaxHP も更新されます）
+        updateStatsAndRecalculate('defender', defenderName);
+    }
+});
+
+// 2. 努力値操作ボタン (ev-button) をクリックした際にも更新を走らせる
+// 既存のボタン処理がある場合は、そこに updateStatsAndRecalculate を組み込む必要があります。
+// もしボタンのクリックイベントが動的に設定されている場合は、以下のような処理を追加してください。
+document.querySelectorAll('.ev-button').forEach(button => {
+    button.addEventListener('click', function() {
+        const stat = this.getAttribute('data-stat');
+        if (stat === 'hp') {
+            const defenderName = document.getElementById('defender-pokemon-name').value;
+            if (defenderName) {
+                updateStatsAndRecalculate('defender', defenderName);
+            }
+        }
+    });
+});
         // ===============================================
         // B. ダメージ計算ロジック
         // ===============================================

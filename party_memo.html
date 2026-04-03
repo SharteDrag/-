@@ -490,12 +490,12 @@ function updateSpecies(idx, speciesData) {
                 if (baseSpecies) {
                     applyStats(idx, baseSpecies.data);
                     btn.dataset.mode = "normal";
-                    btn.textContent = "メガシンカ後";
+                    btn.textContent = "メガシンカ後へ";
                 }
             } else {
                 applyStats(idx, speciesData);
                 btn.dataset.mode = "mega";
-                btn.textContent = "メガシンカ前";
+                btn.textContent = "メガシンカ前へ";
             }
         };
         container.appendChild(btn);
