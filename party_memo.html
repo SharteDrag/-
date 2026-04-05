@@ -97,15 +97,27 @@
     </div>
     <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  // ハッシュ化（SHA-256）を行う関数
+  // ハッシュ化関数
   async function hashPassword(password) {
     const encoder = new TextEncoder();
     const data = encoder.encode(password);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // ★JSONからハッシュ値を取得する関数
+  async function getMasterHash() {
+    try {
+      const response = await fetch('abdata.json'); // パスは適宜調整してください
+      const data = await response.json();
+      return data.master_hash;
+    } catch (error) {
+      console.error("JSONの読み込みに失敗しました:", error);
+      return null;
+    }
   }
 
   const firebaseConfig = {
@@ -118,9 +130,6 @@
     measurementId: "G-GHCLZB8YK0"
   };
 
-  // ★「JASRAC」をハッシュ化した値（これを見ても元の文字は推測困難）
-  const HASHED_MASTER_PASSWORD = "3e36e885c4974f178768019b1652438867a5b3a4a284e6a0d33e721a36746869"; 
-
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
@@ -132,19 +141,26 @@
     signInWithPopup(auth, provider).catch(err => alert("エラー: " + err.message));
   };
 
-  onAuthStateChanged(auth, async (user) => { // asyncを追加
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
       const storageKey = `auth_verified_${user.uid}`;
       if (localStorage.getItem(storageKey) === 'true') {
         overlay.style.display = 'none';
         content.style.display = 'block';
       } else {
+        // ★JSONから最新のハッシュを取得
+        const MASTER_HASH = await getMasterHash();
+        
+        if (!MASTER_HASH) {
+          alert("認証データの読み込みに失敗しました。管理者に連絡してください。");
+          return;
+        }
+
         setTimeout(async () => {
           const inputPass = prompt("【初回認証】\n最新のパスワードを入力してください：");
           if (inputPass) {
-            // 入力された値をハッシュ化して比較
-            const inputHashed = await hashPassword(inputPass.trim());
-            if (inputHashed === HASHED_MASTER_PASSWORD) {
+            const inputHashed = await hashPassword(inputPass.trim().toUpperCase());
+            if (inputHashed === MASTER_HASH) {
               localStorage.setItem(storageKey, 'true');
               overlay.style.display = 'none';
               content.style.display = 'block';
@@ -152,7 +168,7 @@
             }
           }
           alert("パスワードが正しくありません。");
-          auth.signOut();
+          signOut(auth).then(() => location.reload());
         }, 800);
       }
     } else {
