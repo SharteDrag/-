@@ -825,6 +825,7 @@ document.addEventListener('click', function(event) {
         let NAME_TO_KEY_MAP = {}; 
         let HIRAGANA_TO_KATAKANA_MAP = {}; 
         let ABILITIES_DB = {};
+        let damageHistory = []; // 計算履歴を保存する配列
 
         // タイプ相性表
         const TYPE_EFFECTIVENESS = {
@@ -2870,6 +2871,23 @@ if (maxDamagePercent < 100) {
     `;
     resultDiv.insertAdjacentHTML('beforeend', updateBtnHtml);
 }
+
+const historyBtnHtml = `
+    <div style="margin-top:10px;">
+        <button type="button" onclick="addCurrentResultToHistory()" 
+                style="cursor:pointer; width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:6px; font-weight:bold;">
+            ＋ この結果を履歴に追加して加算
+        </button>
+    </div>
+    <div id="damage-history-list" style="margin-top:15px; padding:10px; background:#f8f9fa; border-radius:8px; border:1px solid #ddd;">
+        </div>
+`;
+
+// 既存の resultDiv への出力に追加
+resultDiv.insertAdjacentHTML('beforeend', historyBtnHtml);
+
+// 描画後に履歴を再表示（リロード対策）
+updateHistoryUI();
 // ▲▲▲ ここまで ▲▲▲
 
     } catch (error) {
@@ -2877,6 +2895,8 @@ if (maxDamagePercent < 100) {
         resultDiv.innerHTML = `<div class='error'>計算中にエラーが発生しました。<br>詳細: ${error.name}: ${error.message}</div>`;
     }
 }
+
+
 
 // 関数外（scriptタグ内のどこか）に以下のヘルパー関数も追加してください
 function updatePercentAndRecalc(val) {
@@ -2891,6 +2911,80 @@ function updatePercentAndRecalc(val) {
             calculateDamage();
         }
     }
+}
+
+/**
+ * 現在の計算結果を履歴に追加し、UIを更新する
+ */
+function addCurrentResultToHistory() {
+    const resultBox = document.querySelector('.result-total-box');
+    if (!resultBox) {
+        alert("先にダメージ計算を実行してください。");
+        return;
+    }
+
+    // 現在の計算結果から最小・最大ダメージを抽出（数値のみ）
+    const totalText = resultBox.querySelector('div:nth-child(2)').innerText;
+    const [min, max] = totalText.replace(/ダメージ/g, "").split(' ～ ').map(Number);
+    const moveName = document.getElementById('move-name').value || "不明な技";
+
+    // 履歴に追加
+    damageHistory.push({ name: moveName, min: min, max: max });
+
+    updateHistoryUI();
+}
+
+/**
+ * 履歴一覧と合計ダメージの表示を更新する
+ */
+function updateHistoryUI() {
+    const historyDiv = document.getElementById('damage-history-list');
+    if (!historyDiv) return;
+
+    if (damageHistory.length === 0) {
+        historyDiv.innerHTML = "<p style='color:#999;'>履歴はありません</p>";
+        return;
+    }
+
+    let totalMin = 0;
+    let totalMax = 0;
+    let listHTML = '<ul style="list-style:none; padding:0; font-size:0.9em;">';
+
+    damageHistory.forEach((item, index) => {
+        totalMin += item.min;
+        totalMax += item.max;
+        listHTML += `
+            <li style="border-bottom:1px solid #eee; padding:5px 0; display:flex; justify-content:space-between;">
+                <span>${index + 1}. ${item.name}</span>
+                <span style="font-weight:bold;">${item.min}～${item.max}</span>
+                <button onclick="removeFromHistory(${index})" style="background:none; border:none; color:red; cursor:pointer;">[×]</button>
+            </li>`;
+    });
+    listHTML += '</ul>';
+
+    // 合計表示
+    const hp = parseFloat(document.getElementById('hp').value) || 1;
+    const totalHTML = `
+        <div style="margin-top:10px; padding:10px; background:#fff3cd; border-radius:5px; border:1px solid #ffeeba;">
+            <strong>累計合計ダメージ: ${totalMin} ～ ${totalMax}</strong><br>
+            累計割合: ${(totalMin/hp*100).toFixed(1)}% ～ ${(totalMax/hp*100).toFixed(1)}%
+            <br><button onclick="clearHistory()" style="margin-top:5px; font-size:0.8em;">履歴をリセット</button>
+        </div>
+    `;
+
+    historyDiv.innerHTML = listHTML + totalHTML;
+}
+
+// 履歴削除用
+function removeFromHistory(index) {
+    damageHistory.splice(index, 1);
+    updateHistoryUI();
+}
+
+// リセット用
+function clearHistory() {
+    damageHistory = [];
+    updateHistoryUI();
 }
 
 // 動的制御用関数
