@@ -87,21 +87,19 @@
     </style>
 </head>
 <body>
-    <div id="auth-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
-    <h2 style="margin-bottom:10px;">Sharte専用ツール (要認証)</h2>
-    <p id="auth-status" style="margin-bottom:20px;">Googleアカウントでログインしてください</p>
-    <button id="btn-login" style="padding:12px 24px; font-size:1.1em; cursor:pointer; background:#4285f4; color:white; border:none; border-radius:4px; font-weight:bold;">Googleでログイン</button>
-</div>
-
-<div id="protected-content" style="display:none;">
-    </div>
-
-<script type="module">
-  // Firebase SDK の読み込み
+    <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  // 提供された設定値を適用
+  // ハッシュ化（SHA-256）を行う関数
+  async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
   const firebaseConfig = {
     apiKey: "AIzaSyCyVyusuBQkiDwEzcfAaLeLS1YSiiGTNS4",
     authDomain: "sharte-tool-management.firebaseapp.com",
@@ -112,8 +110,8 @@
     measurementId: "G-GHCLZB8YK0"
   };
 
-  // ★あなたが不定期に変える「合言葉」
-  const CURRENT_MASTER_PASSWORD = "JASRAC"; 
+  // ★「JASRAC」をハッシュ化した値（これを見ても元の文字は推測困難）
+  const HASHED_MASTER_PASSWORD = "30e6080516766440263628373335520d20d9d437071720820f4c330f6580f55d"; 
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -121,41 +119,35 @@
 
   const overlay = document.getElementById('auth-overlay');
   const content = document.getElementById('protected-content');
-  const statusText = document.getElementById('auth-status');
 
-  // ログインボタンの動作
   document.getElementById('btn-login').onclick = () => {
     signInWithPopup(auth, provider).catch(err => alert("エラー: " + err.message));
   };
 
-  // 認証状態の監視 (SSO)
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => { // asyncを追加
     if (user) {
       const storageKey = `auth_verified_${user.uid}`;
-      const isVerified = localStorage.getItem(storageKey);
-
-      if (isVerified === 'true') {
-        // すでに認証済みなら表示
+      if (localStorage.getItem(storageKey) === 'true') {
         overlay.style.display = 'none';
         content.style.display = 'block';
       } else {
-        // ★修正ポイント：少し時間を置いてからプロンプトを表示させる
-        setTimeout(() => {
-          const inputPass = prompt("【初回認証】\n管理者が設定した最新のパスワードを入力してください：");
-          
-          if (inputPass && inputPass.trim() === CURRENT_MASTER_PASSWORD) {
-            localStorage.setItem(storageKey, 'true');
-            overlay.style.display = 'none';
-            content.style.display = 'block';
-          } else {
-            // キャンセルされたか、間違えた場合
-            alert("パスワードが正しくありません。ログアウトします。");
-            auth.signOut();
+        setTimeout(async () => {
+          const inputPass = prompt("【初回認証】\n最新のパスワードを入力してください：");
+          if (inputPass) {
+            // 入力された値をハッシュ化して比較
+            const inputHashed = await hashPassword(inputPass.trim());
+            if (inputHashed === HASHED_MASTER_PASSWORD) {
+              localStorage.setItem(storageKey, 'true');
+              overlay.style.display = 'none';
+              content.style.display = 'block';
+              return;
+            }
           }
-        }, 800); // 0.8秒待機
+          alert("パスワードが正しくありません。");
+          auth.signOut();
+        }, 800);
       }
     } else {
-      // 未ログイン
       overlay.style.display = 'flex';
       content.style.display = 'none';
     }
