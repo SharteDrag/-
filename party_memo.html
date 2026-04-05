@@ -88,7 +88,7 @@
 </head>
 <body>
     <div id="auth-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
-    <h2 style="margin-bottom:10px;">シヤーテ専用ツール (要認証)</h2>
+    <h2 style="margin-bottom:10px;">Sharte専用ツール (要認証)</h2>
     <p id="auth-status" style="margin-bottom:20px;">Googleアカウントでログインしてください</p>
     <button id="btn-login" style="padding:12px 24px; font-size:1.1em; cursor:pointer; background:#4285f4; color:white; border:none; border-radius:4px; font-weight:bold;">Googleでログイン</button>
 </div>
@@ -131,7 +131,6 @@
   // 認証状態の監視 (SSO)
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      // 承認済みフラグの確認
       const storageKey = `auth_verified_${user.uid}`;
       const isVerified = localStorage.getItem(storageKey);
 
@@ -140,17 +139,20 @@
         overlay.style.display = 'none';
         content.style.display = 'block';
       } else {
-        // 初回のみパスワードを要求
-        const inputPass = prompt("初回認証が必要です。\n最新のパスワードを入力してください：");
-        if (inputPass === CURRENT_MASTER_PASSWORD) {
-          localStorage.setItem(storageKey, 'true');
-          overlay.style.display = 'none';
-          content.style.display = 'block';
-        } else {
-          statusText.innerText = "❌ パスワードが違います。";
-          statusText.style.color = "red";
-          auth.signOut();
-        }
+        // ★修正ポイント：少し時間を置いてからプロンプトを表示させる
+        setTimeout(() => {
+          const inputPass = prompt("【初回認証】\n管理者が設定した最新のパスワードを入力してください：");
+          
+          if (inputPass && inputPass.trim() === CURRENT_MASTER_PASSWORD) {
+            localStorage.setItem(storageKey, 'true');
+            overlay.style.display = 'none';
+            content.style.display = 'block';
+          } else {
+            // キャンセルされたか、間違えた場合
+            alert("パスワードが正しくありません。ログアウトします。");
+            auth.signOut();
+          }
+        }, 800); // 0.8秒待機
       }
     } else {
       // 未ログイン
