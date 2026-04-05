@@ -88,32 +88,32 @@
 </head>
 <body>
     <div id="auth-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
-    <h2 style="margin-bottom:10px;">ポケモン計算ツール (要認証)</h2>
+    <h2 style="margin-bottom:10px;">シヤーテ専用ツール (要認証)</h2>
     <p id="auth-status" style="margin-bottom:20px;">Googleアカウントでログインしてください</p>
     <button id="btn-login" style="padding:12px 24px; font-size:1.1em; cursor:pointer; background:#4285f4; color:white; border:none; border-radius:4px; font-weight:bold;">Googleでログイン</button>
 </div>
 
 <div id="protected-content" style="display:none;">
-    ```
+    </div>
 
-#### ② 認証ロジック（JavaScript）
-`<script type="module">` を使って、SSO とパスワードの永続化を実装します。
-
-```javascript
 <script type="module">
+  // Firebase SDK の読み込み
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  // 1. さきほどコピーした config をここに貼り付け
+  // 提供された設定値を適用
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyCyVyusuBQkiDwEzcfAaLeLS1YSiiGTNS4",
+    authDomain: "sharte-tool-management.firebaseapp.com",
+    projectId: "sharte-tool-management",
+    storageBucket: "sharte-tool-management.firebasestorage.app",
+    messagingSenderId: "434296791195",
+    appId: "1:434296791195:web:1b4a23a0529257d378e63e",
+    measurementId: "G-GHCLZB8YK0"
   };
 
-  // 2. あなたが不定期に変える「最新の合言葉」
-  const CURRENT_MASTER_PASSWORD = "Ku6s@ki15_103ZangE2  ";
+  // ★あなたが不定期に変える「合言葉」
+  const CURRENT_MASTER_PASSWORD = "ku6S@ki15_103ZangE2"; 
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -123,34 +123,33 @@
   const content = document.getElementById('protected-content');
   const statusText = document.getElementById('auth-status');
 
-  // ログインボタンの処理
+  // ログインボタンの動作
   document.getElementById('btn-login').onclick = () => {
-    signInWithPopup(auth, provider).catch(err => alert("ログインエラー: " + err.message));
+    signInWithPopup(auth, provider).catch(err => alert("エラー: " + err.message));
   };
 
   // 認証状態の監視 (SSO)
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      // ユーザー固有のID(uid)を使って「承認済みフラグ」をチェック
-      const storageKey = `is_authorized_${user.uid}`;
-      const isAuthorized = localStorage.getItem(storageKey);
+      // 承認済みフラグの確認
+      const storageKey = `auth_verified_${user.uid}`;
+      const isVerified = localStorage.getItem(storageKey);
 
-      if (isAuthorized === 'true') {
-        // 【SSO成功】すでにパスワード入力済みなのでスルー
+      if (isVerified === 'true') {
+        // すでに認証済みなら表示
         overlay.style.display = 'none';
         content.style.display = 'block';
       } else {
-        // 【初回のみ】パスワードを要求
-        const inputPass = prompt("初回認証が必要です。\n管理者が設定した最新のパスワードを入力してください：");
-        
+        // 初回のみパスワードを要求
+        const inputPass = prompt("初回認証が必要です。\n最新のパスワードを入力してください：");
         if (inputPass === CURRENT_MASTER_PASSWORD) {
-          localStorage.setItem(storageKey, 'true'); // フラグを永続化
+          localStorage.setItem(storageKey, 'true');
           overlay.style.display = 'none';
           content.style.display = 'block';
         } else {
-          statusText.innerText = "❌ パスワードが正しくありません。";
+          statusText.innerText = "❌ パスワードが違います。";
           statusText.style.color = "red";
-          auth.signOut(); // ログイン自体を取り消す
+          auth.signOut();
         }
       }
     } else {
