@@ -3064,7 +3064,7 @@ function updateHistoryUI() {
     listHTML += '</ul>';
 
     let resultColor = probability >= 100 ? "#e74c3c" : (probability > 0 ? "#f39c12" : "#27ae60");
-    let verdict = probability >= 100 ? "確定撃破" : (probability <= 0 ? "確定耐え" : `乱数撃破 (${probability.toFixed(2)}%)`);
+    let verdict = probability >= 100 ? "確定1発" : (probability <= 0 ? "確定耐え" : `乱数1発 (${probability.toFixed(2)}%)`);
 
     historyDiv.innerHTML = `
         ${listHTML}
