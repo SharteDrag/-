@@ -2935,7 +2935,7 @@ function addCurrentResultToHistory() {
 }
 
 /**
- * 履歴一覧と合計ダメージの表示を更新する
+ * 履歴一覧と、累計ダメージに基づく確定数・乱数判定を更新する
  */
 function updateHistoryUI() {
     const historyDiv = document.getElementById('damage-history-list');
@@ -2948,27 +2948,58 @@ function updateHistoryUI() {
 
     let totalMin = 0;
     let totalMax = 0;
-    let listHTML = '<ul style="list-style:none; padding:0; font-size:0.9em;">';
+    let listHTML = '<ul style="list-style:none; padding:0; font-size:0.9em; border-bottom:1px solid #ccc; margin-bottom:10px;">';
 
     damageHistory.forEach((item, index) => {
         totalMin += item.min;
         totalMax += item.max;
         listHTML += `
-            <li style="border-bottom:1px solid #eee; padding:5px 0; display:flex; justify-content:space-between;">
-                <span>${index + 1}. ${item.name}</span>
+            <li style="padding:5px 0; display:flex; justify-content:space-between; align-items:center;">
+                <span><small>${index + 1}.</small> ${item.name}</span>
                 <span style="font-weight:bold;">${item.min}～${item.max}</span>
-                <button onclick="removeFromHistory(${index})" style="background:none; border:none; color:red; cursor:pointer;">[×]</button>
+                <button onclick="removeFromHistory(${index})" style="background:#ff4d4d; border:none; color:white; border-radius:3px; cursor:pointer; padding:2px 5px; font-size:0.7em;">削除</button>
             </li>`;
     });
     listHTML += '</ul>';
 
-    // 合計表示
+    // --- 累計判定ロジック ---
     const hp = parseFloat(document.getElementById('hp').value) || 1;
+    const minPercent = (totalMin / hp * 100).toFixed(1);
+    const maxPercent = (totalMax / hp * 100).toFixed(1);
+    
+    let cumulativeKoText = "";
+    let statusColor = "#333";
+
+    if (totalMin >= hp) {
+        // 最小ダメージでもHPを上回っている
+        cumulativeKoText = "累計：確定1発";
+        statusColor = "#e74c3c"; // 赤
+    } else if (totalMax >= hp) {
+        // 最大なら倒せるが最小だと残る（乱数）
+        // 簡易的な線形補間による確率計算
+        const prob = Math.min(100, Math.max(0, ((totalMax - hp) / (totalMax - totalMin)) * 100));
+        cumulativeKoText = `累計：乱数1発 (${prob.toFixed(2)}%)`;
+        statusColor = "#f39c12"; // オレンジ
+    } else {
+        // 最大ダメージでも届かない
+        cumulativeKoText = "累計：生存（確定耐え）";
+        statusColor = "#27ae60"; // 緑
+    }
+
+    // 合計表示の構築
     const totalHTML = `
-        <div style="margin-top:10px; padding:10px; background:#fff3cd; border-radius:5px; border:1px solid #ffeeba;">
-            <strong>累計合計ダメージ: ${totalMin} ～ ${totalMax}</strong><br>
-            累計割合: ${(totalMin/hp*100).toFixed(1)}% ～ ${(totalMax/hp*100).toFixed(1)}%
-            <br><button onclick="clearHistory()" style="margin-top:5px; font-size:0.8em;">履歴をリセット</button>
+        <div style="padding:12px; background:#fff; border-radius:6px; border:2px solid ${statusColor}; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="font-size:0.8em; color:#666;">📊 累計合計</div>
+            <div style="font-size:1.2em; font-weight:bold; color:${statusColor};">
+                ${totalMin} ～ ${totalMax} <span style="font-size:0.7em;">ダメージ</span>
+            </div>
+            <div style="font-size:1.0em; font-weight:bold; margin:4px 0;">
+                割合: ${minPercent}% ～ ${maxPercent}%
+            </div>
+            <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #ccc; font-size:1.1em; font-weight:bold; color:${statusColor};">
+                判定: ${cumulativeKoText}
+            </div>
+            <button onclick="clearHistory()" style="margin-top:10px; width:100%; padding:5px; font-size:0.8em; cursor:pointer; background:#f8f9fa; border:1px solid #ccc; border-radius:4px;">履歴を全リセット</button>
         </div>
     `;
 
