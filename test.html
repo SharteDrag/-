@@ -337,6 +337,84 @@ document.addEventListener('click', function(event) {
 });
 </script>
 <body>
+<div id="auth-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
+    <h2 style="margin-bottom:10px;">Sharte専用ツール (要認証)</h2>
+    <p id="auth-status" style="margin-bottom:20px;">Googleアカウントでログインしてください</p>
+    <button id="btn-login" style="padding:12px 24px; font-size:1.1em; cursor:pointer; background:#4285f4; color:white; border:none; border-radius:4px; font-weight:bold;">Googleでログイン</button>
+</div>
+
+<div id="protected-content" style="display:none;">
+    </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+  // 最新の提供された設定値を適用
+  const firebaseConfig = {
+    apiKey: "AIzaSyCyVyusuBQkiDwEzcfAaLeLS1YSiiGTNS4",
+    authDomain: "sharte-tool-management.firebaseapp.com",
+    projectId: "sharte-tool-management",
+    storageBucket: "sharte-tool-management.firebasestorage.app",
+    messagingSenderId: "434296791195",
+    appId: "1:434296791195:web:82ab1ff00b0a424178e63e", // 更新されたID
+    measurementId: "G-0TEQP902GF"
+  };
+
+  // 管理用の合言葉
+  const CURRENT_MASTER_PASSWORD = "ku6S@ki15_103ZangE2"; 
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  const overlay = document.getElementById('auth-overlay');
+  const content = document.getElementById('protected-content');
+  const statusText = document.getElementById('auth-status');
+
+  // ログインボタンのクリックイベント
+  document.getElementById('btn-login').onclick = () => {
+    signInWithPopup(auth, provider).catch(err => {
+        console.error(err);
+        alert("エラー: " + err.message);
+    });
+  };
+
+  // 認証状態の監視
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // ユーザーごとに「このブラウザで合言葉を入れたか」を記録
+      const storageKey = `auth_verified_${user.uid}`;
+      const isVerified = localStorage.getItem(storageKey);
+
+      if (isVerified === 'true') {
+        // すでに認証済みなら即表示
+        overlay.style.display = 'none';
+        content.style.display = 'block';
+      } else {
+        // ログイン直後の安定を待ってからパスワード入力を求める
+        setTimeout(() => {
+          const inputPass = prompt("【初回認証】\n管理者が設定した最新のパスワードを入力してください：");
+          
+          if (inputPass && inputPass.trim() === CURRENT_MASTER_PASSWORD) {
+            localStorage.setItem(storageKey, 'true');
+            overlay.style.display = 'none';
+            content.style.display = 'block';
+          } else {
+            alert("パスワードが正しくありません。ログアウトします。");
+            signOut(auth).then(() => {
+                location.reload(); // 状態をリセット
+            });
+          }
+        }, 800);
+      }
+    } else {
+      // 未ログイン状態ならログイン画面を出す
+      overlay.style.display = 'flex';
+      content.style.display = 'none';
+    }
+  });
+</script>
 <!-- ハンバーガーメニュー -->
 <div id="hamburgerMenu" class="hamburger-menu">
     <div class="hamburger-btn" onclick="toggleMenu()">
