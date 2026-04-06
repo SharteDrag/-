@@ -322,7 +322,7 @@ async function exportPartyImage() {
     ctx.fillText(`構築メモ: ${partyName}`, 40, 60);
 
     const cards = document.querySelectorAll('.pokemon-card');
-    const loadImages = []; // ポケモンアイコンと持ち物画像のPromiseをすべてここに入れる
+    const loadImages = []; // 全ての画像読み込みPromiseを管理
 
     const typeColors = {
         normal: '#A8A878', fire: '#F08030', water: '#6890F0', electric: '#F8D030',
@@ -334,7 +334,7 @@ async function exportPartyImage() {
 
     for (let i = 0; i < 6; i++) {
         const card = cards[i];
-        if (!card) continue; // カードが存在しない場合はスキップ
+        if (!card) continue;
 
         const x = (i % 3) * 400 + 40;
         const y = Math.floor(i / 3) * 380 + 100;
@@ -355,67 +355,72 @@ async function exportPartyImage() {
         const natureName = card.querySelector('.nature-select').value;
         const nature = NATURES[natureName] || {up:0, down:0};
 
-        // --- 1. ポケモンアイコン読み込み処理 (既存機能維持) ---
+        //画像の描画位置を定義（重ねる処理のため、ループ内で管理）
+        const pokemonIconX = x + 10;
+        const pokemonIconY = y + 10;
+        const pokemonIconSize = 64;
+
+        // --- 画像描画リレー（重なり順を固定） ---
         const spId = card.querySelector('.sp-input').dataset.selectedId;
-        if (spId) {
-            const initial = spId.charAt(0).toUpperCase();
-            const img = new Image();
-            img.src = `Icons/${initial}/${spId.toUpperCase()}.png`; 
-            
-            const p = new Promise((resolve) => {
-                img.onload = () => {
-                    // ポケモンアイコン描画
-                    ctx.drawImage(img, 0, 0, 64, 64, x + 10, y + 10, 64, 64)
-                    resolve();
-                };
-                img.onerror = () => {
-                    console.warn(`Icon load failed: ${img.src}`);
-                    resolve(); 
-                };
-            });
-            loadImages.push(p);
-        }
+        const itemId = itemInput.dataset.selectedId;
 
-        // --- 2. 持ち物アイコン読み込み処理 (新規追加) ---
-        // item-inputの dataset.selectedId (英名ID、例: choice_band) を使用と想定
-        const itemId = itemInput.dataset.selectedId; 
-        
-        if (itemId && itemId !== "none") { // 持ち物なし以外
-            const itemImg = new Image();
-            // パス構築: items/choice_band.png (小文字と想定。必要に応じてtoUpperCase()に)
-            itemImg.src = `Items/${itemId}.png`; 
-            
-            const pItem = new Promise((resolve) => {
-                itemImg.onload = () => {
-                    // 特性・持ち物エリアに描画 (24x24ピクセル程度を想定)
-                    // 位置はテキストに合わせて調整
-                    ctx.drawImage(itemImg, x + 210, y + 49, 24, 24);
-                    resolve();
-                };
-                itemImg.onerror = () => {
-                    console.warn(`Item image load failed: ${itemImg.src}`);
-                    // 読み込み失敗時は画像を描画しないだけで、処理は止めない
-                    resolve(); 
-                };
-            });
-            loadImages.push(pItem);
-        }
+        const drawProcess = new Promise(async (resolve) => {
+            // 1. まずポケモン画像を読み込んで描く
+            if (spId) {
+                const initial = spId.charAt(0).toUpperCase();
+                const img = new Image();
+                img.src = `Icons/${initial}/${spId.toUpperCase()}.png`;
+                
+                await new Promise((res) => {
+                    img.onload = () => {
+                        ctx.drawImage(img, 0, 0, 64, 64, pokemonIconX, pokemonIconY, pokemonIconSize, pokemonIconSize);
+                        res();
+                    };
+                    img.onerror = res; // エラーでも次へ
+                });
+            }
 
-        // --- テキスト描画 (位置を微調整) ---
+            // 2. ポケモンを描き終わった「後」に持ち物を描く（これで必ず上に来る）
+            if (itemId && itemId !== "none") {
+                const itemImg = new Image();
+                itemImg.src = `Items/${itemId}.png`;
+                
+                await new Promise((res) => {
+                    itemImg.onload = () => {
+                        const itemIconSize = 32;
+                        const overlapOffset = 8;
+                        const itemX = pokemonIconX + pokemonIconSize - itemIconSize + overlapOffset;
+                        const itemY = pokemonIconY + pokemonIconSize - itemIconSize + overlapOffset;
+                        
+                        // 持ち物を描画（後から描くので絶対上になる）
+                        ctx.drawImage(itemImg, itemX, itemY, itemIconSize, itemIconSize);
+                        res();
+                    };
+                    itemImg.onerror = res;
+                });
+            }
+            resolve();
+        });
+
+        loadImages.push(drawProcess);
+
+        // --- テキスト描画 (画像と被らないように位置を右へずらす) ---
         
-        // 1. 名前（右側にずらして表示）
+        // テキストの開始X座標を一律で右へずらす (x + 85 -> x + 110)
+        // 持ち物アイコンが少しはみ出るのを考慮
+        const textStartX = x + 110; 
+
+        // 1. 名前
         ctx.fillStyle = "#000";
         ctx.font = "bold 22px sans-serif";
-        ctx.fillText(name || "???", x + 85, y + 40);
+        ctx.fillText(name || "???", textStartX, y + 40);
         
         // 2. 特性・持ち物
         ctx.font = "14px sans-serif";
         ctx.fillStyle = "#555";
-        // 特性はそのまま
-        ctx.fillText(`特性: ${abilityName}`, x + 85, y + 65);
         
-        // 持ち物のテキスト開始位置を、画像が入る分右へずらす (x+230 -> x+240)
-        ctx.fillText(`${itemName || "なし"}`, x + 240, y + 65);
+        // 特性
+        ctx.fillText(`特性: ${abilityName}`, textStartX, y + 65);
 
         // ステータス描画 (変更なし)
         const totals = card.querySelectorAll('.total-display');
@@ -483,7 +488,6 @@ async function exportPartyImage() {
                     let currentLine = "";
                     for (let char of line) {
                         let testLine = currentLine + char;
-                        // Canvasが生成されていない等のエラー防止用チェック
                         try {
                             let metrics = ctx.measureText(testLine);
                             if (metrics.width > maxWidth && currentLine !== "") {
