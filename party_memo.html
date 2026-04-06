@@ -422,6 +422,9 @@ async function exportPartyImage() {
         // 特性
         ctx.fillText(`特性: ${abilityName}`, textStartX, y + 65);
 
+        // 持ち物テキスト (画像と被らない位置へずらす x + 240 -> x + 230 かつStartX基準)
+        ctx.fillText(`もちもの: ${itemName || "なし"}`, textStartX, y + 90);
+
         // ステータス描画 (変更なし)
         const totals = card.querySelectorAll('.total-display');
         const evs = card.querySelectorAll('.ev-input');
