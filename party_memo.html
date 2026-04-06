@@ -322,7 +322,7 @@ async function exportPartyImage() {
     ctx.fillText(`構築メモ: ${partyName}`, 40, 60);
 
     const cards = document.querySelectorAll('.pokemon-card');
-    const loadImages = [];
+    const loadImages = []; // ポケモンアイコンと持ち物画像のPromiseをすべてここに入れる
 
     const typeColors = {
         normal: '#A8A878', fire: '#F08030', water: '#6890F0', electric: '#F8D030',
@@ -334,6 +334,8 @@ async function exportPartyImage() {
 
     for (let i = 0; i < 6; i++) {
         const card = cards[i];
+        if (!card) continue; // カードが存在しない場合はスキップ
+
         const x = (i % 3) * 400 + 40;
         const y = Math.floor(i / 3) * 380 + 100;
 
@@ -346,26 +348,23 @@ async function exportPartyImage() {
         ctx.stroke();
 
         const name = card.querySelector('.sp-input').value;
-        const item = card.querySelector('.item-input').value;
+        const itemInput = card.querySelector('.item-input');
+        const itemName = itemInput.value;
         const abValue = card.querySelector('.ability-select').value;
         const abilityName = db.abilities[abValue]?.name || abValue || "---";
         const natureName = card.querySelector('.nature-select').value;
         const nature = NATURES[natureName] || {up:0, down:0};
 
-        // --- アイコン読み込み処理 (IDベース: Icons/P/PIKACHU.png) ---
-        // data-selected-id に保存されている英名ID（PIKACHU等）を取得
+        // --- 1. ポケモンアイコン読み込み処理 (既存機能維持) ---
         const spId = card.querySelector('.sp-input').dataset.selectedId;
-
         if (spId) {
-            // IDの1文字目（例：PIKACHU -> P）
             const initial = spId.charAt(0).toUpperCase();
             const img = new Image();
-            
-            // パス構築: Icons/P/PIKACHU.png
             img.src = `Icons/${initial}/${spId.toUpperCase()}.png`; 
             
             const p = new Promise((resolve) => {
                 img.onload = () => {
+                    // ポケモンアイコン描画
                     ctx.drawImage(img, 0, 0, 64, 64, x + 10, y + 10, 64, 64)
                     resolve();
                 };
@@ -377,6 +376,33 @@ async function exportPartyImage() {
             loadImages.push(p);
         }
 
+        // --- 2. 持ち物アイコン読み込み処理 (新規追加) ---
+        // item-inputの dataset.selectedId (英名ID、例: choice_band) を使用と想定
+        const itemId = itemInput.dataset.selectedId; 
+        
+        if (itemId && itemId !== "none") { // 持ち物なし以外
+            const itemImg = new Image();
+            // パス構築: items/choice_band.png (小文字と想定。必要に応じてtoUpperCase()に)
+            itemImg.src = `items/${itemId}.png`; 
+            
+            const pItem = new Promise((resolve) => {
+                itemImg.onload = () => {
+                    // 特性・持ち物エリアに描画 (24x24ピクセル程度を想定)
+                    // 位置はテキストに合わせて調整
+                    ctx.drawImage(itemImg, x + 210, y + 49, 24, 24);
+                    resolve();
+                };
+                itemImg.onerror = () => {
+                    console.warn(`Item image load failed: ${itemImg.src}`);
+                    // 読み込み失敗時は画像を描画しないだけで、処理は止めない
+                    resolve(); 
+                };
+            });
+            loadImages.push(pItem);
+        }
+
+        // --- テキスト描画 (位置を微調整) ---
+        
         // 1. 名前（右側にずらして表示）
         ctx.fillStyle = "#000";
         ctx.font = "bold 22px sans-serif";
@@ -385,10 +411,13 @@ async function exportPartyImage() {
         // 2. 特性・持ち物
         ctx.font = "14px sans-serif";
         ctx.fillStyle = "#555";
+        // 特性はそのまま
         ctx.fillText(`特性: ${abilityName}`, x + 85, y + 65);
-        ctx.fillText(`持: ${item || "なし"}`, x + 230, y + 65);
+        
+        // 持ち物のテキスト開始位置を、画像が入る分右へずらす (x+230 -> x+240)
+        ctx.fillText(`${itemName || "なし"}`, x + 240, y + 65);
 
-        // ステータス描画
+        // ステータス描画 (変更なし)
         const totals = card.querySelectorAll('.total-display');
         const evs = card.querySelectorAll('.ev-input');
         const labels = ['H', 'A', 'B', 'C', 'D', 'S'];
@@ -417,7 +446,7 @@ async function exportPartyImage() {
             }
         });
 
-        // 技描画
+        // 技描画 (変更なし)
         const moves = card.querySelectorAll('.move-input');
         moves.forEach((mv, j) => {
             const mName = mv.value;
@@ -435,45 +464,52 @@ async function exportPartyImage() {
             ctx.fillText(mName || "-", mX + 10, mY + 21);
         });
 
-        // 調整メモ（改行・自動折り返し対応）
-        const memo = card.querySelector('.memo-area').value;
-        if (memo) {
-            ctx.fillStyle = "#444";
-            ctx.font = "12px sans-serif";
-            const lineHeight = 16;
-            const maxWidth = 340; // カードの幅に合わせた最大横幅
-            const startX = x + 20;
-            const startY = y + 285;
-            
-            // 改行コードで分割し、さらに長すぎる行を折り返す
-            const lines = memo.split('\n');
-            let displayLines = [];
-            
-            lines.forEach(line => {
-                let currentLine = "";
-                for (let char of line) {
-                    let testLine = currentLine + char;
-                    let metrics = ctx.measureText(testLine);
-                    if (metrics.width > maxWidth && currentLine !== "") {
-                        displayLines.push(currentLine);
-                        currentLine = char;
-                    } else {
-                        currentLine = testLine;
+        // 調整メモ (変更なし)
+        const memoArea = card.querySelector('.memo-area');
+        if (memoArea) {
+            const memo = memoArea.value;
+            if (memo) {
+                ctx.fillStyle = "#444";
+                ctx.font = "12px sans-serif";
+                const lineHeight = 16;
+                const maxWidth = 340; 
+                const startX = x + 20;
+                const startY = y + 285;
+                
+                const lines = memo.split('\n');
+                let displayLines = [];
+                
+                lines.forEach(line => {
+                    let currentLine = "";
+                    for (let char of line) {
+                        let testLine = currentLine + char;
+                        // Canvasが生成されていない等のエラー防止用チェック
+                        try {
+                            let metrics = ctx.measureText(testLine);
+                            if (metrics.width > maxWidth && currentLine !== "") {
+                                displayLines.push(currentLine);
+                                currentLine = char;
+                            } else {
+                                currentLine = testLine;
+                            }
+                        } catch (e) {
+                            currentLine = testLine;
+                        }
                     }
-                }
-                displayLines.push(currentLine);
-            });
+                    displayLines.push(currentLine);
+                });
 
-            // 最大3〜4行程度でクリップ（カードからはみ出さないよう制限）
-            displayLines.slice(0, 4).forEach((line, index) => {
-                ctx.fillText(line, startX, startY + (index * lineHeight));
-            });
+                displayLines.slice(0, 4).forEach((line, index) => {
+                    ctx.fillText(line, startX, startY + (index * lineHeight));
+                });
+            }
         }
     }
 
-    // すべての画像読み込み完了を待機してからダウンロード
+    // --- すべての画像（ポケモン＋持ち物）読み込み完了を待機 ---
     await Promise.all(loadImages);
 
+    // ダウンロード処理 (変更なし)
     const link = document.createElement('a');
     link.download = `${partyName}.png`;
     link.href = canvas.toDataURL('image/png');
