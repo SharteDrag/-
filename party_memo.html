@@ -87,96 +87,6 @@
     </style>
 </head>
 <body>
-    <div id="auth-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
-    <h2 style="margin-bottom:10px;">Sharte専用ツール (要認証)</h2>
-    <p id="auth-status" style="margin-bottom:20px;">Googleアカウントでログインしてください</p>
-    <button id="btn-login" style="padding:12px 24px; font-size:1.1em; cursor:pointer; background:#4285f4; color:white; border:none; border-radius:4px; font-weight:bold;">Googleでログイン</button>
-</div>
-
-<div id="protected-content" style="display:none;">
-    </div>
-    <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-  // ハッシュ化関数
-  async function hashPassword(password) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  // ★JSONからハッシュ値を取得する関数
-  async function getMasterHash() {
-    try {
-      const response = await fetch('abdata.json'); // パスは適宜調整してください
-      const data = await response.json();
-      return data.master_hash;
-    } catch (error) {
-      console.error("JSONの読み込みに失敗しました:", error);
-      return null;
-    }
-  }
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCyVyusuBQkiDwEzcfAaLeLS1YSiiGTNS4",
-    authDomain: "sharte-tool-management.firebaseapp.com",
-    projectId: "sharte-tool-management",
-    storageBucket: "sharte-tool-management.firebasestorage.app",
-    messagingSenderId: "434296791195",
-    appId: "1:434296791195:web:1b4a23a0529257d378e63e",
-    measurementId: "G-GHCLZB8YK0"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-
-  const overlay = document.getElementById('auth-overlay');
-  const content = document.getElementById('protected-content');
-
-  document.getElementById('btn-login').onclick = () => {
-    signInWithPopup(auth, provider).catch(err => alert("エラー: " + err.message));
-  };
-
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      const storageKey = `auth_verified_${user.uid}`;
-      if (localStorage.getItem(storageKey) === 'true') {
-        overlay.style.display = 'none';
-        content.style.display = 'block';
-      } else {
-        // ★JSONから最新のハッシュを取得
-        const MASTER_HASH = await getMasterHash();
-        
-        if (!MASTER_HASH) {
-          alert("認証データの読み込みに失敗しました。管理者に連絡してください。");
-          return;
-        }
-
-        setTimeout(async () => {
-          const inputPass = prompt("【初回認証】\n最新のパスワードを入力してください：");
-          if (inputPass) {
-            const inputHashed = await hashPassword(inputPass.trim().toUpperCase());
-            if (inputHashed === MASTER_HASH) {
-              localStorage.setItem(storageKey, 'true');
-              overlay.style.display = 'none';
-              content.style.display = 'block';
-              return;
-            }
-          }
-          alert("パスワードが正しくありません。");
-          signOut(auth).then(() => location.reload());
-        }, 800);
-      }
-    } else {
-      overlay.style.display = 'flex';
-      content.style.display = 'none';
-    }
-  });
-</script>
 
 <div id="hamburgerMenu" class="hamburger-menu">
     <div class="hamburger-btn" onclick="toggleMenu()">
@@ -748,7 +658,7 @@ function updateSpecies(idx, speciesData) {
             if (isShowingMega) {
                 // メガシンカ解除時はアイテムを消すべきか？ 
                 // 構築メモとしては残しておいたほうが親切なので、ここではアイテム操作はしない
-                const baseName = name.replace("メガ", "").replace(/X$|Y$/, "");
+                const baseName = name.replace("メガ", "").replace(/X$|Y$|Z$/, "");
                 const baseSpecies = db.species.find(s => s.name === baseName);
                 if (baseSpecies) {
                     applyStats(idx, baseSpecies.data);
