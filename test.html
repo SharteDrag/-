@@ -631,8 +631,15 @@ document.addEventListener('click', function(event) {
         <div class="input-group">
             <div>
                 <h3>1. 基本情報</h3>
-                <label for="level">攻撃側レベル (固定)</label>
-                <input type="number" id="level" value="50" disabled class="fixed-level">
+                <details>
+    <summary style="cursor: pointer; list-style: none;">
+        <span>＋ レベル (固定)</span>
+    </summary>
+    <div style="margin-top: 10px; padding-left: 10px; border-left: 2px solid #ccc;">
+        <label for="level">攻撃側レベル</label>
+        <input type="number" id="level" value="50" disabled class="fixed-level">
+    </div>
+</details>
                 
                 <label for="hp">防御側最大HP</label>
 <div style="display: flex; gap: 8px; align-items: center;">
@@ -760,6 +767,7 @@ document.addEventListener('click', function(event) {
     <option value="4915">1.2倍 (プレート/おこう等)</option>
     <option value="5324">1.3倍 (いのちのたま等)</option>
     <option value="6144">1.5倍 (こだわりハチマキ/メガネ等)</option>
+    <option value="HONETAMA">でんきだま/ふといホネ (2.0x)</option>
     </select>
                 <label for="ability_m_atk">攻撃側 特性補正</label>
                 <input type="number" id="ability_m_atk" value="4096" step="0.0001" min="0.0">
@@ -826,7 +834,7 @@ document.addEventListener('click', function(event) {
                     <input type="checkbox" id="substitute_check">
                 </div>
                 
-                <label for="environment_m_select">天候/フィールド補正 (M) - **自動適用**</label>
+                <label for="environment_m_select">天候補正 (M) - **自動適用**</label>
                 <select id="environment_m_select" name="environment_m_select">
                     <option value="None">補正なし (1.0)</option>
                     <optgroup label="--- 天候 ---">
@@ -835,6 +843,11 @@ document.addEventListener('click', function(event) {
                         <option value="Sandstorm">🌪️ 砂嵐 (岩タイプ特防1.5倍)</option>
                         <option value="Snow">❄️ 霰/雪 (氷タイプ防御1.5倍)</option>
                     </optgroup>
+                </select>
+
+                <label for="environment_m_select">フィールド補正 (M) - **自動適用**</label>
+                <select id="environment_m_select" name="environment_m_select">
+                    <option value="None">補正なし (1.0)</option>
                     <optgroup label="--- フィールド (1.3倍) ---">
                         <option value="ElectricTerrain">⚡ エレキフィールド (電1.3倍)</option>
                         <option value="GrassyTerrain">🌱 グラスフィールド (草1.3倍)</option>
@@ -905,7 +918,7 @@ document.addEventListener('click', function(event) {
         let defenderSpDefMult = 1.0;
         let defenderAtkMult = 1.0;
         let defenderSpAtkMult = 1.0;
-        let originMaxHP = 150;
+        let originMaxHP = parseInt(hpInput.value) || 1;
         
         let POKEDATA_MAP = {}; 
         // lists used for search filtering
@@ -916,7 +929,8 @@ document.addEventListener('click', function(event) {
         let HIRAGANA_TO_KATAKANA_MAP = {}; 
         let ABILITIES_DB = {};
         let damageHistory = []; // 計算履歴を保存する配列
-        let currentLastDamages = []; // これが不足している、または初期化されていない
+        let currentLastDamages = [];
+        let lastCalculatedEffectiveHP = null;
 
         // タイプ相性表
         const TYPE_EFFECTIVENESS = {
@@ -2530,6 +2544,14 @@ function runDamageCalculation(isCriticalOverride, args) {
 
         // --- 6. 能力値計算（ランク・特性・災い） ---
         let atkWithAbility = Math.floor(base_attack * (abilityAtkMult || 1.0));
+
+        const itemAtkSelection = document.getElementById('item_m_atk').value;
+
+        if (itemAtkSelection === "HONETAMA") {
+            // 攻撃（または特攻）の実数値を2倍にする
+        atkWithAbility = Math.floor(atkWithAbility * 2.0);
+        }
+
         atkWithAbility = Math.floor(atkWithAbility * ruinAtkMult);
         const A = Math.floor(atkWithAbility * getRankMultiplier(rank_attack_val, isCrit, true));
 
@@ -2948,22 +2970,7 @@ const afterHPPercent = Math.max(0, (100 - maxDamagePercent)).toFixed(1);
 
  document.getElementById('current_hp_val').innerText = effectiveTargetHP - totalMax;
 
-// 条件：最大ダメージを受けても生存する場合（割合が0%より大きい）
-if (maxDamagePercent < 100) {
-    const updateBtnHtml = `
-        <div style="margin-top:15px; padding:12px; background:#f0f7ff; border-radius:8px; border:1px solid #b8daff;">
-            <p style="margin:0 0 8px 0; font-size:0.9em; color:#004085;">
-                🛡️ <strong>この攻撃を耐えた後の残りHP予測: ${afterHPPercent}%</strong>
-                <br><span style="font-size:0.8em; color:#666;">(最大HPから最大ダメージ ${totalMax} を引いた数値)</span>
-            </p>
-            <button type="button" onclick="updatePercentAndRecalc(${afterHPPercent})" 
-                    style="cursor:pointer; width:100%; padding:10px; background:#007bff; color:white; border:none; border-radius:6px; font-weight:bold;">
-                HP ${afterHPPercent}% を反映
-            </button>
-        </div>
-    `;
-    resultDiv.insertAdjacentHTML('beforeend', updateBtnHtml);
-}
+ lastCalculatedEffectiveHP = effectiveTargetHP;
 
 const historyBtnHtml = `
     <div style="margin-top:10px;">
@@ -3051,21 +3058,24 @@ function updateHistoryUI() {
         return;
     }
 
-    // 1. 累積分布の計算（全パターンの合成）
+    // 1. 累積分布の計算
     let cumulativeDist = [...damageHistory[0].dist];
     for (let i = 1; i < damageHistory.length; i++) {
         cumulativeDist = convolve(cumulativeDist, damageHistory[i].dist);
     }
 
     // 2. 統計値の取得
-    const hp = parseFloat(document.getElementById('hp').value) || 1;
-    // ソートは必須ではないが、最小・最大を出すために行う
+    // 【修正】計算済みの有効HPがあればそれを使う。なければ入力欄から取る。
+    const baseHp = parseFloat(document.getElementById('hp').value) || 1;
+    const targetHpForKo = lastCalculatedEffectiveHP !== null ? lastCalculatedEffectiveHP : baseHp;
+
     cumulativeDist.sort((a, b) => a - b);
     const minSum = cumulativeDist[0];
     const maxSum = cumulativeDist[cumulativeDist.length - 1];
     
     // 3. 撃破パターンの精密カウント
-    const koCount = cumulativeDist.filter(d => d >= hp).length;
+    // 【修正】targetHpForKo に対して判定
+    const koCount = cumulativeDist.filter(d => d >= targetHpForKo).length;
     const probability = (koCount / cumulativeDist.length) * 100;
 
     // --- 表示処理 ---
@@ -3078,12 +3088,14 @@ function updateHistoryUI() {
     let resultColor = probability >= 100 ? "#e74c3c" : (probability > 0 ? "#f39c12" : "#27ae60");
     let verdict = probability >= 100 ? "確定1発" : (probability <= 0 ? "確定耐え" : `乱数1発 (${probability.toFixed(2)}%)`);
 
+    // 【修正】表示上の「割合」も targetHpForKo を基準にする
     historyDiv.innerHTML = `
         ${listHTML}
         <div style="border:2px solid ${resultColor}; padding:10px; border-radius:5px; background:#fff; margin-top:5px;">
             <div style="font-size:0.8em; color:#666;">📊 全 ${cumulativeDist.length.toLocaleString()} 通りを計算</div>
+            <div style="font-size:0.85em; color:#d35400; margin-bottom:5px;">対象HP: ${targetHpForKo} (アイテム・設置物考慮済)</div>
             <strong>累計: ${minSum} ～ ${maxSum}</strong><br>
-            割合: ${(minSum/hp*100).toFixed(1)}% ～ ${(maxSum/hp*100).toFixed(1)}%<br>
+            割合: ${(minSum/targetHpForKo*100).toFixed(1)}% ～ ${(maxSum/targetHpForKo*100).toFixed(1)}%<br>
             <div style="font-size:1.1em; font-weight:bold; color:${resultColor}; margin-top:5px;">
                 判定: ${verdict}
             </div>
