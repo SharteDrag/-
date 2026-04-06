@@ -383,7 +383,7 @@ async function exportPartyImage() {
         if (itemId && itemId !== "none") { // 持ち物なし以外
             const itemImg = new Image();
             // パス構築: items/choice_band.png (小文字と想定。必要に応じてtoUpperCase()に)
-            itemImg.src = `items/${itemId}.png`; 
+            itemImg.src = `Items/${itemId}.png`; 
             
             const pItem = new Promise((resolve) => {
                 itemImg.onload = () => {
