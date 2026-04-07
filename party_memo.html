@@ -37,10 +37,39 @@
         }
         .party-controls h2 { width: 100%; margin: 0 0 5px 0; font-size: 18px; }
 
-        .party-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        @media (min-width: 900px) {
-            .party-grid { grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
-        }
+        /* モバイルファースト：基本を2列にする */
+.party-grid { 
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); /* スマホで2列 */
+    gap: 10px; /* 隙間を少し狭くして画面に収まりやすくする */
+}
+
+/* 非常に画面が狭い（350px以下など）場合は1列に落とす（任意） */
+@media (max-width: 380px) {
+    .party-grid { grid-template-columns: 1fr; }
+}
+
+/* PCなどの広い画面では3列にする */
+@media (min-width: 900px) {
+    .party-grid { 
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 15px;
+    }
+}
+
+/* カード内の要素も2列時に崩れないよう調整 */
+.pokemon-card { 
+    padding: 10px; /* 余白を少し削る */
+}
+
+/* 入力欄が重ならないよう調整 */
+.stat-table th, .stat-table td {
+    padding: 4px 2px;
+    font-size: 12px;
+}
+.ev-input {
+    width: 40px !important; /* 少し細くする */
+}
 
         .pokemon-card { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         input, select, textarea { font-size: 16px !important; }
