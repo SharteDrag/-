@@ -24234,11 +24234,10 @@
     "SpDef": 110,
     "Weight": 43.3,
     "Abilities": [
-      "CUTECHARM",
-      "MAGICGUARD"
+      "MAGICBOUNCE"
     ],
     "HiddenAbilities": [
-      "UNAWARE"
+      "MAGICBOUNCE"
     ],
     "Name": "メガピクシー"
   },
@@ -24255,10 +24254,10 @@
     "SpDef": 95,
     "Weight": 125.5,
     "Abilities": [
-      "CHLOROPHYLL"
+      "INNARDSOUT"
     ],
     "HiddenAbilities": [
-      "GLUTTONY"
+      "INNARDSOUT"
     ],
     "Name": "メガウツボット"
   },
@@ -24353,11 +24352,10 @@
     "SpDef": 100,
     "Weight": 40.4,
     "Abilities": [
-      "KEENEYE",
-      "STURDY"
+      "STALWART"
     ],
     "HiddenAbilities": [
-      "WEAKARMOR"
+      "STALWART"
     ],
     "Name": "メガエアームド"
   },
@@ -24414,11 +24412,10 @@
     "SpDef": 65,
     "Weight": 60.0,
     "Abilities": [
-      "SANDRUSH",
-      "SANDFORCE"
+      "PIERCINGDRILL"
     ],
     "HiddenAbilities": [
-      "MOLDBREAKER"
+      "PIERCINGDRILL"
     ],
     "Name": "メガドリュウズ"
   },
@@ -24494,8 +24491,7 @@
     "SpDef": 110,
     "Weight": 69.6,
     "Abilities": [
-      "FLASHFIRE",
-      "FLAMEBODY"
+      "INFILTRATOR"
     ],
     "HiddenAbilities": [
       "INFILTRATOR"
@@ -24595,10 +24591,10 @@
     "SpDef": 148,
     "Weight": 100.8,
     "Abilities": [
-      "FLOWERVEIL"
+      "FAIRYAURA"
     ],
     "HiddenAbilities": [
-      "SYMBIOSIS"
+      "FAIRYAURA"
     ],
     "Name": "メガフラエッテ"
   },
@@ -24678,11 +24674,10 @@
     "SpDef": 93,
     "Weight": 25.0,
     "Abilities": [
-      "LIMBER",
-      "UNBURDEN"
+      "NOGUARD"
     ],
     "HiddenAbilities": [
-      "MOLDBREAKER"
+      "NOGUARD"
     ],
     "Name": "メガルチャブル"
   },
@@ -24718,11 +24713,10 @@
     "SpDef": 116,
     "Weight": 240.5,
     "Abilities": [
-      "BERSERK",
-      "SAPSIPPER"
+      "BERSERK"
     ],
     "HiddenAbilities": [
-      "CLOUDNINE"
+      "BERSERK"
     ],
     "Name": "メガジジーロン"
   },
@@ -24931,11 +24925,10 @@
     "SpDef": 105,
     "Weight": 330.0,
     "Abilities": [
-      "IRONFIST",
-      "KLUTZ"
+      "UNSEENFIST"
     ],
     "HiddenAbilities": [
-      "NOGUARD"
+      "UNSEENFIST"
     ],
     "Name": "メガゴルーグ"
   },
@@ -24951,11 +24944,10 @@
     "SpDef": 101,
     "Weight": 10.1,
     "Abilities": [
-      "KEENEYE",
-      "INFILTRATOR"
+      "TRACE"
     ],
     "HiddenAbilities": [
-      "PRANKSTER"
+      "TRACE"
     ],
     "Name": "メガニャオニクス"
   },
@@ -24972,11 +24964,10 @@
     "SpDef": 107,
     "Weight": 252.8,
     "Abilities": [
-      "HYPERCUTTER",
       "IRONFIST"
     ],
     "HiddenAbilities": [
-      "ANGERPOINT"
+      "IRONFIST"
     ],
     "Name": "メガケケンカニ"
   },
@@ -25046,11 +25037,10 @@
     "SpDef": 85,
     "Weight": 22.0,
     "Abilities": [
-      "CHLOROPHYLL",
-      "INSOMNIA"
+      "SPICYSPRAY"
     ],
     "HiddenAbilities": [
-      "MOODY"
+      "SPICYSPRAY"
     ],
     "Name": "メガスコヴィラン"
   },
@@ -25067,10 +25057,10 @@
     "SpDef": 96,
     "Weight": 77.0,
     "Abilities": [
-      "TOXICDEBRIS"
+      "ADAPTABILITY"
     ],
     "HiddenAbilities": [
-      "CORROSION"
+      "ADAPTABILITY"
     ],
     "Name": "メガキラフロル"
   },
