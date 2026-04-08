@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ポケモン パーティ構築メモ(シーテャkids)</title>
@@ -226,8 +227,7 @@
     <button onclick="loadParty()">読込</button>
     <button onclick="deleteParty()">削除</button>
     <button onclick="exportPartyImage()" style="background: #28a745;">画像として保存</button>
-    <button onclick="exportPartyCode()" style="background: #6f42c1;">コードをコピー</button>
-    <button onclick="importPartyCode()" style="background: #17a2b8;">コードを読込</button>
+    <button onclick="exportPartyCode()" style="background: #6f42c1;">URLをコピー</button>
 </div>
     <div id="partyGrid" class="party-grid"></div>
         <textarea id="partyMemo" placeholder="パーティ全体のメモ（苦手なポケモン、選出パターンなど）" 
@@ -419,11 +419,63 @@ async function init() {
 
         setupSaveSlots();
         createPartyUI(); // UI作成を最後にする
+    // ★ここを追加：URLにパーティデータがあるか確認
+        const urlParams = new URLSearchParams(window.location.search);
+        const partyCode = urlParams.get('party');
+        if (partyCode) {
+            // 少し遅らせて確実にUIが出来てから読み込む
+            setTimeout(() => {
+                importPartyFromCode(partyCode);
+            }, 500);
+        }
     } catch (e) {
         console.error(e);
-        alert("データの読み込みに失敗しました。ファイルパスやJSON形式を確認してください。");
     }
 }
+
+// インポート用の中身を関数として独立させておくと便利です
+function importPartyFromCode(code) {
+    try {
+        const decoded = code.replace(/-/g, '+').replace(/_/g, '/');
+        const str = atob(decoded);
+        const charData = Uint8Array.from(str, c => c.charCodeAt(0));
+        const decompressed = pako.inflate(charData, { to: 'string' });
+        const data = JSON.parse(decompressed);
+
+        // --- 以下、反映処理 ---
+        document.getElementById('partyName').value = data.n || "";
+        document.getElementById('partyMemo').value = data.m || "";
+        data.p.forEach((m, i) => {
+            const card = document.getElementById(`pokemon-${i}`);
+            if (!card) return;
+            const spInp = card.querySelector('.sp-input');
+            spInp.value = m.nm;
+            spInp.dataset.selectedId = m.id;
+            
+            const speciesObj = db.species.find(s => s.id === m.id);
+            if (speciesObj) updateSpecies(i, speciesObj.data);
+
+            card.querySelector('.item-input').value = m.it || "";
+            card.querySelector('.ability-select').value = m.ab || "";
+            card.querySelector('.nature-select').value = m.nt || "まじめ";
+            card.querySelectorAll('.ev-input').forEach((el, j) => {
+                el.value = m.ev[j] || 0;
+                validateEV(el, i);
+            });
+            card.querySelectorAll('.move-input').forEach((el, j) => {
+                el.value = m.mv[j] || "";
+                const found = db.moves.find(mv => mv.name === el.value);
+                updateMoveColor(el, found ? found.type : "");
+            });
+            card.querySelector('.memo-area').value = m.mo || "";
+        });
+        console.log("URLからの読み込みに成功しました");
+    } catch (e) {
+        console.error("URLコード解析エラー:", e);
+    }
+}
+
+// インポート用の中身を関数として独立させておくと便利です
 
 async function exportPartyImage() {
     const canvas = document.createElement('canvas');
@@ -896,97 +948,41 @@ function calcStats(idx) {
         }
     });
 }
-
-// パーティ情報をコード化してクリップボードにコピーする
+// 圧縮してURL形式で書き出す
 function exportPartyCode() {
     const partyData = {
-        name: document.getElementById('partyName').value,
-        memo: document.getElementById('partyMemo').value,
-        members: []
+        n: document.getElementById('partyName').value,
+        m: document.getElementById('partyMemo').value,
+        p: []
     };
 
     for (let i = 0; i < 6; i++) {
         const card = document.getElementById(`pokemon-${i}`);
         const spInp = card.querySelector('.sp-input');
-        
-        partyData.members.push({
-            spId: spInp.dataset.selectedId,
-            spName: spInp.value,
-            itId: card.querySelector('.item-input').dataset.selectedId,
-            itName: card.querySelector('.item-input').value,
+        partyData.p.push({
+            id: spInp.dataset.selectedId,
+            nm: spInp.value,
+            it: card.querySelector('.item-input').value,
             ab: card.querySelector('.ability-select').value,
             nt: card.querySelector('.nature-select').value,
-            ev: Array.from(card.querySelectorAll('.ev-input')).map(el => el.value),
-            mv: Array.from(card.querySelectorAll('.move-input')).map(el => ({
-                name: el.value,
-                id: el.dataset.selectedId
-            })),
-            memo: card.querySelector('.memo-area').value
+            ev: Array.from(card.querySelectorAll('.ev-input')).map(el => parseInt(el.value || 0)),
+            mv: Array.from(card.querySelectorAll('.move-input')).map(el => el.value),
+            mo: card.querySelector('.memo-area').value
         });
     }
 
-    // JSON化してBase64に変換（共有しやすくするため）
     const jsonStr = JSON.stringify(partyData);
-    const code = btoa(unescape(encodeURIComponent(jsonStr)));
+    const compressed = pako.deflate(jsonStr);
+    const base64 = btoa(String.fromCharCode.apply(null, compressed))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+    // ★URLを作成
+    const shareUrl = window.location.origin + window.location.pathname + "?party=" + base64;
     
-    navigator.clipboard.writeText(code).then(() => {
-        alert("パーティコードをクリップボードにコピーしました！");
+    // クリップボードにURLをコピー
+    navigator.clipboard.writeText(shareUrl).then(() => {
+        alert("共有用URLをコピーしました！そのままSNSなどに貼り付けられます。\n(文字数: " + shareUrl.length + ")");
     });
-}
-
-// パーティコードを読み込んで反映させる
-function importPartyCode() {
-    const code = prompt("共有されたパーティコードを入力してください：");
-    if (!code) return;
-
-    try {
-        const jsonStr = decodeURIComponent(escape(atob(code)));
-        const data = JSON.parse(jsonStr);
-
-        document.getElementById('partyName').value = data.name || "";
-        document.getElementById('partyMemo').value = data.memo || "";
-
-        data.members.forEach((m, i) => {
-            const card = document.getElementById(`pokemon-${i}`);
-            
-            // ポケモンと種族値の反映
-            const spInp = card.querySelector('.sp-input');
-            spInp.value = m.spName;
-            spInp.dataset.selectedId = m.spId;
-            const speciesObj = db.species.find(s => s.id === m.spId);
-            if (speciesObj) updateSpecies(i, speciesObj.data);
-
-            // 持ち物・特性・性格
-            card.querySelector('.item-input').value = m.itName || "";
-            card.querySelector('.item-input').dataset.selectedId = m.itId || "";
-            card.querySelector('.ability-select').value = m.ab || "";
-            card.querySelector('.nature-select').value = m.nt || "まじめ";
-
-            // 努力値
-            card.querySelectorAll('.ev-input').forEach((el, j) => {
-                el.value = m.ev[j] || 0;
-                validateEV(el, i);
-            });
-
-            // 技
-            card.querySelectorAll('.move-input').forEach((el, j) => {
-                const moveData = m.mv[j];
-                el.value = moveData ? moveData.name : "";
-                el.dataset.selectedId = moveData ? moveData.id : "";
-                // 技の色を更新
-                const foundMove = db.moves.find(mv => mv.name === el.value);
-                updateMoveColor(el, foundMove ? foundMove.type : "");
-            });
-
-            // 個別メモ
-            card.querySelector('.memo-area').value = m.memo || "";
-        });
-
-        alert("パーティを読み込みました！");
-    } catch (e) {
-        alert("無効なコードです。");
-        console.error(e);
-    }
 }
 
 function saveParty() {
