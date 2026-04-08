@@ -1314,10 +1314,25 @@ document.getElementById("attacker-ability").addEventListener("change", () => {
     const move = MOVEDATA_MAP[hiraganaToKatakana(moveName)] || MOVEDATA_MAP[moveName];
 
     // 天候情報を取得
-    const environment = document.getElementById('environment_m_select').value;
-    const isSun = environment === "Sun";
-    const isSandstorm = environment === "Sandstorm";
-    const isElectricTerrain = environment === "ElectricTerrain";
+    // 1. まず現在の画面の天候を取得
+    let currentEnv = document.getElementById('environment_m_select').value;
+
+    // 2. メガソーラーなら、変数の中身を「Sun」に上書きする
+    if (ability === "MEGASOL" || ability === "DROUGHT") {
+        currentEnv = "Sun";
+        // (任意) 画面上のセレクトボックスの表示も「晴れ」に変えたい場合
+        document.getElementById('environment_m_select').value = "Sun";
+    }
+    // 2. メガソーラーなら、変数の中身を「Sun」に上書きする
+    if (ability === "DRIZZLE") {
+        currentEnv = "Rain";
+        // (任意) 画面上のセレクトボックスの表示も「晴れ」に変えたい場合
+        document.getElementById('environment_m_select').value = "Rain";
+    }
+    
+    const isSun = currentEnv === "Sun";
+    const isSandstorm = currentEnv === "Sandstorm";
+    const isElectricTerrain = currentEnv === "ElectricTerrain";
     const moveType = move?.Type?.toUpperCase();
 
     // 特性補正を初期化
@@ -1455,6 +1470,7 @@ document.getElementById("attacker-ability").addEventListener("change", () => {
     if ((ability === "HUGEPOWER" || ability === "PUREPOWER") && move?.Category === "Physical") {
         document.getElementById("ability_m_atk").value = "8192";
     }
+
             // オーラ
     if (["DARKAURA"].includes(ability)) {
         if (move?.Type === "DARK") {
