@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>環境仮想敵リスト (シーテャkids)</title>
+    <style>
+        :root { --primary: #dc3545; --bg: #fdfdfe; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; font-size: 14px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .header-controls { 
+            background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+        }
+
+        .target-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); 
+            gap: 20px; 
+        }
+
+        .target-card { 
+            background: #fff; border: 2px solid #eee; border-radius: 10px; padding: 15px; 
+            position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .target-card:hover { border-color: #dc3545; }
+
+        .search-container { position: relative; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; }
+        .search-input { flex-grow: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
+        .suggestion-list { 
+            position: absolute; width: 100%; max-height: 180px; overflow-y: auto; 
+            background: white; border: 1px solid #ddd; z-index: 1000; display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); top: 100%;
+        }
+        .suggestion-item { padding: 6px 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .suggestion-item:hover { background: #f8f9fa; }
+
+        /* 特性表示エリア */
+        .ability-container { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; min-height: 24px; }
+        .ability-badge { background: #e7f5ff; color: #1971c2; padding: 2px 8px; border-radius: 12px; font-size: 11px; border: 1px solid #a5d8ff; font-weight: bold; }
+
+        /* ステータス表示（種族値） */
+        .stat-badge-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 10px 0; }
+        .stat-badge { background: #e9ecef; padding: 6px 2px; border-radius: 4px; text-align: center; border: 1px solid #dee2e6; }
+        .stat-label { font-weight: bold; color: #495057; display: block; font-size: 10px; margin-bottom: 2px; }
+        .stat-val { font-size: 14px; font-weight: 800; color: #333; }
+
+        .section-title { font-size: 12px; font-weight: bold; color: #444; margin: 15px 0 5px 0; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 3px; }
+        .dynamic-list { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        
+        .mini-btn { padding: 2px 6px; font-size: 10px; background: #6c757d; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        .remove-inp-btn { background: none; color: #bbb; border: none; cursor: pointer; font-size: 14px; padding: 0 4px; }
+        .remove-inp-btn:hover { color: #dc3545; }
+
+        .counter-memo { width: 100%; height: 80px; margin-top: 15px; border: 1px solid #ffeeba; background: #fffdf0; border-radius: 4px; padding: 5px; box-sizing: border-box; resize: vertical; }
+        
+        button.main-btn { padding: 8px 12px; cursor: pointer; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; }
+        .delete-card-btn { position: absolute; top: 8px; right: 8px; background: none; color: #ccc; font-size: 20px; border:none; cursor: pointer; }
+        .delete-card-btn:hover { color: #dc3545; }
+    </style>
+</head>
+<body>
+
+<div id="hamburgerMenu" class="hamburger-menu">
+    <div class="hamburger-btn" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+    </div>
+    <nav id="navMenu" class="nav-menu">
+        <a href="party_memo.html" class="nav-link">📋 構築メモ</a>
+        <a href="kasouteki.html" class="nav-link">🎯 仮想敵リスト</a>
+        <a href="test.html" class="nav-link">⚡ ダメージ計算</a>
+    </nav>
+</div>
+
+<div class="container">
+    <div class="header-controls">
+        <h2 style="margin:0; flex-grow:1;">環境仮想敵リスト (シーテャkids)</h2>
+        <button class="main-btn" onclick="addTarget()">+ 仮想敵を追加</button>
+        <button class="main-btn" onclick="saveAll()" style="background:#28a745;">一括保存</button>
+    </div>
+    <div id="targetGrid" class="target-grid"></div>
+</div>
+
+<script>
+let db = { species: [], moves: [], items: [], abilities: {} };
+
+function toKatakana(str) {
+    return str.replace(/[ぁ-ん]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60));
+}
+
+async function init() {
+    try {
+        const [rSp, rMv, rIt, rAb] = await Promise.all([
+            fetch('species_db_named2.json').then(res => res.json()),
+            fetch('moves_extracted2.json').then(res => res.json()),
+            fetch('items.json').then(res => res.json()),
+            fetch('abilities_db.json').then(res => res.json())
+        ]);
+        
+        db.species = Object.keys(rSp).map(k => ({ id: k, name: rSp[k].Name, data: rSp[k] }));
+        db.moves = Array.isArray(rMv) ? rMv.map(m => m.Name) : Object.values(rMv).map(m => m.Name);
+        db.items = rIt.items ? rIt.items.map(i => i.name) : [];
+        // 特性はIDから名前を引けるようにオブジェクトのまま保持
+        db.abilities = rAb;
+
+        loadAll();
+    } catch (e) { 
+        console.error("Database Error:", e);
+        alert("DBの読み込みに失敗しました。");
+    }
+}
+
+function createInputRow(container, type, value = "") {
+    const div = document.createElement('div');
+    div.className = 'search-container';
+    div.innerHTML = `
+        <input type="text" class="search-input ${type}-input" placeholder="${type === 'item' ? '持ち物' : '技'}" value="${value}">
+        <button class="remove-inp-btn" onclick="this.parentElement.remove()">×</button>
+        <div class="suggestion-list"></div>
+    `;
+    container.appendChild(div);
+    const input = div.querySelector('.search-input');
+    setupGenericSearch(input, div.querySelector('.suggestion-list'), () => type === 'item' ? db.items : db.moves);
+}
+
+function createTargetCard(savedData = null) {
+    const id = "t" + Date.now() + Math.floor(Math.random() * 1000);
+    const card = document.createElement('div');
+    card.className = 'target-card';
+    card.id = `target-${id}`;
+    
+    card.innerHTML = `
+        <button class="delete-card-btn" onclick="this.parentElement.remove()">×</button>
+        <div class="search-container" style="margin-right:25px;">
+            <input type="text" class="search-input sp-input" placeholder="ポケモン名" value="${savedData?.name || ''}" style="font-weight:bold; font-size:14px;">
+            <div class="suggestion-list"></div>
+        </div>
+        
+        <div id="abilities-${id}" class="ability-container"></div>
+
+        <div id="stats-${id}" class="stat-badge-grid">
+            ${['H','A','B','C','D','S'].map(s => `<div class="stat-badge"><span class="stat-label">${s}</span><span class="stat-val" data-stat="${s}">-</span></div>`).join('')}
+        </div>
+
+        <div class="section-title">想定持ち物 <button class="mini-btn" onclick="addDynamicInput('${id}', 'item')">+ 追加</button></div>
+        <div id="items-${id}" class="dynamic-list"></div>
+
+        <div class="section-title">想定技 <button class="mini-btn" onclick="addDynamicInput('${id}', 'move')">+ 追加</button></div>
+        <div id="moves-${id}" class="dynamic-list"></div>
+
+        <textarea class="counter-memo" placeholder="【対策・メモ】">${savedData?.memo || ''}</textarea>
+    `;
+
+    document.getElementById('targetGrid').appendChild(card);
+    
+    setupGenericSearch(card.querySelector('.sp-input'), card.querySelector('.sp-input + .suggestion-list'), () => db.species, (item) => {
+        card.querySelector('.sp-input').value = item.name;
+        card.querySelector('.sp-input').dataset.selectedId = item.id;
+        updateBaseStats(id, item.data);
+        updateAbilities(id, item.data);
+    });
+
+    const itemCont = card.querySelector(`#items-${id}`);
+    const moveCont = card.querySelector(`#moves-${id}`);
+
+    if (savedData?.items?.length) savedData.items.forEach(v => createInputRow(itemCont, 'item', v));
+    else for(let i=0; i<4; i++) createInputRow(itemCont, 'item'); 
+
+    if (savedData?.moves?.length) savedData.moves.forEach(v => createInputRow(moveCont, 'move', v));
+    else for(let i=0; i<4; i++) createInputRow(moveCont, 'move');
+
+    if(savedData?.speciesId) {
+        const found = db.species.find(s => s.id === savedData.speciesId);
+        if(found) { 
+            card.querySelector('.sp-input').dataset.selectedId = found.id; 
+            updateBaseStats(id, found.data); 
+            updateAbilities(id, found.data);
+        }
+    }
+}
+
+function updateAbilities(cardId, speciesData) {
+    const cont = document.getElementById(`abilities-${cardId}`);
+    cont.innerHTML = '';
+    if (!speciesData) return;
+
+    // 通常特性の取得 (Abilities)
+    const normalAbs = speciesData.Abilities || [];
+    
+    // 隠れ特性の取得 (HiddenAbility または HiddenAbilities)
+    // 配列の場合と単一文字列の場合の両方に対応
+    let hiddenAbs = [];
+    if (speciesData.HiddenAbility) {
+        hiddenAbs = Array.isArray(speciesData.HiddenAbility) ? speciesData.HiddenAbility : [speciesData.HiddenAbility];
+    } else if (speciesData.HiddenAbilities) {
+        hiddenAbs = Array.isArray(speciesData.HiddenAbilities) ? speciesData.HiddenAbilities : [speciesData.HiddenAbilities];
+    }
+
+    // 通常特性の表示
+    normalAbs.forEach(abKey => {
+        const abName = db.abilities[abKey]?.name || abKey;
+        const span = document.createElement('span');
+        span.className = 'ability-badge';
+        span.textContent = abName;
+        cont.appendChild(span);
+    });
+
+    // 隠れ特性の表示（色を変えて区別）
+    hiddenAbs.forEach(abKey => {
+        const abName = db.abilities[abKey]?.name || abKey;
+        const span = document.createElement('span');
+        span.className = 'ability-badge';
+        // 隠れ特性用のスタイル
+        span.style.background = '#fff0f6';
+        span.style.color = '#d6336c';
+        span.style.borderColor = '#ffdeeb';
+        span.textContent = abName + '(夢)';
+        cont.appendChild(span);
+    });
+}
+
+function addDynamicInput(cardId, type) {
+    createInputRow(document.querySelector(`#${type}s-${cardId}`), type);
+}
+
+function setupGenericSearch(input, list, getDataFn, onSelectFn = null) {
+    input.addEventListener('input', () => {
+        const query = toKatakana(input.value);
+        list.innerHTML = '';
+        if (!query) { list.style.display = 'none'; return; }
+        const data = getDataFn();
+        const filtered = data.filter(item => {
+            const name = typeof item === 'string' ? item : item.name;
+            return name && toKatakana(name).includes(query);
+        }).slice(0, 10);
+
+        filtered.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'suggestion-item';
+            div.textContent = typeof item === 'string' ? item : item.name;
+            div.onclick = () => {
+                if (onSelectFn) onSelectFn(item); else input.value = typeof item === 'string' ? item : item.name;
+                list.style.display = 'none';
+            };
+            list.appendChild(div);
+        });
+        list.style.display = filtered.length ? 'block' : 'none';
+    });
+    input.addEventListener('blur', () => setTimeout(() => list.style.display = 'none', 250));
+}
+
+function updateBaseStats(cardId, speciesData) {
+    const card = document.getElementById(`target-${cardId}`);
+    if (!speciesData) return;
+    const statsElements = card.querySelectorAll('.stat-val');
+    const baseStats = [
+        speciesData.HP || speciesData.hp, 
+        speciesData.Attack || speciesData.Atk || speciesData.atk, 
+        speciesData.Defense || speciesData.Def || speciesData.def, 
+        speciesData.SpAtk || speciesData.SAtk || speciesData.spa, 
+        speciesData.SpDef || speciesData.SDef || speciesData.spd, 
+        speciesData.Speed || speciesData.Spe || speciesData.spe
+    ];
+
+    baseStats.forEach((val, i) => {
+        statsElements[i].textContent = val !== undefined ? val : "-";
+    });
+}
+
+function saveAll() {
+    const cards = document.querySelectorAll('.target-card');
+    const data = Array.from(cards).map(c => ({
+        name: c.querySelector('.sp-input').value,
+        speciesId: c.querySelector('.sp-input').dataset.selectedId,
+        items: Array.from(c.querySelectorAll('.item-input')).map(i => i.value).filter(v => v),
+        moves: Array.from(c.querySelectorAll('.move-input')).map(m => m.value).filter(v => v),
+        memo: c.querySelector('.counter-memo').value
+    }));
+    localStorage.setItem('target_list_bs_v2', JSON.stringify(data));
+    alert("保存しました");
+}
+
+function loadAll() {
+    const raw = localStorage.getItem('target_list_bs_v2');
+    if (raw) JSON.parse(raw).forEach(d => createTargetCard(d));
+    else createTargetCard();
+}
+
+function addTarget() { createTargetCard(); }
+init();
+</script>
+</body>
+</html>
