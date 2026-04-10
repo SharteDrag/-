@@ -4,6 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="
+default-src 'self';
+script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com;
+style-src 'self' 'unsafe-inline';
+img-src 'self' data: https://*.googleusercontent.com;
+connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com;
+frame-src https://accounts.google.com https://*.firebaseapp.com;
+">
     <title>ポケモン ダメージ計算ツール (シーテャkids)</title>
     <link rel="icon" href="icon2.png" type="image/png">
     <style>
@@ -1346,13 +1354,13 @@ function updateMegaToggle(target, speciesData) {
         btn.textContent = label;
         btn.style.cssText = `width:100%; padding:6px; font-size:12px; margin:2px 0; background:${color}; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;`;
         
-        btn.onclick = (e) => {
+        btn.addEventListener('click', (e) => {
             e.preventDefault();
             const input = document.getElementById(`${target}-pokemon-name`);
             input.value = targetName;
             // dispatchEvent で既存の更新ロジック(updateStatsAndRecalculate等)を走らせる
             input.dispatchEvent(new Event('change', { bubbles: true }));
-        };
+        });
         return btn;
     };
 
@@ -4094,7 +4102,7 @@ moveNameInput.addEventListener('input', (e) => {
         // ⭐ その他補正グループの変更時にダメージ計算を再実行
 document.getElementById('other-multiplier-group').addEventListener('change', (event) => {
     // チェックボックスまたはそうだいしょうのinputが変更されたら再計算
-    if (event.target.type === 'checkbox' || event.target.id === 'supreme_overlord') {
+    if (event.target.type === 'checkbox') {
         calculateDamage();
     }
 });

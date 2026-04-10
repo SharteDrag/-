@@ -4,6 +4,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="
+default-src 'self';
+script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com;
+style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+font-src 'self' https://fonts.gstatic.com;
+img-src 'self' data: https://www.gstatic.com;
+connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com;
+frame-src https://sharte-tool-management.firebaseapp.com;
+">
     <title>ポケモン パーティ構築メモ(シーテャkids)</title>
     <link rel="icon" href="icon.png" type="image/png">
     <style>
