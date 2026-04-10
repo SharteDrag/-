@@ -12,7 +12,14 @@ font-src 'self' https://fonts.gstatic.com;
 img-src 'self' data: https://www.gstatic.com;
 connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com;
 frame-src https://sharte-tool-management.firebaseapp.com;
+manifest-src 'self';
 ">
+<link rel="manifest" href="manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
     <title>ポケモン パーティ構築メモ(シーテャkids)</title>
     <link rel="icon" href="icon.png" type="image/png">
     <style>
