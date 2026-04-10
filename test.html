@@ -337,10 +337,10 @@ document.addEventListener('click', function(event) {
 });
 </script>
 <body>
-    <div id="auth-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
+    <div id="auth-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
     <h2 style="margin-bottom:10px;">Sharte専用ツール (要認証)</h2>
-    <p id="auth-status" style="margin-bottom:20px;">Googleアカウントでログインしてください</p>
-    <button id="btn-login" style="padding:12px 24px; font-size:1.1em; cursor:pointer; background:#4285f4; color:white; border:none; border-radius:4px; font-weight:bold;">Googleでログイン</button>
+    <p id="auth-status" style="margin-bottom:20px;">認証を確認中...</p>
+    <button id="btn-login" style="display:none; padding:12px 24px; font-size:1.1em; cursor:pointer; background:#4285f4; color:white; border:none; border-radius:4px; font-weight:bold;">Googleでログイン</button>
 </div>
 
 <div id="protected-content" style="display:none;">
@@ -393,19 +393,25 @@ document.addEventListener('click', function(event) {
 
   onAuthStateChanged(auth, async (user) => {
     if (user) {
+      // --- ログイン済みの場合 ---
       const storageKey = `auth_verified_${user.uid}`;
+      
       if (localStorage.getItem(storageKey) === 'true') {
+        // すでにパスワード認証済みの場合は、何もせずコンテンツを表示
         overlay.style.display = 'none';
         content.style.display = 'block';
       } else {
-        // ★JSONから最新のハッシュを取得
-        const MASTER_HASH = await getMasterHash();
+        // Googleログインはしているが、パスワード未認証の場合
+        overlay.style.display = 'flex';
+        content.style.display = 'none';
         
+        const MASTER_HASH = await getMasterHash();
         if (!MASTER_HASH) {
-          alert("認証データの読み込みに失敗しました。管理者に連絡してください。");
+          alert("認証データの読み込みに失敗しました。");
           return;
         }
 
+        // ログイン直後のチラつき防止のため微調整
         setTimeout(async () => {
           const inputPass = prompt("【初回認証】\n最新のパスワードを入力してください：");
           if (inputPass) {
@@ -419,11 +425,14 @@ document.addEventListener('click', function(event) {
           }
           alert("パスワードが正しくありません。");
           signOut(auth).then(() => location.reload());
-        }, 800);
+        }, 500);
       }
     } else {
+      // --- 未ログインの場合のみ、ログイン画面を表示する ---
       overlay.style.display = 'flex';
       content.style.display = 'none';
+      document.getElementById('auth-status').textContent = "Googleアカウントでログインしてください";
+      document.getElementById('btn-login').style.display = 'block'; // ここでボタンを表示
     }
   });
 </script>
@@ -484,6 +493,7 @@ document.addEventListener('click', function(event) {
                 <label for="attacker-pokemon-name">⚔️ 攻撃側ポケモン名:</label>
                 <div class="search-container" id="attacker-search">
                     <input type="text" id="attacker-pokemon-name" placeholder="例: フシギダネ (ひらがな・カタカナ混在OK)">
+                    <div id="attacker-mega-container"></div>
                     <div class="suggestion-list"></div>
                 </div>
             </div>
@@ -500,6 +510,7 @@ document.addEventListener('click', function(event) {
                 <label for="defender-pokemon-name">🛡️ 防御側ポケモン名:</label>
                 <div class="search-container" id="defender-search">
                     <input type="text" id="defender-pokemon-name" placeholder="例: リザードン (ひらがな・カタカナ混在OK)">
+                    <div id="defender-mega-container"></div>
                     <div class="suggestion-list"></div>
                 </div>
             </div>
@@ -987,6 +998,11 @@ document.addEventListener('click', function(event) {
                         div.onclick = () => {
                             input.value = itemName;
                             list.style.display = 'none';
+                            // 1. 既存の input イベント（検索窓を閉じるなどのため）
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    
+    // 2. 【重要】ここを追加：change イベントを発火させてメガボタン更新を起動する
+    input.dispatchEvent(new Event('change', { bubbles: true }));
                             // Dispatch input event to trigger any listeners
                             input.dispatchEvent(new Event('input', { bubbles: true }));
                             if (onSelectCallback) onSelectCallback(itemName);
@@ -1298,13 +1314,91 @@ async function loadAbilityData() {
     });
 }
 
+function updateMegaToggle(target, speciesData) {
+    const container = document.getElementById(`${target}-mega-container`);
+    if (!container) return;
+    container.innerHTML = ''; // リセット
+
+    const currentName = speciesData.Name || "";
+    
+    // 1. 基底名（ベースとなる名前）を特定する
+    // メガシンカ個体なら「メガ」を取り除き、通常個体ならそのまま
+    const isCurrentlyMega = currentName.startsWith("メガ") && !["メガヤンマ", "メガニウム"].includes(currentName);
+    const baseName = isCurrentlyMega 
+        ? currentName.replace("メガ", "").replace(/X$|Y$|Z$/, "") 
+        : currentName;
+
+    // 2. DBから「メガ候補」をすべて探す
+    // 名前に「メガ + 基底名」が含まれるものを抽出
+    const megaForms = Object.keys(POKEDATA_MAP).filter(key => {
+        const name = POKEDATA_MAP[key].Name;
+        return name.startsWith(`メガ${baseName}`) && name !== "メガヤンマ" && name !== "メガニウム";
+    });
+
+    // メガシンカ個体でもなく、メガシンカ先も見つからない場合は何もしない
+    if (!isCurrentlyMega && megaForms.length === 0) return;
+
+    // 3. ボタン生成用ヘルパー
+    const createButton = (targetName, label, color) => {
+        const btn = document.createElement('button');
+        btn.type = "button";
+        btn.className = 'mega-toggle-btn';
+        btn.textContent = label;
+        btn.style.cssText = `width:100%; padding:6px; font-size:12px; margin:2px 0; background:${color}; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;`;
+        
+        btn.onclick = (e) => {
+            e.preventDefault();
+            const input = document.getElementById(`${target}-pokemon-name`);
+            input.value = targetName;
+            // dispatchEvent で既存の更新ロジック(updateStatsAndRecalculate等)を走らせる
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+        return btn;
+    };
+
+    // 4. UIの構築
+    if (isCurrentlyMega) {
+        // 現在メガシンカ中なら「通常に戻る」ボタンを表示
+        container.appendChild(createButton(baseName, `← ${baseName} に戻す`, "#6c757d"));
+    }
+
+    // メガシンカ候補（X, Yなど）をすべてボタンとして並べる
+    megaForms.forEach(megaKey => {
+        const megaName = POKEDATA_MAP[megaKey].Name;
+        // 現在選択中のメガシンカ体そのものは表示しない
+        if (megaName === currentName) return;
+
+        let label = `${megaName} へ`;
+        // リザードンX/Yなどの場合、末尾の文字を強調
+        if (megaName.endsWith("X")) label = `メガ${baseName}X へ`;
+        if (megaName.endsWith("Y")) label = `メガ${baseName}Y へ`;
+        if (megaName.endsWith("Z")) label = `メガ${baseName}Z へ`;
+
+        container.appendChild(createButton(megaName, label, "#e83e8c"));
+    });
+}
 // ポケモン変更時に特性欄を更新
+// ポケモン変更時に特性欄とメガボタンを更新
 document.getElementById("attacker-pokemon-name").addEventListener("change", () => {
     updateAbilitySelector("attacker-pokemon-name", "attacker-ability");
+    
+    // ★ここも必要。もし入っていなければ追記しろ
+    const name = document.getElementById("attacker-pokemon-name").value;
+    const key = NAME_TO_KEY_MAP[hiraganaToKatakana(name)] || NAME_TO_KEY_MAP[name.toUpperCase()];
+    if (key && POKEDATA_MAP[key]) {
+        updateMegaToggle('attacker', POKEDATA_MAP[key]);
+    }
 });
 
 document.getElementById("defender-pokemon-name").addEventListener("change", () => {
     updateAbilitySelector("defender-pokemon-name", "defender-ability");
+    
+    // ★ここも必要。もし入っていなければ追記しろ
+    const name = document.getElementById("defender-pokemon-name").value;
+    const key = NAME_TO_KEY_MAP[hiraganaToKatakana(name)] || NAME_TO_KEY_MAP[name.toUpperCase()];
+    if (key && POKEDATA_MAP[key]) {
+        updateMegaToggle('defender', POKEDATA_MAP[key]);
+    }
 });
 
 document.getElementById("attacker-ability").addEventListener("change", () => {
@@ -4163,58 +4257,74 @@ function loadFromPartyMemo(target) {
         return;
     }
 
-    // 性格名から補正値を判定する関数
-    const getNatureMultiplier = (natureName, type) => {
-        // 性格が未設定、または空文字の場合は無補正(1.0)
-        if (!natureName || natureName === "") return "1.0";
-        
-        const attackNatures = ["いじっぱり", "さみしがり", "やんちゃ", "ゆうかん", "ひかえめ", "れいせい", "うっかりや", "おっとり"];
-        const defenseNatures = ["ずぶとい", "おだやか", "のんき", "なまいき", "しんちょう", "わんぱく"];
-
-        if (type === 'attacker') {
-            return attackNatures.includes(natureName) ? "1.1" : "1.0";
-        } else if (type === 'defender') {
-            return defenseNatures.includes(natureName) ? "1.1" : "1.0";
-        }
-        
-        return "1.0";
-    };
-
-    // 補正値を文字列として取得（HTMLのvalueは文字列のため）
-    const multiplier = getNatureMultiplier(pokemon.nt, target);
+    // --- 改良ポイント：現在の技設定から、どのステータスを参照すべきか取得 ---
+    const { attackerStatKey, defenderStatKey } = getStatKeys();
+    
+    // インデックスマッピング [H, A, B, C, D, S]
+    const evMap = { 'Atk': 1, 'Def': 2, 'SpAtk': 3, 'SpDef': 4, 'OpponentAtk': 1 };
 
     if (target === 'attacker') {
-        // 攻撃側の反映
         const nameInput = document.getElementById('attacker-pokemon-name');
         nameInput.value = pokemon.spName;
-        // 努力値。配列が空やnullの場合を考慮してデフォルト0
-        document.getElementById('attacker_ev').value = (pokemon.ev && pokemon.ev[1]) || 0; 
-        
-        // セレクトボックスの値を更新
-        const natureSelect = document.getElementById('nature_attack');
-        natureSelect.value = multiplier; 
-        
+
+        // getStatKeysの結果に基づいて努力値を決定
+        // イカサマ(OpponentAtk)の場合は、攻撃側の努力値として自分のAをとりあえず入れる
+        const targetIndex = evMap[attackerStatKey] || 1; 
+        document.getElementById('attacker_ev').value = (pokemon.ev && pokemon.ev[targetIndex]) || 0;
+
+        // 性格補正の自動判定
+        const isBoosted = checkNatureBoost(pokemon.nt, attackerStatKey);
+        document.getElementById('nature_attack').value = isBoosted ? "1.1" : "1.0";
+
         nameInput.dispatchEvent(new Event('change'));
+        // ★これを追加：読み込んだポケモンの種族データからメガボタンを更新
+        const speciesObj = db.species.find(s => s.name === pokemon.spName);
+        if (speciesObj) updateMegaToggle('attacker', speciesObj.data);
+
     } else {
-        // 防御側の反映
         const nameInput = document.getElementById('defender-pokemon-name');
         nameInput.value = pokemon.spName;
+
+        // HPは常に反映
         document.getElementById('hp_ev').value = (pokemon.ev && pokemon.ev[0]) || 0;
-        document.getElementById('defender_ev').value = (pokemon.ev && pokemon.ev[2]) || 0;
-        
-        // セレクトボックスの値を更新
-        const natureSelect = document.getElementById('nature_defense');
-        natureSelect.value = multiplier;
+
+        // 防御側もgetStatKeysの結果(Def or SpDef)に基づいて反映
+        const targetIndex = evMap[defenderStatKey] || 2;
+        document.getElementById('defender_ev').value = (pokemon.ev && pokemon.ev[targetIndex]) || 0;
+
+        // 性格補正の自動判定
+        const isBoosted = checkNatureBoost(pokemon.nt, defenderStatKey);
+        document.getElementById('nature_defense').value = isBoosted ? "1.1" : "1.0";
 
         nameInput.dispatchEvent(new Event('change'));
+
+        // ★これを追加
+        const speciesObj = db.species.find(s => s.name === pokemon.spName);
+        if (speciesObj) updateMegaToggle('defender', speciesObj.data);
     }
 
-    // 数値計算の関数を呼ぶ（test.html内に定義されているもの）
     if (typeof updateStatsAndRecalculate === "function") {
         updateStatsAndRecalculate();
     }
     
-    alert(`${pokemon.spName} を読み込みました。\n性格: ${pokemon.nt || "未設定"} (補正: x${multiplier})`);
+    alert(`${pokemon.spName} を読み込みました。\n参照ステータス: ${target === 'attacker' ? attackerStatKey : defenderStatKey}`);
+}
+
+/**
+ * 性格名と参照ステータス名から、1.1倍補正があるか判定する補助関数
+ */
+function checkNatureBoost(natureName, statKey) {
+    if (!natureName) return false;
+    
+    const boostMap = {
+        'Atk': ["いじっぱり", "さみしがり", "やんちゃ", "ゆうかん"],
+        'Def': ["ずぶとい", "わんぱく", "のうてんき", "のんき"],
+        'SpAtk': ["ひかえめ", "おっとり", "うっかりや", "れいせい"],
+        'SpDef': ["おだやか", "おとなしい", "しんちょう", "なまいき"]
+    };
+
+    const list = boostMap[statKey];
+    return list ? list.includes(natureName) : false;
 }
     </script>
 <script>

@@ -31,7 +31,7 @@
         "Name":  "であいがしら",
         "Type":  "BUG",
         "Category":  "Physical",
-        "Power":  "90",
+        "Power":  "100",
         "Flags":  "Contact,CanProtect,CanMirrorMove",
         "FunctionCode":  "FailsIfNotUserFirstTurn"
     },
@@ -292,7 +292,7 @@
         "Name":  "ナイトバースト",
         "Type":  "DARK",
         "Category":  "Special",
-        "Power":  "85",
+        "Power":  "90",
         "Flags":  "CanProtect,CanMirrorMove",
         "FunctionCode":  "LowerTargetAccuracy1"
     },
@@ -728,7 +728,7 @@
         "Type":  "DRAGON",
         "Category":  "Physical",
         "Power":  "80",
-        "Flags":  "Contact,CanProtect,CanMirrorMove",
+        "Flags":  "Contact,CanProtect,CanMirrorMove,Slicing",
         "FunctionCode":  "None"
     },
     {
@@ -1931,7 +1931,7 @@
         "Name":  "ほのおのムチ",
         "Type":  "FIRE",
         "Category":  "Physical",
-        "Power":  "80",
+        "Power":  "90",
         "Flags":  "Contact,CanProtect,CanMirrorMove",
         "FunctionCode":  "LowerTargetDefense1"
     },
@@ -2118,7 +2118,7 @@
         "Name":  "くちばしキャノン",
         "Type":  "FLYING",
         "Category":  "Physical",
-        "Power":  "100",
+        "Power":  "120",
         "Flags":  "CanProtect,Bomb",
         "FunctionCode":  "BurnAttackerBeforeUserActs"
     },
@@ -2374,7 +2374,7 @@
         "Name":  "かげぬい",
         "Type":  "GHOST",
         "Category":  "Physical",
-        "Power":  "80",
+        "Power":  "90",
         "Flags":  "CanProtect,CanMirrorMove",
         "FunctionCode":  "TrapTargetInBattle"
     },
@@ -2384,7 +2384,7 @@
         "Type":  "GHOST",
         "Category":  "Physical",
         "Power":  "70",
-        "Flags":  "Contact,CanProtect,CanMirrorMove,HighCriticalHitRate",
+        "Flags":  "Contact,CanProtect,CanMirrorMove,HighCriticalHitRate,Slicing",
         "FunctionCode":  "None"
     },
     {
@@ -2610,7 +2610,7 @@
         "Name":  "りんごさん",
         "Type":  "GRASS",
         "Category":  "Special",
-        "Power":  "80",
+        "Power":  "90",
         "Flags":  "CanProtect,CanMirrorMove,CannotMetronome",
         "FunctionCode":  "LowerTargetSpDef1"
     },
@@ -2637,7 +2637,7 @@
         "Name":  "Gのちから",
         "Type":  "GRASS",
         "Category":  "Physical",
-        "Power":  "80",
+        "Power":  "90",
         "Flags":  "CanProtect,CanMirrorMove,CannotMetronome",
         "FunctionCode":  "LowerTargetDefense1PowersUpInGravity"
     },
@@ -2682,7 +2682,7 @@
         "Name":  "トロピカルキック",
         "Type":  "GRASS",
         "Category":  "Physical",
-        "Power":  "70",
+        "Power":  "85",
         "Flags":  "Contact,CanProtect,CanMirrorMove",
         "FunctionCode":  "LowerTargetAttack1"
     },
@@ -2757,15 +2757,6 @@
         "Power":  "40",
         "Flags":  "CanProtect,CanMirrorMove",
         "FunctionCode":  "HealUserByHalfOfDamageDone"
-    },
-    {
-        "ID":  "SNAPTRAP",
-        "Name":  "トラバサミ",
-        "Type":  "GRASS",
-        "Category":  "Physical",
-        "Power":  "35",
-        "Flags":  "Contact,CanProtect,CanMirrorMove,CannotMetronome",
-        "FunctionCode":  "BindTarget"
     },
     {
         "ID":  "BULLETSEED",
@@ -3080,7 +3071,7 @@
         "Name":  "ボーンラッシュ",
         "Type":  "GROUND",
         "Category":  "Physical",
-        "Power":  "25",
+        "Power":  "30",
         "Flags":  "CanProtect,CanMirrorMove",
         "FunctionCode":  "HitTwoToFiveTimes"
     },
@@ -3630,7 +3621,7 @@
         "Type":  "NORMAL",
         "Category":  "Physical",
         "Power":  "75",
-        "Flags":  "Contact,CanProtect,CanMirrorMove",
+        "Flags":  "Contact,CanProtect,CanMirrorMove,Slicing",
         "FunctionCode":  "LowerTargetDefense1"
     },
     {
@@ -6081,6 +6072,15 @@
         "FunctionCode":  "None"
     },
     {
+        "ID":  "SNAPTRAP",
+        "Name":  "トラバサミ",
+        "Type":  "STEEL",
+        "Category":  "Physical",
+        "Power":  "35",
+        "Flags":  "Contact,CanProtect,CanMirrorMove,CannotMetronome",
+        "FunctionCode":  "BindTarget"
+    },
+    {
         "ID":  "GYROBALL",
         "Name":  "ジャイロボール",
         "Type":  "STEEL",
@@ -6523,7 +6523,7 @@
         "Name":  "ひょうざんおろし",
         "Type":  "ICE",
         "Category":  "Physical",
-        "Power":  "100",
+        "Power":  "120",
         "Flags":  "CanProtect,CanMirrorMove",
         "FunctionCode":  "FlinchTarget"
     },
@@ -6612,7 +6612,7 @@
         "Name":  "バリアーラッシュ",
         "Type":  "PSYCHIC",
         "Category":  "Physical",
-        "Power":  "70",
+        "Power":  "90",
         "Flags":  "Contact,CanProtect,CanMirrorMove",
         "FunctionCode":  "RaiseUserDefense1"
     },
@@ -6663,7 +6663,7 @@
         "Name":  "ひゃっきやこう",
         "Type":  "GHOST",
         "Category":  "Special",
-        "Power":  "60",
+        "Power":  "65",
         "Flags":  "CanProtect,CanMirrorMove",
         "FunctionCode":  "DoublePowerIfTargetStatusProblemBurnTarget"
     },
@@ -7255,7 +7255,7 @@
         "Name":  "ドラゴンエール",
         "Type":  "DRAGON",
         "Category":  "Status",
-        "Flags":  "ZPower_CriticalHit",
+        "Flags":  "Sound,ZPower_CriticalHit",
         "FunctionCode":  "RaiseAlliesCriticalHitRate1DragonTypes2"
     },
     {

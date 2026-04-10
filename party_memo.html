@@ -117,10 +117,10 @@
     </style>
 </head>
 <body>
-    <div id="auth-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
+    <div id="auth-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
     <h2 style="margin-bottom:10px;">Sharte専用ツール (要認証)</h2>
-    <p id="auth-status" style="margin-bottom:20px;">Googleアカウントでログインしてください</p>
-    <button id="btn-login" style="padding:12px 24px; font-size:1.1em; cursor:pointer; background:#4285f4; color:white; border:none; border-radius:4px; font-weight:bold;">Googleでログイン</button>
+    <p id="auth-status" style="margin-bottom:20px;">認証を確認中...</p>
+    <button id="btn-login" style="display:none; padding:12px 24px; font-size:1.1em; cursor:pointer; background:#4285f4; color:white; border:none; border-radius:4px; font-weight:bold;">Googleでログイン</button>
 </div>
 
 <div id="protected-content" style="display:none;">
@@ -173,19 +173,25 @@
 
   onAuthStateChanged(auth, async (user) => {
     if (user) {
+      // --- ログイン済みの場合 ---
       const storageKey = `auth_verified_${user.uid}`;
+      
       if (localStorage.getItem(storageKey) === 'true') {
+        // すでにパスワード認証済みの場合は、何もせずコンテンツを表示
         overlay.style.display = 'none';
         content.style.display = 'block';
       } else {
-        // ★JSONから最新のハッシュを取得
-        const MASTER_HASH = await getMasterHash();
+        // Googleログインはしているが、パスワード未認証の場合
+        overlay.style.display = 'flex';
+        content.style.display = 'none';
         
+        const MASTER_HASH = await getMasterHash();
         if (!MASTER_HASH) {
-          alert("認証データの読み込みに失敗しました。管理者に連絡してください。");
+          alert("認証データの読み込みに失敗しました。");
           return;
         }
 
+        // ログイン直後のチラつき防止のため微調整
         setTimeout(async () => {
           const inputPass = prompt("【初回認証】\n最新のパスワードを入力してください：");
           if (inputPass) {
@@ -199,11 +205,14 @@
           }
           alert("パスワードが正しくありません。");
           signOut(auth).then(() => location.reload());
-        }, 800);
+        }, 500);
       }
     } else {
+      // --- 未ログインの場合のみ、ログイン画面を表示する ---
       overlay.style.display = 'flex';
       content.style.display = 'none';
+      document.getElementById('auth-status').textContent = "Googleアカウントでログインしてください";
+      document.getElementById('btn-login').style.display = 'block'; // ここでボタンを表示
     }
   });
 </script>
