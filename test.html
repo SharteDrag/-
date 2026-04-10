@@ -4280,9 +4280,8 @@ function loadFromPartyMemo(target) {
         const targetIndex = evMap[attackerStatKey] || 1; 
         document.getElementById('attacker_ev').value = (pokemon.ev && pokemon.ev[targetIndex]) || 0;
 
-        // 性格補正の自動判定
-        const isBoosted = checkNatureBoost(pokemon.nt, attackerStatKey);
-        document.getElementById('nature_attack').value = isBoosted ? "1.1" : "1.0";
+        // 性格補正の自動判定（上昇・下降・無補正を反映）
+         document.getElementById('nature_attack').value = getNatureMultiplier(pokemon.nt, attackerStatKey);
 
         nameInput.dispatchEvent(new Event('change'));
         // ★これを追加：読み込んだポケモンの種族データからメガボタンを更新
@@ -4300,9 +4299,8 @@ function loadFromPartyMemo(target) {
         const targetIndex = evMap[defenderStatKey] || 2;
         document.getElementById('defender_ev').value = (pokemon.ev && pokemon.ev[targetIndex]) || 0;
 
-        // 性格補正の自動判定
-        const isBoosted = checkNatureBoost(pokemon.nt, defenderStatKey);
-        document.getElementById('nature_defense').value = isBoosted ? "1.1" : "1.0";
+        // 性格補正の自動判定（上昇・下降・無補正を反映）
+        document.getElementById('nature_defense').value = getNatureMultiplier(pokemon.nt, defenderStatKey);
 
         nameInput.dispatchEvent(new Event('change'));
 
@@ -4319,20 +4317,30 @@ function loadFromPartyMemo(target) {
 }
 
 /**
- * 性格名と参照ステータス名から、1.1倍補正があるか判定する補助関数
+ * 性格名と参照ステータス名から、補正倍率を取得する
+ * @return {string} "1.1", "1.0", "0.9" のいずれか（selectのvalueに合わせる）
  */
-function checkNatureBoost(natureName, statKey) {
-    if (!natureName) return false;
+function getNatureMultiplier(natureName, statKey) {
+    if (!natureName || natureName === "まじめ") return "1.0";
     
-    const boostMap = {
-        'Atk': ["いじっぱり", "さみしがり", "やんちゃ", "ゆうかん"],
-        'Def': ["ずぶとい", "わんぱく", "のうてんき", "のんき"],
-        'SpAtk': ["ひかえめ", "おっとり", "うっかりや", "れいせい"],
-        'SpDef': ["おだやか", "おとなしい", "しんちょう", "なまいき"]
+    // 性格ごとの上昇・下降ステータス定義
+    // 1:攻撃, 2:防御, 3:特攻, 4:特防, 5:素早
+    const natureData = {
+        "さみしがり": {up:1, down:2}, "いじっぱり": {up:1, down:3}, "やんちゃ": {up:1, down:4}, "ゆうかん": {up:1, down:5},
+        "ずぶとい": {up:2, down:1}, "わんぱく": {up:2, down:3}, "のうてんき": {up:2, down:4}, "のんき": {up:2, down:5},
+        "ひかえめ": {up:3, down:1}, "おっとり": {up:3, down:2}, "うっかりや": {up:3, down:4}, "れいせい": {up:3, down:5},
+        "おだやか": {up:4, down:1}, "おとなしい": {up:4, down:2}, "しんちょう": {up:4, down:3}, "なまいき": {up:4, down:5},
+        "おくびょう": {up:5, down:1}, "せっかち": {up:5, down:2}, "ようき": {up:5, down:3}, "むじゃき": {up:5, down:4}
     };
 
-    const list = boostMap[statKey];
-    return list ? list.includes(natureName) : false;
+    const evMapToIndex = { 'Atk': 1, 'Def': 2, 'SpAtk': 3, 'SpDef': 4, 'OpponentAtk': 1 };
+    const targetIdx = evMapToIndex[statKey];
+    const data = natureData[natureName];
+
+    if (!data || !targetIdx) return "1.0";
+    if (data.up === targetIdx) return "1.1";
+    if (data.down === targetIdx) return "0.9";
+    return "1.0";
 }
     </script>
 <script>
@@ -4376,7 +4384,7 @@ function forceSyncPokemonNames() {
     }
 }
 
-// 1. スロットを50番まで強制的に拡張
+// 1. スロットを50番まで強制的に拡張（パーティ名表示対応版）
 (function() {
     const s = document.getElementById('import-slot');
     if (s) {
@@ -4385,7 +4393,25 @@ function forceSyncPokemonNames() {
         for (let i = 1; i <= 50; i++) {
             const opt = document.createElement('option');
             opt.value = i;
-            opt.textContent = `スロット ${i}`;
+
+            // --- 追加：パーティ名の取得処理 ---
+            const storageKey = 'p_slot_66_v3_' + i;
+            const raw = localStorage.getItem(storageKey);
+            let slotLabel = `スロット ${i}`;
+
+            if (raw) {
+                try {
+                    const data = JSON.parse(raw);
+                    if (data.name) {
+                        slotLabel = `${i}: ${data.name}`; // 「1: 対面構築」のような表示
+                    }
+                } catch (e) {
+                    console.error(`スロット ${i} の解析失敗`, e);
+                }
+            }
+            // --------------------------------
+
+            opt.textContent = slotLabel;
             s.appendChild(opt);
         }
         s.value = currentVal || "1";
