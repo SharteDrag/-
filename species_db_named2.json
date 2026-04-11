@@ -21147,9 +21147,9 @@
     "HP": 70,
     "Atk": 150,
     "Def": 140,
-    "Speed": 65,
-    "SpAtk": 100,
-    "SpDef": 75,
+    "Speed": 75,
+    "SpAtk": 65,
+    "SpDef": 100,
     "Weight": 125.0,
     "Abilities": [
       "TECHNICIAN"
