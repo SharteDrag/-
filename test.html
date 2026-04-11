@@ -604,6 +604,7 @@ document.addEventListener('click', function(event) {
         <a href="kasouteki.html" class="nav-link">🎯 仮想敵リスト</a>
     </nav>
 </div>
+
 <div style="background: #f0f4f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d1d9e0;">
     <h4 style="margin-top:0;">📂 パーティメモから読み込み</h4>
     <div style="display: flex; gap: 10px; align-items: center;">
@@ -617,12 +618,6 @@ document.addEventListener('click', function(event) {
         <button type="button" onclick="loadFromPartyMemo('attacker')" style="background-color: #007bff; color:white;">⚔️</button>
         <button type="button" onclick="loadFromPartyMemo('defender')" style="background-color: #6c757d; color:white;">🛡️</button>
         <button type="button" id="timer-start-btn" onclick="startCountdown()" style="background-color: #ff5722; margin-left: 10px;">⏰</button>
-        <button type="button" 
-                onclick="calculateDamage(); document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });" 
-                class="btn-calc">ダメ計実行</button>
-        <button type="button" onclick="openQuickTableModal()" class="btn-table">技早見表</button>
-        <button type="button" onclick="openQuickTableModal2()" class="btn-table">調整早見表</button>
-    </div>
     <select id="import-pokemon-idx" style="margin-top:10px;">
         <option value="0">ポケモン 1</option>
         <option value="1">ポケモン 2</option>
@@ -637,7 +632,13 @@ document.addEventListener('click', function(event) {
     残り時間: <span id="time-left">20:00</span>
 </div>
     <h2>ダメ計ツール(シーテャkids)</h2>
-    <div class="container">
+        <button type="button" 
+                onclick="calculateDamage(); document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });" 
+                class="btn-calc">🧮</button>
+        <button type="button" onclick="openQuickTableModal()" class="btn-table">技早見</button>
+        <button type="button" onclick="openQuickTableModal2()" class="btn-table">調整早見</button>
+    </div>
+        <div class="container">
     <div class="main-inputs">
     <form id="damageForm">
         <div class="container">
