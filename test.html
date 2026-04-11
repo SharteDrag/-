@@ -615,9 +615,12 @@ document.addEventListener('click', function(event) {
                 }
             </script>
         </select>
+    <div style="display: flex; gap: 5px;">
         <button type="button" onclick="loadFromPartyMemo('attacker')" style="background-color: #007bff; color:white;">⚔️</button>
         <button type="button" onclick="loadFromPartyMemo('defender')" style="background-color: #6c757d; color:white;">🛡️</button>
         <button type="button" id="timer-start-btn" onclick="startCountdown()" style="background-color: #ff5722; margin-left: 10px;">⏰</button>
+    </div>
+    <div>
     <select id="import-pokemon-idx" style="margin-top:10px;">
         <option value="0">ポケモン 1</option>
         <option value="1">ポケモン 2</option>
@@ -626,6 +629,7 @@ document.addEventListener('click', function(event) {
         <option value="4">ポケモン 5</option>
         <option value="5">ポケモン 6</option>
     </select>
+    </div>
 </div>
 
 <div id="timer-display" style="display: none; position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: #00ff00; padding: 10px 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 24px; z-index: 1000; border: 2px solid #00ff00; box-shadow: 0 0 10px rgba(0,255,0,0.5);">
