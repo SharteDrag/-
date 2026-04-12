@@ -629,6 +629,11 @@ body {
 details .input-inline-group {
     margin: 8px 0;
 }
+.input-inline-group label {
+    white-space: nowrap;
+    width: 100px;        /* ラベルの幅をしっかり確保 */
+    flex-shrink: 0;      /* ★これが重要！中身がキツくなっても縮ませない設定 */
+}
 </style>
 </head>
 <script>
@@ -969,13 +974,13 @@ document.addEventListener('click', function(event) {
 <div class="input-inline-group">
     <label for="base_attack" id="label_base_attack">能力値(A/C)</label>
     
-    <input type="number" id="base_attack" value="100" min="1" class="fixed-value" style="flex: 1; min-width: 40px;">
+    <input type="number" id="base_attack" value="100" min="1" class="fixed-value" style="flex: 1; min-width: 30px;">
     
-    <span style="font-size: 0.8em; color: #666; margin-left: 10px;">努力値</span>
+    <span style="font-size: 0.7em; color: #666; margin-left: 5px; flex-shrink: 0;">努力</span>
     
-    <input type="number" id="attacker_ev" value="32" min="0" max="32" step="1" style="width: 60px; flex-grow: 0;">
+    <input type="number" id="attacker_ev" value="32" min="0" max="32" step="1" style="width: 45px; flex-grow: 0;">
     
-    <div class="checkbox-group" style="display: flex; gap: 2px;">
+    <div class="checkbox-group" style="display: flex; gap: 1px; flex-shrink: 0;">
         <button type="button" class="ev-button" data-stat="attacker" data-ev="0">0</button>
         <button type="button" class="ev-button" data-stat="attacker" data-ev="32">32</button>
         <button type="button" class="ev-button" data-stat="attacker" data-step="1">+</button>
@@ -1110,15 +1115,15 @@ document.addEventListener('click', function(event) {
         </div>
 
 <div class="input-inline-group">
-    <label for="base_defense" id="label_base_defense">防御(B/D)</label>
+    <label for="base_defense" id="label_base_defense" style="flex-shrink: 0; width: 100px;">防御(B/D)</label>
     
-    <input type="number" id="base_defense" value="100" min="1" class="fixed-value" style="flex: 1; min-width: 20px;">
+    <input type="number" id="base_defense" value="100" min="1" class="fixed-value" style="flex: 1; min-width: 30px;">
     
-    <span style="font-size: 0.8em; color: #666; margin-left: 5px;">努力値</span>
+    <span style="font-size: 0.7em; color: #666; margin-left: 5px; flex-shrink: 0;">努力</span>
     
-    <input type="number" id="defender_ev" value="32" min="0" max="32" step="1" style="width: 60px; flex-grow: 0;">
+    <input type="number" id="defender_ev" value="32" min="0" max="32" step="1" style="width: 45px; flex-grow: 0;">
     
-    <div class="checkbox-group" style="display: flex; gap: 2px;">
+    <div class="checkbox-group" style="display: flex; gap: 2px; flex-shrink: 0;">
         <button type="button" class="ev-button" data-stat="defender" data-ev="0">0</button>
         <button type="button" class="ev-button" data-stat="defender" data-ev="32">32</button>
         <button type="button" class="ev-button" data-stat="defender" data-step="1">+</button>
