@@ -505,6 +505,67 @@ body {
     padding-bottom: 100px !important; /* 130~150px→100pxに短縮 */
 }
 </style>
+<style>
+/* 外枠のコンテナ */
+.import-controls {
+    display: flex;
+    flex-wrap: wrap;    /* 入りきらない時に改行を許可 */
+    align-items: center;
+    gap: 8px;           /* 要素間の隙間 */
+}
+
+/* スロット選択（セレクトボックス） */
+#import-slot {
+    flex: 1;            /* スマホで横幅を柔軟に広げる */
+    min-width: 100px;   /* 極端に小さくなりすぎないように */
+    max-width: 150px;   /* パソコンで広がりすぎないように */
+    height: 36px;
+    border-radius: 4px;
+}
+
+/* ボタンをまとめているエリア */
+.import-buttons {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;    /* ボタン同士も入り切らなければ改行 */
+}
+
+/* 各ボタンのサイズ調整 */
+.import-buttons button {
+    width: 40px;        /* ボタンの横幅を統一して押しやすく */
+    height: 36px;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* スマホ用の個別調整（画面幅が600px以下の場合） */
+@media (max-width: 600px) {
+    .import-controls {
+        gap: 10px;
+    }
+    
+    #import-slot {
+        max-width: 100%; /* スマホではセレクトボックスを少し目立たせる */
+        flex-basis: 100%; /* セレクトボックスだけで1行占有させる（ボタンを下の行へ） */
+    }
+
+    .import-buttons {
+        width: 100%;
+        justify-content: space-between; /* ボタンを横いっぱいに綺麗に並べる */
+    }
+    
+    .import-buttons button {
+        flex: 1;        /* ボタンを均等な大きさに広げる */
+        height: 44px;   /* 指で押しやすいように少し高く */
+    }
+}
+</style>
 <style>/* 画面が縦長（横幅が狭い、または高さが幅より大きい）の時に非表示にする */
 /* 「画面の高さ」が「画面の横幅」より大きい場合、または横幅が極端に狭い場合に非表示 */
 @media screen and (orientation: portrait), screen and (max-aspect-ratio: 1/1), screen and (max-width: 800px) {
@@ -725,10 +786,14 @@ document.addEventListener('click', function(event) {
         </select>
 
         <div class="import-buttons">
-            <button type="button" onclick="loadFromPartyMemo('attacker')" style="background-color: #007bff; color:white;" title="攻撃側に読込">⚔️</button>
-            <button type="button" onclick="loadFromPartyMemo('defender')" style="background-color: #6c757d; color:white;" title="防御側に読込">🛡️</button>
-            <button type="button" id="timer-start-btn" onclick="startCountdown()" style="background-color: #ff5722; color:white;" title="タイマー開始">⌛</button>
-        </div>
+    <button type="button" onclick="loadFromPartyMemo('attacker', 'Atk')" style="background-color: #007bff; color:white;" title="物理アタッカーとして読込">A</button>
+    <button type="button" onclick="loadFromPartyMemo('attacker', 'SpAtk')" style="background-color: #9c27b0; color:white;" title="特殊アタッカーとして読込">C</button>
+    
+    <button type="button" onclick="loadFromPartyMemo('defender', 'Def')" style="background-color: #6c757d; color:white;" title="物理受けとして読込">B</button>
+    <button type="button" onclick="loadFromPartyMemo('defender', 'SpDef')" style="background-color: #4caf50; color:white;" title="特殊受けとして読込">D</button>
+    
+    <button type="button" id="timer-start-btn" onclick="startCountdown()" style="background-color: #ff5722; color:white;" title="タイマー開始">⌛</button>
+</div>
     </div>
 
     <select id="import-pokemon-idx">
@@ -739,6 +804,7 @@ document.addEventListener('click', function(event) {
         <option value="4">ポケモン 5</option>
         <option value="5">ポケモン 6</option>
     </select>
+    <div id="move-quick-selection" style="margin-bottom: 15px;"></div>
 </div>
 
 <div id="timer-display" style="display: none; position: fixed; top: 10px; right: 130px; background: rgba(0,0,0,0.8); color: #00ff00; padding: 10px 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 24px; z-index: 1000; border: 2px solid #00ff00; box-shadow: 0 0 10px rgba(0,255,0,0.5);">
@@ -4576,8 +4642,8 @@ const effectiveHP = Math.max(1, hp - totalHazardDamage);
 }
 
 
-
-function loadFromPartyMemo(target) {
+// 引数に statType を追加
+function loadFromPartyMemo(target, statType) {
     const slot = document.getElementById('import-slot').value;
     const pokemonIdx = document.getElementById('import-pokemon-idx').value;
     const rawData = localStorage.getItem(`p_slot_66_v3_${slot}`);
@@ -4588,62 +4654,93 @@ function loadFromPartyMemo(target) {
     }
 
     const party = JSON.parse(rawData);
-    const pokemon = party.members[pokemonIdx];
+    const pokemon = (party.members && party.members[pokemonIdx]) || (party.p && party.p[pokemonIdx]);
 
-    if (!pokemon || !pokemon.spName) {
+    if (!pokemon || (!pokemon.spName && !pokemon.nm)) {
         alert("その枠にポケモンが登録されていません。");
         return;
     }
 
-    // --- 改良ポイント：現在の技設定から、どのステータスを参照すべきか取得 ---
-    const { attackerStatKey, defenderStatKey } = getStatKeys();
-    
+    const speciesName = pokemon.spName || pokemon.nm;
     // インデックスマッピング [H, A, B, C, D, S]
-    const evMap = { 'Atk': 1, 'Def': 2, 'SpAtk': 3, 'SpDef': 4, 'OpponentAtk': 1 };
+    const evMap = { 'Atk': 1, 'Def': 2, 'SpAtk': 3, 'SpDef': 4 };
 
     if (target === 'attacker') {
         const nameInput = document.getElementById('attacker-pokemon-name');
-        nameInput.value = pokemon.spName;
-
-        // getStatKeysの結果に基づいて努力値を決定
-        // イカサマ(OpponentAtk)の場合は、攻撃側の努力値として自分のAをとりあえず入れる
-        const targetIndex = evMap[attackerStatKey] || 1; 
+        nameInput.value = speciesName;
+        
+        // 渡された statType（Atk または SpAtk）を反映
+        const targetStat = statType || 'Atk'; 
+        const targetIndex = evMap[targetStat];
+        
         document.getElementById('attacker_ev').value = (pokemon.ev && pokemon.ev[targetIndex]) || 0;
+        document.getElementById('nature_attack').value = getNatureMultiplier(pokemon.nt, targetStat);
 
-        // 性格補正の自動判定（上昇・下降・無補正を反映）
-         document.getElementById('nature_attack').value = getNatureMultiplier(pokemon.nt, attackerStatKey);
+        // 技ボタン生成処理（前回と同じ）
+        const moveArea = document.getElementById('move-quick-selection');
+        if (moveArea && (pokemon.mv || pokemon.moves)) {
+            const moves = pokemon.mv || pokemon.moves;
+            moveArea.innerHTML = '<p style="margin:5px 0; font-size:12px; color:#666;">使う技を選択：</p>';
+            const btnContainer = document.createElement('div');
+            btnContainer.style.display = 'flex'; gap = '5px'; flexWrap = 'wrap';
+
+            moves.forEach(moveData => {
+                if (!moveData) return;
+                let mName = (typeof moveData === 'string') ? moveData : (moveData.name || moveData.nm || "");
+                if (mName === "") return;
+
+                const btn = document.createElement('button');
+                btn.textContent = mName;
+                btn.className = "quick-move-btn"; // CSSでスタイル調整用
+                btn.style.padding = "6px 12px"; btn.style.cursor = "pointer";
+                
+                btn.onclick = () => {
+                    const moveInput = document.getElementById('move-name');
+                    moveInput.value = mName;
+                    moveInput.dispatchEvent(new Event('input'));
+                    moveInput.dispatchEvent(new Event('blur'));
+                    
+                    // 色替え
+                    Array.from(btnContainer.children).forEach(b => {
+                        b.style.background = "#fff"; b.style.color = "#007bff";
+                    });
+                    btn.style.background = "#007bff"; btn.style.color = "#fff";
+                };
+                btnContainer.appendChild(btn);
+            });
+            moveArea.appendChild(btnContainer);
+            
+            // 最初に見つかった有効な技をクリック
+            if(btnContainer.firstChild) btnContainer.firstChild.click();
+        }
 
         nameInput.dispatchEvent(new Event('change'));
-        // ★これを追加：読み込んだポケモンの種族データからメガボタンを更新
-        const speciesObj = db.species.find(s => s.name === pokemon.spName);
+        const speciesObj = db.species.find(s => s.name === speciesName);
         if (speciesObj) updateMegaToggle('attacker', speciesObj.data);
 
     } else {
+        // 防御側の処理
         const nameInput = document.getElementById('defender-pokemon-name');
-        nameInput.value = pokemon.spName;
-
-        // HPは常に反映
+        nameInput.value = speciesName;
+        
+        // HPは固定
         document.getElementById('hp_ev').value = (pokemon.ev && pokemon.ev[0]) || 0;
-
-        // 防御側もgetStatKeysの結果(Def or SpDef)に基づいて反映
-        const targetIndex = evMap[defenderStatKey] || 2;
+        
+        // 渡された statType（Def または SpDef）を反映
+        const targetStat = statType || 'Def';
+        const targetIndex = evMap[targetStat];
+        
         document.getElementById('defender_ev').value = (pokemon.ev && pokemon.ev[targetIndex]) || 0;
-
-        // 性格補正の自動判定（上昇・下降・無補正を反映）
-        document.getElementById('nature_defense').value = getNatureMultiplier(pokemon.nt, defenderStatKey);
+        document.getElementById('nature_defense').value = getNatureMultiplier(pokemon.nt, targetStat);
 
         nameInput.dispatchEvent(new Event('change'));
-
-        // ★これを追加
-        const speciesObj = db.species.find(s => s.name === pokemon.spName);
+        const speciesObj = db.species.find(s => s.name === speciesName);
         if (speciesObj) updateMegaToggle('defender', speciesObj.data);
     }
 
     if (typeof updateStatsAndRecalculate === "function") {
         updateStatsAndRecalculate();
     }
-    
-    alert(`${pokemon.spName} を読み込みました。\n参照ステータス: ${target === 'attacker' ? attackerStatKey : defenderStatKey}`);
 }
 
 /**
@@ -4798,7 +4895,7 @@ function startCountdown() {
     let totalSeconds = 20 * 60; 
 
     // 初回の表示を即座に行う（1秒のラグを防ぐ）
-    timeLeftSpan.textContent = "20:00";
+    timeLeftSpan.textContent = "20:30";
 
     countdownInterval = setInterval(() => {
         const minutes = Math.floor(totalSeconds / 60);
