@@ -120,19 +120,6 @@ frame-src https://accounts.google.com https://*.firebaseapp.com;
     padding: 8px;
     text-align: center;
 }
-/* --- 画面下部固定ユニット --- */
-#bottom-navigation {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: #ffffff;
-    box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
-    z-index: 10001; /* ハンバーガーメニューより手前に */
-    display: flex;
-    flex-direction: column;
-    padding-bottom: env(safe-area-inset-bottom); /* スマホのノッチ対策 */
-}
 
 /* ボタンコンテナのスタイルを上書き（以前の top/left 固定を解除） */
 #fixed-button-container {
@@ -180,42 +167,6 @@ frame-src https://accounts.google.com https://*.firebaseapp.com;
     margin: 0 !important;
 }
 
-/* コンテンツが帯に隠れないようにbodyの下余白を確保 */
-body {
-    padding-bottom: 150px !important;
-}
-
-/* --- 画面下部固定ユニット --- */
-#bottom-navigation {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: #ffffff;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-    z-index: 10001;
-    display: flex;
-    flex-direction: column;
-    padding-bottom: env(safe-area-inset-bottom);
-    box-sizing: border-box;
-    /* --- 追加：中身がはみ出さないようにする --- */
-    overflow: hidden; 
-}
-
-@media screen and (min-width: 1000px) {
-    #bottom-navigation {
-        max-width: 850px;
-        /* left と transform を解除して、左右中央に配置し直す */
-        left: 0;
-        right: 0;
-        margin: 0 auto; 
-        
-        transform: none; /* transformによるバグを回避 */
-        border-left: 1px solid #ddd;
-        border-right: 1px solid #ddd;
-        border-radius: 8px 8px 0 0;
-    }
-}
 /* ナビゲーションメニュー全体 */
 .nav-menu {
     padding: 60px 0 20px 0; /* ボタンと重ならないよう上部に余白 */
@@ -446,19 +397,6 @@ input[type="number"], input[type="text"], select {
     width: 18px;
     height: 18px;
 }
-/* 下部固定パネル全体 */
-#bottom-navigation {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: #ffffff;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1); /* 影を少し薄く */
-    z-index: 10001;
-    display: flex;
-    flex-direction: column;
-    padding-bottom: env(safe-area-inset-bottom);
-}
 
 .action-bar {
     display: flex;
@@ -608,22 +546,53 @@ body {
     padding-bottom: 120px !important;
 }
 
-/* スマホで帯が浮かないように固定 */
+
+/* 一旦、既存の #bottom-navigation と body の padding 設定をすべて消してから、
+   以下のコードを <style> の一番最後に追加してください */
+
+/* ナビゲーションの共通ベース（!importantで強制） */
 #bottom-navigation {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    z-index: 10001;
-    background: white;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    position: fixed !important;
+    left: 0 !important;
+    width: 100% !important;
+    background: #ffffff !important;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2) !important;
+    z-index: 10000 !important; /* 他の要素より確実に上に */
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
 }
 
-/* タブボタンのアクティブ色 */
-.tab-btn.active {
-    color: #007bff;
-    background: #f0f7ff;
-    border-top: 3px solid #007bff !important;
+/* --------------------------------------------------
+   1. 【縦長判定】幅よりも高さがある時（PC縦長・スマホ縦）
+   -------------------------------------------------- */
+@media screen and (max-aspect-ratio: 13/10) {
+    #bottom-navigation {
+        top: auto !important;
+        bottom: 0 !important; /* 下に固定 */
+        border-top: 2px solid #007bff !important;
+        border-bottom: none !important;
+    }
+    body {
+        padding-bottom: 140px !important; /* 下に余白 */
+        padding-top: 20px !important;
+    }
+}
+
+/* --------------------------------------------------
+   2. 【横長判定】高さよりも幅が十分にある時（PC全画面・スマホ横）
+   -------------------------------------------------- */
+@media screen and (min-aspect-ratio: 13/10) {
+    #bottom-navigation {
+        bottom: auto !important;
+        top: 0 !important; /* 上に固定 */
+        border-bottom: 2px solid #007bff !important;
+        border-top: none !important;
+    }
+    body {
+        padding-top: 130px !important; /* 上に余白 */
+        padding-bottom: 20px !important;
+    }
 }
 </style>
 </head>
@@ -1145,6 +1114,28 @@ document.addEventListener('click', function(event) {
         <div id="tab-env" class="tab-panel">
             <div class="card">
                 <h3>🌍 フィールド、その他設定</h3>
+    <label for="environment_m_select">天候補正 (M) - **自動適用**</label>
+                <select id="environment_m_select" name="environment_m_select">
+                    <option value="None">補正なし (1.0)</option>
+                    <optgroup label="--- 天候 ---">
+                        <option value="Rain">☔ 雨 (水1.5倍 / 炎0.5倍)</option>
+                        <option value="Sun">☀️ 晴れ (炎1.5倍 / 水0.5倍)</option>
+                        <option value="Sandstorm">🌪️ 砂嵐 (岩タイプ特防1.5倍)</option>
+                        <option value="Snow">❄️ 霰/雪 (氷タイプ防御1.5倍)</option>
+                    </optgroup>
+                </select>
+
+                <label for="environment_m_select">フィールド補正 (M) - **自動適用**</label>
+                <select id="environment_m_select" name="environment_m_select">
+                    <option value="None">補正なし (1.0)</option>
+                    <optgroup label="--- フィールド (1.3倍) ---">
+                        <option value="ElectricTerrain">⚡ エレキフィールド (電1.3倍)</option>
+                        <option value="GrassyTerrain">🌱 グラスフィールド (草1.3倍)</option>
+                        <option value="MistyTerrain">🌫️ ミストフィールド (竜0.5倍)</option>
+                        <option value="PsychicTerrain">🧠 サイコフィールド (超1.3倍)</option>
+                    </optgroup>
+                </select>
+
                 <p>場に出た時のダメージ (固定ダメージ)</p>
     
     <label for="stealth_rock_check" class="checkbox-group">
@@ -1167,8 +1158,6 @@ document.addEventListener('click', function(event) {
                     <label for="critical_m_check">✅ 急所に当たる (1.5倍)</label>
                     <input type="checkbox" id="critical_m_check">
                 </div>
-
-<div id="result-area"></div>
                 
                 <div class="checkbox-group">
                     <label for="burn_m_check">🔥 やけど状態 (0.5倍)</label>
@@ -1179,29 +1168,6 @@ document.addEventListener('click', function(event) {
                     <label for="substitute_check">👤 みがわり状態 (HP: 1/4)</label>
                     <input type="checkbox" id="substitute_check">
                 </div>
-                
-                <label for="environment_m_select">天候補正 (M) - **自動適用**</label>
-                <select id="environment_m_select" name="environment_m_select">
-                    <option value="None">補正なし (1.0)</option>
-                    <optgroup label="--- 天候 ---">
-                        <option value="Rain">☔ 雨 (水1.5倍 / 炎0.5倍)</option>
-                        <option value="Sun">☀️ 晴れ (炎1.5倍 / 水0.5倍)</option>
-                        <option value="Sandstorm">🌪️ 砂嵐 (岩タイプ特防1.5倍)</option>
-                        <option value="Snow">❄️ 霰/雪 (氷タイプ防御1.5倍)</option>
-                    </optgroup>
-                </select>
-
-                <label for="environment_m_select">フィールド補正 (M) - **自動適用**</label>
-                <select id="environment_m_select" name="environment_m_select">
-                    <option value="None">補正なし (1.0)</option>
-                    <optgroup label="--- フィールド (1.3倍) ---">
-                        <option value="ElectricTerrain">⚡ エレキフィールド (電1.3倍)</option>
-                        <option value="GrassyTerrain">🌱 グラスフィールド (草1.3倍)</option>
-                        <option value="MistyTerrain">🌫️ ミストフィールド (竜0.5倍)</option>
-                        <option value="PsychicTerrain">🧠 サイコフィールド (超1.3倍)</option>
-                    </optgroup>
-                </select>
-
                 
                 <div class="checkbox-section">
                     <p>特殊な補正</p>
@@ -4892,7 +4858,7 @@ function startCountdown() {
     // 以下、開始処理
     display.style.display = 'block'; 
     timeLeftSpan.style.color = "#00ff00"; // 色を元に戻す（終了後に再開する場合用）
-    let totalSeconds = 20 * 60; 
+    let totalSeconds = (20 * 60) + 30;
 
     // 初回の表示を即座に行う（1秒のラグを防ぐ）
     timeLeftSpan.textContent = "20:30";
