@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="
 default-src 'self';
-script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com;
+script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com https://www.googletagmanager.com;
 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
 font-src 'self' https://fonts.gstatic.com;
-img-src 'self' data: https://www.gstatic.com;
-connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com;
+img-src 'self' data: https://www.gstatic.com https://www.google-analytics.com;
+connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com https://www.google-analytics.com;
 frame-src https://sharte-tool-management.firebaseapp.com;
 manifest-src 'self';
 ">
@@ -19,6 +19,15 @@ manifest-src 'self';
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js');
   }
+</script>
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GHCLZB8YK0"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-GHCLZB8YK0');
 </script>
     <title>ポケモン パーティ構築メモ(シーテャkids)</title>
     <link rel="icon" href="icon.png" type="image/png">
