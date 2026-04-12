@@ -505,6 +505,66 @@ body {
     padding-bottom: 100px !important; /* 130~150px→100pxに短縮 */
 }
 </style>
+<style>/* 画面が縦長（横幅が狭い、または高さが幅より大きい）の時に非表示にする */
+/* 「画面の高さ」が「画面の横幅」より大きい場合、または横幅が極端に狭い場合に非表示 */
+@media screen and (orientation: portrait), screen and (max-aspect-ratio: 1/1), screen and (max-width: 800px) {
+    #result-sticky-footer {
+        display: none !important;
+    }
+}
+.btn-calc-fixed-top {
+    position: fixed;
+    top: 0;                /* 上端に密着 */
+    right: 20px;           /* 右端から少しスペースを空ける */
+    z-index: 12000;
+    
+    /* 横長の四角デザイン */
+    width: 100px;          /* 少しコンパクトにして邪魔にならないように */
+    height: 45px;
+    font-size: 1.5rem;
+    border: none;
+    border-radius: 0 0 10px 10px; /* 下の角だけ丸く */
+    background-color: #d9534f;
+    color: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    cursor: pointer;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.1s;
+}
+
+/* 押した時のリアクション */
+.btn-calc-fixed-top:active {
+    background-color: #c9302c;
+    transform: translateY(2px);
+}
+</style>
+<style>
+    /* 下部メニューが重ならないようにbodyの下余白を調整 */
+body {
+    padding-bottom: 120px !important;
+}
+
+/* スマホで帯が浮かないように固定 */
+#bottom-navigation {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10001;
+    background: white;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+}
+
+/* タブボタンのアクティブ色 */
+.tab-btn.active {
+    color: #007bff;
+    background: #f0f7ff;
+    border-top: 3px solid #007bff !important;
+}
+</style>
 </head>
 <script>
 function toggleMenu() {
@@ -513,16 +573,22 @@ function toggleMenu() {
     btn.classList.toggle('active');
     menu.classList.toggle('open');
 }
-// 285行目付近のリスナーを修正
+// すべての外側クリック判定をまとめる
 document.addEventListener('click', function(event) {
+    // 1. ハンバーガーメニュー用の判定
     const hamburger = document.getElementById('hamburgerMenu');
-    const btn = document.querySelector('.hamburger-btn'); // ボタンを取得
-    const menu = document.getElementById('navMenu');     // メニューを取得
+    const btn = document.querySelector('.hamburger-btn');
+    const menu = document.getElementById('navMenu');
 
-    // 要素がすべて存在し、かつクリックされた場所がメニュー外の場合
     if (hamburger && !hamburger.contains(event.target)) {
         if (btn) btn.classList.remove('active');
         if (menu) menu.classList.remove('open');
+    }
+
+    // 2. モーダル（技早見・調整早見）用の判定
+    // event.target がモーダルの背景（.modal）そのものだった場合に閉じる
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = "none";
     }
 });
 </script>
@@ -680,8 +746,10 @@ document.addEventListener('click', function(event) {
 </div>
     <h2>ダメ計ツール(シーテャkids)</h2>
         <button type="button" 
-                onclick="calculateDamage(); document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });" 
-                class="btn-calc">🧮</button>
+        onclick="calculateDamage(); openResultModal();" 
+        class="btn-calc-fixed-top">
+    📝計算
+</button>
         <button type="button" onclick="openQuickTableModal()" class="btn-table">技早見</button>
         <button type="button" onclick="openQuickTableModal2()" class="btn-table">調整早見</button>
     </div>
@@ -918,6 +986,9 @@ document.addEventListener('click', function(event) {
     　　　　<option value="">（特性なし）</option>
 　　　　　　</select>
         </div>
+        <div style="flex: 0; display: flex; align-items: flex-end; padding-bottom: 5px;">
+        <button type="button" onclick="swapAttackerDefender()" style="padding: 5px 10px; margin: 0; background-color: #6c757d;">⇄</button>
+        </div>
          <label for="hp">防御側最大HP</label>
 <div style="display: flex; gap: 8px; align-items: center;">
     <input type="number" id="hp" value="150" min="1" oninput="updateHPByPercent()" style="flex: 2;">
@@ -1112,6 +1183,19 @@ document.addEventListener('click', function(event) {
 <div id="quick-table-modal2" class="modal"> <div class="modal-content">
         <span class="close-button" onclick="closeQuickTableModal2()">&times;</span>
         <div id="quick-table-container2"></div> </div>
+</div>
+
+<div id="resultModal" class="modal" style="display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8);">
+    <div class="modal-content" style="background:#fff; margin:10% auto; padding:20px; width:90%; max-width:500px; border-radius:10px; position:relative;">
+        <span onclick="closeResultModal()" style="position:absolute; right:15px; top:10px; font-size:30px; cursor:pointer;">&times;</span>
+        <h2 style="font-size:1.2rem; color:#007bff; border-bottom:2px solid #007bff;">📊 計算結果</h2>
+        
+        <div id="modal-result-body" style="margin-top:15px;"></div>
+        
+        <button type="button" onclick="closeResultModal()" style="width:100%; margin-top:20px; padding:12px; background:#6c757d; color:white; border:none; border-radius:5px; font-weight:bold;">
+            閉じる
+        </button>
+    </div>
 </div>
 
 <div id="quick-table-container-outer" style="margin-top: 30px; overflow-x: auto;">
@@ -3328,6 +3412,8 @@ resultDiv.insertAdjacentHTML('beforeend', historyBtnHtml);
 
 // 描画後に履歴を再表示（リロード対策）
 updateHistoryUI();
+
+
 // ▲▲▲ ここまで ▲▲▲
 
     } catch (error) {
@@ -3371,7 +3457,16 @@ function addCurrentResultToHistory() {
         dist: [...currentLastDamages] 
     });
 
-    updateHistoryUI();
+    // 1. メイン画面の履歴UIを更新
+    updateHistoryUI(); 
+    
+    // 2. モーダルが開いている場合、モーダル内の表示も同期させる
+    const modalBody = document.getElementById('modal-result-body');
+    const mainResult = document.getElementById('result');
+    if (modalBody && mainResult) {
+        // メイン画面の最新状態（加算後のリストなど）をモーダルにコピー
+        modalBody.innerHTML = mainResult.innerHTML;
+    }
 }
 
 /**
@@ -3444,10 +3539,22 @@ function updateHistoryUI() {
     `;
 }
 
-// 履歴削除用
+/* 履歴から削除する関数 */
 function removeFromHistory(index) {
+    // 1. 配列からデータを削除
     damageHistory.splice(index, 1);
+
+    // 2. メイン画面のUIを更新（これで id="result" の中身が最新になる）
     updateHistoryUI();
+
+    // ★ここから追加：モーダルが開いているなら、その中身も同期させる
+    const modalBody = document.getElementById('modal-result-body');
+    const mainResult = document.getElementById('result');
+    
+    if (modalBody && mainResult) {
+        // メイン画面の最新の計算結果（削除反映済み）をモーダルにまるごと上書き
+        modalBody.innerHTML = mainResult.innerHTML;
+    }
 }
 
 // リセット用
@@ -4739,6 +4846,31 @@ window.onclick = function(event) {
 
 // 既存の generateQuickTable を少し修正
 // （元のコードの冒頭にある alert チェックなどはそのまま活かしてください）
+</script>
+<script>
+function openResultModal() {
+    // 1. 本来の結果エリアから内容をコピーする
+    const originalResult = document.getElementById('result').innerHTML;
+    const modalBody = document.getElementById('modal-result-body');
+    
+    if (modalBody) {
+        modalBody.innerHTML = originalResult;
+        // 2. モーダルを表示する
+        document.getElementById('resultModal').style.display = "block";
+    }
+}
+
+function closeResultModal() {
+    document.getElementById('resultModal').style.display = "none";
+}
+
+// 画面の暗い部分をタップしても閉じるようにする
+window.onclick = function(event) {
+    const modal = document.getElementById('resultModal');
+    if (event.target == modal) {
+        closeResultModal();
+    }
+}
 </script>
 <script>
     /**
