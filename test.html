@@ -594,6 +594,41 @@ body {
         padding-bottom: 20px !important;
     }
 }
+.input-inline-group {
+    display: flex;      /* 子要素を横並びにする */
+    align-items: center; /* 上下の中心を合わせる */
+    gap: 10px;          /* ラベルと入力欄の間の隙間 */
+}
+
+/* ラベルの幅を固定すると、複数の入力項目がある場合に綺麗に揃います */
+.input-inline-group label {
+    white-space: nowrap; /* 改行を防ぐ */
+    min-width: 50px;     /* 必要に応じて調整 */
+}
+
+/* 入力コンテナが横に広がるように調整 */
+.search-container {
+    flex-grow: 1;        /* 親要素の余ったスペースを埋める */
+}
+/* ラジオボタンのグループを横に並べる */
+.checkbox-group {
+    display: flex;
+    gap: 15px; /* 「物理」と「特殊」の間の距離 */
+}
+
+/* ラジオボタンの中のラベル（文字とボタンのセット）を横並びに */
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: auto; /* ここだけは幅を固定しない */
+    cursor: pointer;
+}
+
+/* detailsの中身に少し余白をつける（任意） */
+details .input-inline-group {
+    margin: 8px 0;
+}
 </style>
 </head>
 <script>
@@ -794,37 +829,39 @@ document.addEventListener('click', function(event) {
         <div class="container">
         <div id="tab-atk" class="tab-panel active">
             <div class="card">
-                <h3>⚔️ 攻撃側設定</h3>
+                <h3>⚔️ 攻撃側</h3>
                 <div class="card">
         <div class="pokemon-select-group">
-            <div>
-                <label for="attacker-pokemon-name">⚔️ 攻撃側ポケモン名:</label>
-                <div class="search-container" id="attacker-search">
-                    <input type="text" id="attacker-pokemon-name" placeholder="例: フシギダネ (ひらがな・カタカナ混在OK)">
-                    <div id="attacker-mega-container"></div>
-                    <div class="suggestion-list"></div>
-                </div>
-            </div>
-　　　　　　<div>
-           <label>攻撃側 特性</label>
-　　　　　　<select id="attacker-ability">
-    　　　　<option value="">（特性なし）</option>
-　　　　　　</select>
-        　 </div>
-        <div style="flex: 0; display: flex; align-items: flex-end; padding-bottom: 5px;">
-        <button type="button" onclick="swapAttackerDefender()" style="padding: 5px 10px; margin: 0; background-color: #6c757d;">⇄</button>
+    <div class="input-inline-group">
+        <label for="attacker-pokemon-name">名前</label>
+        <div class="search-container" id="attacker-search">
+            <input type="text" id="attacker-pokemon-name" placeholder="例: フシギダネ (ひらがな・カタカナ混在OK)">
+            <div id="attacker-mega-container"></div>
+            <div class="suggestion-list"></div>
         </div>
-        <div class="pokemon-select-group">
-    <div>
-        <label for="move-name">💥 技名:</label>
+    </div>
+
+    <div class="input-inline-group">
+        <label for="attacker-ability">特性</label>
+        <select id="attacker-ability">
+            <option value="">（特性なし）</option>
+        </select>
+    </div>
+</div>
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+            <button type="button" onclick="swapAttackerDefender()" style="padding: 5px 15px; background-color: #6c757d; border: none; color: white; border-radius: 4px; cursor: pointer;">⇄ 攻防入れ替え</button>
+        </div>
+    <div class="pokemon-select-group">
+    <div class="input-inline-group">
+        <label for="move-name">技</label>
         <div class="search-container" id="move-search">
             <input type="text" id="move-name" 
-                   placeholder="例: はっぱカッター (ひらがな・カタカナ混在OK)" 
+                   placeholder="例: はっぱカッター" 
                    oninput="handleMoveUpdate(this)">
             <div class="suggestion-list"></div>
-                </div>
-            </div>
         </div>
+    </div>
+</div>
         <div id="multi-hit-ui" style="display: none; background-color: #fff3e0; padding: 15px; border: 1px solid #ffb74d; border-radius: 4px; margin-top: 10px;">
     <h4 style="margin-top: 0; font-size: 0.9em; color: #e65100;">🔄 連続技設定</h4>
     <div style="display: flex; align-items: center; gap: 20px;">
@@ -929,44 +966,53 @@ document.addEventListener('click', function(event) {
     </div>
 </div>
 </div>
-<label for="base_attack" id="label_base_attack">攻撃側能力値 (A,C) (自動入力)</label>
-                <input type="number" id="base_attack" value="100" min="1" class="fixed-value">
-                
-                <label for="attacker_ev">攻撃側 努力値 (EV: 0-32)</label>
-                <input type="number" id="attacker_ev" value="32" min="0" max="32" step="1">
-                <div class="checkbox-group">
-                    <button type="button" class="ev-button" data-stat="attacker" data-ev="0">0振り</button>
-                    <button type="button" class="ev-button" data-stat="attacker" data-ev="32">ぶっぱ</button>
-                    <button type="button" class="ev-button" data-stat="attacker" data-step="1">+</button>
-                    <button type="button" class="ev-button" data-stat="attacker" data-step="-1">-</button>
-                </div>
-                <label for="nature_attack">攻撃側 性格補正 (実数値に適用)</label>
-                <select id="nature_attack">
-                    <option value="1.1">上昇 (1.1倍)</option>
-                    <option value="1.0" selected>補正なし (1.0倍)</option>
-                    <option value="0.9">下降 (0.9倍)</option>
-                </select>
+<div class="input-inline-group">
+    <label for="base_attack" id="label_base_attack">能力値(A/C)</label>
+    
+    <input type="number" id="base_attack" value="100" min="1" class="fixed-value" style="flex: 1; min-width: 40px;">
+    
+    <span style="font-size: 0.8em; color: #666; margin-left: 10px;">努力値</span>
+    
+    <input type="number" id="attacker_ev" value="32" min="0" max="32" step="1" style="width: 60px; flex-grow: 0;">
+    
+    <div class="checkbox-group" style="display: flex; gap: 2px;">
+        <button type="button" class="ev-button" data-stat="attacker" data-ev="0">0</button>
+        <button type="button" class="ev-button" data-stat="attacker" data-ev="32">32</button>
+        <button type="button" class="ev-button" data-stat="attacker" data-step="1">+</button>
+        <button type="button" class="ev-button" data-stat="attacker" data-step="-1">-</button>
+    </div>
+</div>
 
-                <label for="rank_attack">攻撃ランク (A+D)</label>
-                <select id="rank_attack">
-                    <option value="4.0">+6 (4.0倍)</option>
-                    <option value="3.5">+5 (3.5倍)</option>
-                    <option value="3.0">+4 (3.0倍)</option>
-                    <option value="2.5">+3 (2.5倍)</option>
-                    <option value="2.0">+2 (2.0倍)</option>
-                    <option value="1.5">+1 (1.5倍)</option>
-                    <option value="1.0" selected>±0 (1.0倍)</option>
-                    <option value="0.66666">-1 (2/3倍)</option>
-                    <option value="0.5">-2 (1/2倍)</option>
-                    <option value="0.4">-3 (2/5倍)</option>
-                    <option value="0.33333">-4 (1/3倍)</option>
-                    <option value="0.28571">-5 (2/7倍)</option>
-                    <option value="0.25">-6 (1/4倍)</option>
-                </select>
-                <div class="input-group">
-            <div>
-                <h4>攻撃側補正 (五捨五超入)</h4>
-                <label for="item_m_atk">攻撃側 持ち物補正</label>
+<div class="input-inline-group">
+    <label for="nature_attack">性格</label>
+    <select id="nature_attack">
+        <option value="1.1">上昇 (1.1倍)</option>
+        <option value="1.0" selected>補正なし (1.0倍)</option>
+        <option value="0.9">下降 (0.9倍)</option>
+    </select>
+</div>
+
+<div class="input-inline-group">
+    <label for="rank_attack">ランク</label>
+    <select id="rank_attack">
+        <option value="4.0">+6 (4.0倍)</option>
+        <option value="3.5">+5 (3.5倍)</option>
+        <option value="3.0">+4 (3.0倍)</option>
+        <option value="2.5">+3 (2.5倍)</option>
+        <option value="2.0">+2 (2.0倍)</option>
+        <option value="1.5">+1 (1.5倍)</option>
+        <option value="1.0" selected>±0 (1.0倍)</option>
+        <option value="0.66666">-1 (2/3倍)</option>
+        <option value="0.5">-2 (1/2倍)</option>
+        <option value="0.4">-3 (2/5倍)</option>
+        <option value="0.33333">-4 (1/3倍)</option>
+        <option value="0.28571">-5 (2/7倍)</option>
+        <option value="0.25">-6 (1/4倍)</option>
+    </select>
+</div>
+
+<div class="input-inline-group">
+    <label for="item_m_atk">持ち物</label>
     <select id="item_m_atk">
     <option value="4096">なし (1.0x)</option>
     <option value="4505">1.1</option>
@@ -975,96 +1021,123 @@ document.addEventListener('click', function(event) {
     <option value="6144">1.5倍 (こだわりハチマキ/メガネ等)</option>
     <option value="HONETAMA">でんきだま/ふといホネ (2.0x)</option>
     </select>
-            </div>
+</div>
 <details>
     <summary style="cursor: pointer; list-style: none;">
         <span>詳細</span>
     </summary>
-<label for="move_type">技の分類 (自動選択)</label>
-                <div class="checkbox-group">
-                    <label>
-                        <input type="radio" name="move_type" value="physical" id="move_type_physical" checked> 物理
-                    </label>
-                    <label>
-                        <input type="radio" name="move_type" value="special" id="move_type_special"> 特殊
-                    </label>
-                </div>
-                
-                <label for="power">技の威力 (自動入力)</label>
-                <input type="number" id="power" value="100" min="1" class="fixed-value">
-                <label for="affinity">タイプ相性補正 (自動入力) - **切り捨て**</label>
-                <input type="number" id="affinity" value="1.0" step="0.1" min="0.0" class="fixed-value">
-                <label for="stab">タイプ一致補正 (自動入力) - 五捨五超入</label>
-                <input type="number" id="stab" value="1.5" step="0.5" min="1.0" class="fixed-value">
-                <label for="ability_m_atk">攻撃側 特性補正</label>
-                <input type="number" id="ability_m_atk" value="4096" step="0.0001" min="0.0">
-            </div>
-            </div>
-        </details>
+    
+    <div class="input-inline-group">
+        <label>分類</label>
+        <div class="checkbox-group">
+            <label>
+                <input type="radio" name="move_type" value="physical" id="move_type_physical" checked> 物理
+            </label>
+            <label>
+                <input type="radio" name="move_type" value="special" id="move_type_special"> 特殊
+            </label>
+        </div>
+    </div>
+
+    <div class="input-inline-group">
+        <label for="power">威力</label>
+        <input type="number" id="power" value="100" min="1" class="fixed-value">
+    </div>
+
+    <div class="input-inline-group">
+        <label for="affinity">相性</label>
+        <input type="number" id="affinity" value="1.0" step="0.1" min="0.0" class="fixed-value">
+    </div>
+
+    <div class="input-inline-group">
+        <label for="stab">一致</label>
+        <input type="number" id="stab" value="1.5" step="0.5" min="1.0" class="fixed-value">
+    </div>
+
+    <div class="input-inline-group">
+        <label for="ability_m_atk">特性補正</label>
+        <input type="number" id="ability_m_atk" value="4096" step="0.0001" min="0.0">
+    </div>
+</details>
                 </div>
         </div>
 
-        <div id="tab-def" class="tab-panel">
-            <div class="card">
-                <h3>🛡️ 防御側設定</h3>
-                <div>
-                <label for="defender-pokemon-name">🛡️ 防御側ポケモン名:</label>
-                <div class="search-container" id="defender-search">
-                    <input type="text" id="defender-pokemon-name" placeholder="例: リザードン (ひらがな・カタカナ混在OK)">
-                    <div id="defender-mega-container"></div>
-                    <div class="suggestion-list"></div>
+<div id="tab-def" class="tab-panel">
+    <div class="card">
+        <h3>🛡️ 防御側</h3>
+
+        <div class="input-inline-group">
+            <label for="defender-pokemon-name">名前</label>
+            <div class="search-container" id="defender-search">
+                <input type="text" id="defender-pokemon-name" placeholder="例: リザードン (ひらがな・カタカナ混在OK)">
+                <div id="defender-mega-container"></div>
+                <div class="suggestion-list"></div>
+            </div>
+        </div>
+
+        <div class="input-inline-group">
+            <label>特性</label>
+            <select id="defender-ability">
+                <option value="">（特性なし）</option>
+            </select>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+            <button type="button" onclick="swapAttackerDefender()" style="padding: 5px 15px; background-color: #6c757d; border: none; color: white; border-radius: 4px; cursor: pointer;">⇄ 攻防入れ替え</button>
+        </div>
+
+        <div class="input-inline-group">
+            <label for="hp">HP</label>
+            <div style="display: flex; gap: 8px; align-items: center; flex-grow: 1;">
+                <input type="number" id="hp" value="150" min="1" oninput="updateHPByPercent()" style="flex: 2;">
+                <span>/</span>
+                <div style="flex: 3; display: flex; align-items: center; gap: 5px;">
+                    <input type="number" id="hp_percent" value="100.0" min="0.1" max="100.0" step="0.1" oninput="updateHPByPercent()">
+                    <span>%</span>
                 </div>
             </div>
-　　　　　　<div>
-           <label>防御側 特性</label>
-　　　　　　<select id="defender-ability">
-    　　　　<option value="">（特性なし）</option>
-　　　　　　</select>
         </div>
-        <div style="flex: 0; display: flex; align-items: flex-end; padding-bottom: 5px;">
-        <button type="button" onclick="swapAttackerDefender()" style="padding: 5px 10px; margin: 0; background-color: #6c757d;">⇄</button>
+
+        <div class="input-inline-group">
+            <label for="hp_ev">H努力値</label>
+            <input type="number" id="hp_ev" value="32" min="0" max="32" step="1" style="max-width: 60px; flex-grow: 0;">
+            <div class="checkbox-group" style="display: flex; gap: 2px;">
+                <button type="button" class="ev-button" data-stat="hp" data-ev="0">0</button>
+                <button type="button" class="ev-button" data-stat="hp" data-ev="32">32</button>
+                <button type="button" class="ev-button" data-stat="hp" data-step="1">+</button>
+                <button type="button" class="ev-button" data-stat="hp" data-step="-1">-</button>
+            </div>
         </div>
-         <label for="hp">防御側最大HP</label>
-<div style="display: flex; gap: 8px; align-items: center;">
-    <input type="number" id="hp" value="150" min="1" oninput="updateHPByPercent()" style="flex: 2;">
-    <span>/</span>
-    <div style="flex: 3; display: flex; align-items: center; gap: 5px;">
-        <input type="number" id="hp_percent" value="100.0" min="0.1" max="100.0" step="0.1" oninput="updateHPByPercent()">
-        <span>%</span>
+
+<div class="input-inline-group">
+    <label for="base_defense" id="label_base_defense">防御(B/D)</label>
+    
+    <input type="number" id="base_defense" value="100" min="1" class="fixed-value" style="flex: 1; min-width: 20px;">
+    
+    <span style="font-size: 0.8em; color: #666; margin-left: 5px;">努力値</span>
+    
+    <input type="number" id="defender_ev" value="32" min="0" max="32" step="1" style="width: 60px; flex-grow: 0;">
+    
+    <div class="checkbox-group" style="display: flex; gap: 2px;">
+        <button type="button" class="ev-button" data-stat="defender" data-ev="0">0</button>
+        <button type="button" class="ev-button" data-stat="defender" data-ev="32">32</button>
+        <button type="button" class="ev-button" data-stat="defender" data-step="1">+</button>
+        <button type="button" class="ev-button" data-stat="defender" data-step="-1">-</button>
     </div>
 </div>
-<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
 
-</div>
-                
-                <label for="hp_ev">防御側 HP 努力値 (EV: 0-32)</label>
-                <input type="number" id="hp_ev" value="32" min="0" max="32" step="1">
-                <div class="checkbox-group">
-                    <button type="button" class="ev-button" data-stat="hp" data-ev="0">0振り</button>
-                    <button type="button" class="ev-button" data-stat="hp" data-ev="32">ぶっぱ</button>
-                    <button type="button" class="ev-button" data-stat="hp" data-step="1">+</button>
-                    <button type="button" class="ev-button" data-stat="hp" data-step="-1">-</button>
-                </div>
-                <label for="base_defense" id="label_base_defense">防御側能力値 (B,D) (自動入力)</label>
-                <input type="number" id="base_defense" value="100" min="1" class="fixed-value">
-                
-                <label for="defender_ev">防御側 努力値 (EV: 0-32)</label>
-                <input type="number" id="defender_ev" value="32" min="0" max="32" step="1">
-                <div class="checkbox-group">
-                    <button type="button" class="ev-button" data-stat="defender" data-ev="0">0振り</button>
-                    <button type="button" class="ev-button" data-stat="defender" data-ev="32">ぶっぱ</button>
-                    <button type="button" class="ev-button" data-stat="defender" data-step="1">+</button>
-                    <button type="button" class="ev-button" data-stat="defender" data-step="-1">-</button>
-                </div>
-                <label for="nature_defense">防御側 性格補正 (実数値に適用)</label>
-                <select id="nature_defense">
-                    <option value="1.1">上昇 (1.1倍)</option>
-                    <option value="1.0" selected>補正なし (1.0倍)</option>
-                    <option value="0.9">下降 (0.9倍)</option>
-                </select>
+        <div class="input-inline-group">
+            <label for="nature_defense">性格</label>
+            <select id="nature_defense">
+                <option value="1.1">上昇 (1.1倍)</option>
+                <option value="1.0" selected>補正なし (1.0倍)</option>
+                <option value="0.9">下降 (0.9倍)</option>
+            </select>
+        </div>
 
-                <label for="rank_defense">防御ランク (B+D)</label>
-                <select id="rank_defense">
+        <div class="input-inline-group">
+            <label for="rank_defense">ランク</label>
+            <select id="rank_defense">
                     <option value="4.0">+6 (4.0倍)</option>
                     <option value="3.5">+5 (3.5倍)</option>
                     <option value="3.0">+4 (3.0倍)</option>
@@ -1079,9 +1152,10 @@ document.addEventListener('click', function(event) {
                     <option value="0.28571">-5 (2/7倍)</option>
                     <option value="0.25">-6 (1/4倍)</option>
                 </select>
-                <div>
-                <h4>防御側補正 (五捨五超入)</h4>
-                <label for="item_m_def_select">防御側 持ち物</label>
+        </div>
+
+        <div class="input-inline-group">
+            <label for="item_m_def_select">持ち物</label>
 <select id="item_m_def_select" onchange="calculateDamage()">
     <option value="none">なし</option>
     <option value="shinka">しんかのきせき (B/D 1.5倍)</option>
@@ -1098,89 +1172,97 @@ document.addEventListener('click', function(event) {
     <option value="tabenokoshi7">たべのこし7 (7/16回復)</option>
     <option value="tabenokoshi8">たべのこし8 (8/16回復)</option>
 </select>
-        </div>   
+        </div>
+
         <details>
-    <summary style="cursor: pointer; list-style: none;">
-        <span>詳細</span>
-    </summary>
+            <summary style="cursor: pointer; list-style: none; color: #007bff; font-size: 0.9em; margin-top: 10px;">
+                <span>詳細</span>
+            </summary>
+            <div style="margin-top: 10px;">
                 <input type="hidden" id="item_m_def" value="4096">
-                <label for="ability_m_def">防御側 特性補正 (場合による)</label>
-                <input type="number" id="ability_m_def" value="1.0" step="0.0001" min="0.0">
+                <div class="input-inline-group">
+                    <label for="ability_m_def">特性補正</label>
+                    <input type="number" id="ability_m_def" value="1.0" step="0.0001" min="0.0">
+                </div>
             </div>
         </details>
-                </div>
-        </div>
+    </div>
+</div>
 
         <div id="tab-env" class="tab-panel">
             <div class="card">
                 <h3>🌍 フィールド、その他設定</h3>
-    <label for="environment_m_select">天候補正 (M) - **自動適用**</label>
-                <select id="environment_m_select" name="environment_m_select">
-                    <option value="None">補正なし (1.0)</option>
-                    <optgroup label="--- 天候 ---">
-                        <option value="Rain">☔ 雨 (水1.5倍 / 炎0.5倍)</option>
-                        <option value="Sun">☀️ 晴れ (炎1.5倍 / 水0.5倍)</option>
-                        <option value="Sandstorm">🌪️ 砂嵐 (岩タイプ特防1.5倍)</option>
-                        <option value="Snow">❄️ 霰/雪 (氷タイプ防御1.5倍)</option>
-                    </optgroup>
-                </select>
+    <div class="input-inline-group">
+    <label for="environment_m_select_weather">天候</label>
+    <select id="environment_m_select" name="environment_m_select">
+        <option value="None">補正なし (1.0)</option>
+        <optgroup label="--- 天候 ---">
+            <option value="Rain">☔ 雨 (水1.5/炎0.5)</option>
+            <option value="Sun">☀️ 晴れ (炎1.5/水0.5)</option>
+            <option value="Sandstorm">🌪️ 砂嵐 (岩特防1.5)</option>
+            <option value="Snow">❄️ 霰/雪 (氷防御1.5)</option>
+        </optgroup>
+    </select>
+</div>
 
-                <label for="environment_m_select">フィールド補正 (M) - **自動適用**</label>
-                <select id="environment_m_select" name="environment_m_select">
-                    <option value="None">補正なし (1.0)</option>
-                    <optgroup label="--- フィールド (1.3倍) ---">
-                        <option value="ElectricTerrain">⚡ エレキフィールド (電1.3倍)</option>
-                        <option value="GrassyTerrain">🌱 グラスフィールド (草1.3倍)</option>
-                        <option value="MistyTerrain">🌫️ ミストフィールド (竜0.5倍)</option>
-                        <option value="PsychicTerrain">🧠 サイコフィールド (超1.3倍)</option>
-                    </optgroup>
-                </select>
+<div class="input-inline-group">
+    <label for="environment_m_select_field">フィールド</label>
+    <select id="environment_m_select" name="environment_m_select">
+        <option value="None">補正なし (1.0)</option>
+        <optgroup label="--- フィールド (1.3倍) ---">
+            <option value="ElectricTerrain">⚡ エレキ (電1.3)</option>
+            <option value="GrassyTerrain">🌱 グラス (草1.3)</option>
+            <option value="MistyTerrain">🌫️ ミスト (竜0.5)</option>
+            <option value="PsychicTerrain">🧠 サイコ (超1.3)</option>
+        </optgroup>
+    </select>
+</div>
 
-                <p>場に出た時のダメージ (固定ダメージ)</p>
-    
-    <label for="stealth_rock_check" class="checkbox-group">
-        <input type="checkbox" id="stealth_rock_check"> 
-        ステルスロック
-        <span id="stealth_rock_display" style="margin-left: 10px; font-weight: normal; color: #cc5500;">(岩相性: 1.0倍)</span>
-    </label>
+<div class="input-inline-group">
+ <div style="display: flex; align-items: center; flex-grow: 1;">
+        <label for="stealth_rock_check" style="min-width: auto; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+            <input type="checkbox" id="stealth_rock_check"> ステロ
+        </label>
+        <span id="stealth_rock_display" style="margin-left: 10px; font-size: 0.85em; color: #cc5500;">(岩相性: 1.0倍)</span>
+    </div>
+</div>
 
-    <label for="spikes_layer" style="margin-top: 10px;">まきびし層数:</label>
+<div class="input-inline-group">
+    <label for="spikes_layer">まきびし</label>
     <select id="spikes_layer">
         <option value="0">0層 (0%)</option>
         <option value="1">1層 (1/16)</option>
         <option value="2">2層 (1/8)</option>
         <option value="3">3層 (1/4)</option>
     </select>
-            <div>
-                <h4>環境・状態補正</h4>
+</div>
                 
                 <div class="checkbox-group">
-                    <label for="critical_m_check">✅ 急所に当たる (1.5倍)</label>
+                    <label for="critical_m_check">✅ 急所(1.5倍)</label>
                     <input type="checkbox" id="critical_m_check">
                 </div>
                 
                 <div class="checkbox-group">
-                    <label for="burn_m_check">🔥 やけど状態 (0.5倍)</label>
+                    <label for="burn_m_check">🔥やけど(0.5倍)</label>
                     <input type="checkbox" id="burn_m_check">
                 </div>
                 
                 <div class="checkbox-group">
-                    <label for="substitute_check">👤 みがわり状態 (HP: 1/4)</label>
+                    <label for="substitute_check">👤みがわり(HP: 1/4)</label>
                     <input type="checkbox" id="substitute_check">
                 </div>
                 
                 <div class="checkbox-section">
-                    <p>特殊な補正</p>
                     <div class="checkbox-group">
-                        <label for="wall_single_check">🛡️ 壁補正 (シングル 0.5)</label>
+                        <label for="wall_single_check">🛡️壁(シングル)</label>
                         <input type="checkbox" id="wall_single_check">
                     </div>
                     <div class="checkbox-group">
-                        <label for="wall_double_check">🛡️ 壁補正 (ダブル 0.66...)</label>
+                        <label for="wall_double_check">🛡️壁(ダブル)</label>
                         <input type="checkbox" id="wall_double_check">
                     </div>
                     <div class="checkbox-group">
-                        <label for="range_m_check">👥 範囲補正 (複数対象 0.75)</label>
+                        <label for="range_m_check">👥範囲</label>
                         <input type="checkbox" id="range_m_check">
                     </div>
                 </div>
@@ -1535,29 +1617,29 @@ function calculateDamage() {
 
     // --- 例外処理 ---
     if (moveData.FunctionCode === "UseUserDefenseInsteadOfUserAttack" || moveNameKatakana === "ボディプレス") {
-        attackerLabel.innerHTML = '攻撃側能力値 (自分のBを参照) (自動入力)';
-        defenderLabel.innerHTML = '防御側能力値 (B) (自動入力)';
+        attackerLabel.innerHTML = '実数値(B)';
+        defenderLabel.innerHTML = '実数値(B)';
         attackerStatKey = 'Def'; defenderStatKey = 'Def';
     } 
     else if (moveNameKatakana === "イカサマ") {
-        attackerLabel.innerHTML = '攻撃側能力値 (相手のAを参照) (自動入力)';
-        defenderLabel.innerHTML = '防御側能力値 (B) (自動入力)';
+        attackerLabel.innerHTML = '実数値(相手のA)';
+        defenderLabel.innerHTML = '実数値(B)';
         attackerStatKey = 'OpponentAtk'; // 特殊なキーを返す
         defenderStatKey = 'Def';
     } 
     else if (moveData.FunctionCode === "UseTargetDefenseInsteadOfTargetSpecialDefense" || ["サイコショック", "サイコブレイク", "シンピノツルギ"].includes(moveNameKatakana)) {
-        attackerLabel.innerHTML = '攻撃側能力値 (C) (自動入力)';
-        defenderLabel.innerHTML = '防御側能力値 (相手のBを参照) (自動入力)';
+        attackerLabel.innerHTML = '実数値(C)';
+        defenderLabel.innerHTML = '実数値(B)';
         attackerStatKey = 'SpAtk'; defenderStatKey = 'Def';
     } 
     // --- 通常処理 ---
     else if (isPhysical) {
-        attackerLabel.innerHTML = '攻撃側能力値 (A) (自動入力)';
-        defenderLabel.innerHTML = '防御側能力値 (B) (自動入力)';
+        attackerLabel.innerHTML = '実数値(A)';
+        defenderLabel.innerHTML = '実数値(B)';
         attackerStatKey = 'Atk'; defenderStatKey = 'Def';
     } else {
-        attackerLabel.innerHTML = '攻撃側能力値 (C) (自動入力)';
-        defenderLabel.innerHTML = '防御側能力値 (D) (自動入力)';
+        attackerLabel.innerHTML = '実数値(C)';
+        defenderLabel.innerHTML = '実数値(D)';
         attackerStatKey = 'SpAtk'; defenderStatKey = 'SpDef';
     }
 
@@ -2317,9 +2399,14 @@ function initAppDisplay(moveDataLoaded) {
         document.getElementById('defender-pokemon-name').value = initialDefender;
         document.getElementById('move-name').value = initialMove;
         
-        ['hp_ev', 'attacker_ev', 'defender_ev'].forEach(id => {
+        ['hp_ev', 'defender_ev'].forEach(id => {
             const el = document.getElementById(id);
             if(el) el.value = 0;
+        });
+
+        ['attacker_ev'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = 32;
         });
 
         updateStatsAndRecalculate('attacker', initialAttacker);
