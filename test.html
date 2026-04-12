@@ -727,7 +727,7 @@ document.addEventListener('click', function(event) {
         <div class="import-buttons">
             <button type="button" onclick="loadFromPartyMemo('attacker')" style="background-color: #007bff; color:white;" title="攻撃側に読込">⚔️</button>
             <button type="button" onclick="loadFromPartyMemo('defender')" style="background-color: #6c757d; color:white;" title="防御側に読込">🛡️</button>
-            <button type="button" id="timer-start-btn" onclick="startCountdown()" style="background-color: #ff5722; color:white;" title="タイマー開始">⏰</button>
+            <button type="button" id="timer-start-btn" onclick="startCountdown()" style="background-color: #ff5722; color:white;" title="タイマー開始">⌛</button>
         </div>
     </div>
 
@@ -741,8 +741,8 @@ document.addEventListener('click', function(event) {
     </select>
 </div>
 
-<div id="timer-display" style="display: none; position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: #00ff00; padding: 10px 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 24px; z-index: 1000; border: 2px solid #00ff00; box-shadow: 0 0 10px rgba(0,255,0,0.5);">
-    残り時間: <span id="time-left">20:00</span>
+<div id="timer-display" style="display: none; position: fixed; top: 10px; right: 130px; background: rgba(0,0,0,0.8); color: #00ff00; padding: 10px 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 24px; z-index: 1000; border: 2px solid #00ff00; box-shadow: 0 0 10px rgba(0,255,0,0.5);">
+    ⌛<span id="time-left">20:30</span>
 </div>
     <h2>ダメ計ツール(シーテャkids)</h2>
         <button type="button" 
