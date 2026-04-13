@@ -1612,6 +1612,91 @@ document.addEventListener('DOMContentLoaded', () => {
     openTab('tab-atk'); 
 });
 
+let intervalId = null;
+let timeoutId = null;
+let isRunning = false; // 二重動作防止用のガード
+
+const startChanging = (stat, step) => {
+    // すでに動いている場合は何もしない
+    if (isRunning) return;
+    isRunning = true;
+
+    stopChanging(); 
+
+    const input = document.getElementById(`${stat}_ev`);
+    const updateValue = () => {
+        let currentValue = parseInt(input.value) || 0;
+        let newValue = currentValue + step;
+        const min = parseInt(input.min) || 0;
+        const max = parseInt(input.max) || 32;
+
+        if (newValue >= min && newValue <= max) {
+            input.value = newValue;
+            input.dispatchEvent(new Event('change'));
+        } else {
+            stopChanging();
+        }
+    };
+
+    // 最初の一回を実行
+    updateValue();
+
+    // 長押し判定（500ms後に連打開始）
+    timeoutId = setTimeout(() => {
+        intervalId = setInterval(updateValue, 100);
+    }, 500);
+};
+
+const stopChanging = () => {
+    clearTimeout(timeoutId);
+    clearInterval(intervalId);
+    timeoutId = null;
+    intervalId = null;
+    isRunning = false; // 指を離したらガードを解除
+};
+
+// イベント設定の修正
+document.querySelectorAll('.ev-button[data-step]').forEach(button => {
+    const stat = button.dataset.stat;
+    const step = parseInt(button.dataset.step);
+
+    // 以前のイベントを確実に消すための処理
+    const newButton = button.cloneNode(true);
+    button.parentNode.replaceChild(newButton, button);
+
+    newButton.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        
+        // ブラウザ標準のクリックイベントを完全に殺す
+        e.preventDefault();
+        
+        newButton.setPointerCapture(e.pointerId);
+        startChanging(stat, step);
+    });
+
+    newButton.addEventListener('pointerup', (e) => {
+        e.preventDefault();
+        stopChanging();
+    });
+
+    newButton.addEventListener('pointercancel', stopChanging);
+
+    // clickイベントが他から飛んできても無視する
+    newButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    }, { capture: true });
+});
+
+// 固定値ボタン（0や32）用の処理（こちらは連打不要なので分ける）
+document.querySelectorAll('.ev-button[data-ev]').forEach(button => {
+    button.addEventListener('click', (e) => {
+        const input = document.getElementById(`${button.dataset.stat}_ev`);
+        input.value = button.dataset.ev;
+        input.dispatchEvent(new Event('change'));
+    });
+});
+
 function updateHPByPercent() {
     const hpInput = document.getElementById('hp');
     const percentInput = document.getElementById('hp_percent');
@@ -1637,72 +1722,6 @@ function updateHPByPercent() {
         calculateDamage();
     }
 }
-let intervalId = null;
-let timeoutId = null;
-
-const startChanging = (stat, step) => {
-    stopChanging();
-    const input = document.getElementById(`${stat}_ev`);
-    
-    const updateValue = () => {
-        let newValue = parseInt(input.value) + step;
-        const min = parseInt(input.min) || 0;
-        const max = parseInt(input.max) || 32;
-
-        if (newValue >= min && newValue <= max) {
-            input.value = newValue;
-            // 数値が変わったら計算を走らせるためのイベント発火
-            input.dispatchEvent(new Event('change'));
-        } else {
-            stopChanging();
-        }
-    };
-
-    updateValue(); // 1回目の実行
-
-    // 500ms（0.5秒）長押ししたら連打開始
-    timeoutId = setTimeout(() => {
-        intervalId = setInterval(updateValue, 100);
-    }, 500);
-};
-
-const stopChanging = () => {
-    clearTimeout(timeoutId);
-    clearInterval(intervalId);
-    timeoutId = null;
-    intervalId = null;
-};
-
-// 既存のDOMContentLoaded内、またはscript末尾に配置
-document.querySelectorAll('.ev-button[data-step]').forEach(button => {
-    const stat = button.dataset.stat;
-    const step = parseInt(button.dataset.step);
-
-    // pointerdownで全ての入力をハンドリング
-    button.addEventListener('pointerdown', (e) => {
-        // 左クリック/タップ以外は無視
-        if (e.pointerType === 'mouse' && e.button !== 0) return;
-        
-        // 【重要】ブラウザの「擬似クリック」発生を抑止し、2重カウントを防ぐ
-        e.preventDefault(); 
-        
-        button.setPointerCapture(e.pointerId); // 指がズレても離した判定を取れるようにする
-        startChanging(stat, step);
-    });
-
-    button.addEventListener('pointerup', (e) => {
-        e.preventDefault();
-        stopChanging();
-    });
-
-    button.addEventListener('pointercancel', stopChanging);
-
-    //念のためclickイベントでの重複も防止
-    button.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-    });
-});
 /**
  * 攻撃側と防御側の情報を入れ替える関数 (修正版)
  */
