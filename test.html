@@ -3556,8 +3556,20 @@ if (itemDefKey === "obon") {
         }
         // --- 5. 結果の表示 (修正版) ---
         let outputHTML = '';
+
+        // 追加：攻撃側・防御側・技名の取得
+        const resAtkName = document.getElementById('attacker-pokemon-name').value || "攻撃側";
+        const resDefName = document.getElementById('defender-pokemon-name')?.value || "防御側";
+        const resMoveName = document.getElementById('move-name').value || "わざ";
+
+        // 名前と技の表示エリアを追記
+        outputHTML += `
+        <div class="result-battle-header" style="background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:10px; border-left:5px solid #007bff; font-size:0.95rem; line-height:1.4;">
+            <strong>⚔️ ${resAtkName}</strong> の <strong>${resMoveName}</strong><br>
+            <span style="color:#666;">　→ 🛡️ ${resDefName}</span>
+        </div>`;
         
-        // 合計ダメージと確定数の表示ボックス
+        // 合計ダメージと確定数の表示ボックス (以下、既存の処理を継続)
         outputHTML += `
         <div class="result-total-box" style="background:#fff4f4; padding:15px; border-radius:8px; margin-bottom:15px; border:2px solid #e74c3c;">
             <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">🔥 ${hitCount}ヒット合計ダメージ</div>
