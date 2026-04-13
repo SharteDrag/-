@@ -1609,6 +1609,62 @@ function updateHPByPercent() {
         calculateDamage();
     }
 }
+let intervalId = null;
+let timeoutId = null;
+
+const startChanging = (stat, step) => {
+    // 既存のタイマーがあればクリア（二重起動防止）
+    stopChanging();
+
+    const input = document.getElementById(`${stat}_ev`);
+    const updateValue = () => {
+        let newValue = parseInt(input.value) + step;
+        const min = parseInt(input.min) || 0;
+        const max = parseInt(input.max) || 32;
+
+        if (newValue >= min && newValue <= max) {
+            input.value = newValue;
+            // 変更後にイベントを手動で発火させたい場合（計算処理との連携用）
+            input.dispatchEvent(new Event('change'));
+        } else {
+            stopChanging();
+        }
+    };
+
+    updateValue();
+
+    timeoutId = setTimeout(() => {
+        intervalId = setInterval(updateValue, 100);
+    }, 500);
+};
+
+const stopChanging = () => {
+    clearTimeout(timeoutId);
+    clearInterval(intervalId);
+    timeoutId = null;
+    intervalId = null;
+};
+
+document.querySelectorAll('.ev-button[data-step]').forEach(button => {
+    const stat = button.dataset.stat;
+    const step = parseInt(button.dataset.step);
+
+    // pointerdown を使うと mouse と touch の両方をスマートに扱えます
+    button.addEventListener('pointerdown', (e) => {
+        // 左クリック（またはタッチ）のみ反応させる
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        
+        button.setPointerCapture(e.pointerId); // 指がボタンから外れても検知可能にする
+        startChanging(stat, step);
+    });
+
+    // 終了処理を pointerup / pointercancel にまとめる
+    button.addEventListener('pointerup', stopChanging);
+    button.addEventListener('pointercancel', stopChanging);
+
+    // 元々のクリックによる予期せぬ動作を防止
+    button.addEventListener('click', (e) => e.preventDefault());
+});
 /**
  * 攻撃側と防御側の情報を入れ替える関数 (修正版)
  */
