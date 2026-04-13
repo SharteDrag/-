@@ -6,21 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="
 default-src 'self';
-script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://www.googletagmanager.com;
+script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com;
 style-src 'self' 'unsafe-inline';
-img-src 'self' data: https://*.googleusercontent.com https://www.google-analytics.com;
-connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com https://www.google-analytics.com;
+img-src 'self' data: https://*.googleusercontent.com;
+connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com;
 frame-src https://accounts.google.com https://*.firebaseapp.com;
 ">
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-0TEQP902GF"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-0TEQP902GF');
-</script>
     <title>ポケモン ダメージ計算ツール (シーテャkids)</title>
     <link rel="icon" href="icon2.png" type="image/png">
     <style>
@@ -639,6 +630,58 @@ details .input-inline-group {
     margin: 8px 0;
 }
 </style>
+<style>
+    /* 全体的なレイアウト調整（既存のCSSに合わせて調整してください） */
+    .input-inline-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .input-inline-group label {
+        margin-right: 10px;
+        font-weight: bold;
+        font-size: 14px;
+        width: 80px; /* ラベルの幅を固定する場合 */
+    }
+
+    /* ボタングループのコンテナ */
+    .nature-btn-group {
+        display: inline-flex;
+        border-radius: 4px;
+        overflow: hidden; /* 角丸からはみ出さないように */
+        border: 1px solid #ccc; /* グループ全体の枠線 */
+    }
+
+    /* 基本のボタンスタイル */
+    .nature-btn {
+        padding: 8px 20px;
+        border: none; /* 個別の枠線は消す */
+        background-color: #f8f9fa; /* 未選択時は薄いグレー */
+        color: #333;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease; /* アニメーション */
+        border-right: 1px solid #ccc; /* ボタン間の仕切り線 */
+    }
+
+    /* 最後のボタンは右側の仕切り線を消す */
+    .nature-btn:last-child {
+        border-right: none;
+    }
+
+    /* ホバー時（マウスが乗った時） */
+    .nature-btn:not(.active):hover {
+        background-color: #e2e6ea;
+    }
+
+    /* 【重要】押されている（アクティブ）ボタンのスタイル */
+    .nature-btn.active {
+        background-color: #007bff; /* 鮮やかな青 */
+        color: white; /* 文字は白 */
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.15); /* 少し凹んだような影 */
+    }
+</style>
 </head>
 <script>
 function toggleMenu() {
@@ -992,12 +1035,14 @@ document.addEventListener('click', function(event) {
 </div>
 
 <div class="input-inline-group">
-    <label for="nature_attack">性格</label>
-    <select id="nature_attack">
-        <option value="1.1">上昇 (1.1倍)</option>
-        <option value="1.0" selected>補正なし (1.0倍)</option>
-        <option value="0.9">下降 (0.9倍)</option>
-    </select>
+    <label>性格（攻撃）</label>
+    <div class="nature-btn-group">
+        <input type="hidden" id="nature_attack" value="1.0">
+        
+        <button type="button" class="nature-btn" data-value="1.1">1.1</button>
+        <button type="button" class="nature-btn active" data-value="1.0">1.0</button>
+        <button type="button" class="nature-btn" data-value="0.9">0.9</button>
+    </div>
 </div>
 
 <div class="input-inline-group">
@@ -1134,13 +1179,15 @@ document.addEventListener('click', function(event) {
         </div>
 
         <div class="input-inline-group">
-            <label for="nature_defense">性格</label>
-            <select id="nature_defense">
-                <option value="1.1">上昇 (1.1倍)</option>
-                <option value="1.0" selected>補正なし (1.0倍)</option>
-                <option value="0.9">下降 (0.9倍)</option>
-            </select>
-        </div>
+    <label>性格（防御）</label>
+    <div class="nature-btn-group">
+        <input type="hidden" id="nature_defense" value="1.0">
+        
+        <button type="button" class="nature-btn" data-value="1.1">1.1</button>
+        <button type="button" class="nature-btn active" data-value="1.0">1.0</button>
+        <button type="button" class="nature-btn" data-value="0.9">0.9</button>
+    </div>
+</div>
 
         <div class="input-inline-group">
             <label for="rank_defense">ランク</label>
@@ -1203,7 +1250,6 @@ document.addEventListener('click', function(event) {
     <label for="environment_m_select_weather">天候</label>
     <select id="environment_m_select" name="environment_m_select">
         <option value="None">補正なし (1.0)</option>
-        <optgroup label="--- 天候 ---">
             <option value="Rain">☔ 雨 (水1.5/炎0.5)</option>
             <option value="Sun">☀️ 晴れ (炎1.5/水0.5)</option>
             <option value="Sandstorm">🌪️ 砂嵐 (岩特防1.5)</option>
@@ -1216,7 +1262,6 @@ document.addEventListener('click', function(event) {
     <label for="environment_m_select_field">フィールド</label>
     <select id="environment_m_select" name="environment_m_select">
         <option value="None">補正なし (1.0)</option>
-        <optgroup label="--- フィールド (1.3倍) ---">
             <option value="ElectricTerrain">⚡ エレキ (電1.3)</option>
             <option value="GrassyTerrain">🌱 グラス (草1.3)</option>
             <option value="MistyTerrain">🌫️ ミスト (竜0.5)</option>
@@ -1235,13 +1280,15 @@ document.addEventListener('click', function(event) {
 </div>
 
 <div class="input-inline-group">
-    <label for="spikes_layer">まきびし</label>
-    <select id="spikes_layer">
-        <option value="0">0層 (0%)</option>
-        <option value="1">1層 (1/16)</option>
-        <option value="2">2層 (1/8)</option>
-        <option value="3">3層 (1/4)</option>
-    </select>
+    <label>まきびし</label>
+    <div class="nature-btn-group">
+        <input type="hidden" id="spikes_layer" value="0">
+        
+        <button type="button" class="nature-btn active" data-value="0">0層</button>
+        <button type="button" class="nature-btn" data-value="1">1層</button>
+        <button type="button" class="nature-btn" data-value="2">2層</button>
+        <button type="button" class="nature-btn" data-value="3">3層</button>
+    </div>
 </div>
                 
                 <div class="checkbox-group">
@@ -1457,6 +1504,28 @@ function applyKatakanaConversion(id) {
 // 実行（ポケモン名のみ自動変換。技名は検索時の内部正規化で十分）
 applyKatakanaConversion('attacker-pokemon-name');
 applyKatakanaConversion('defender-pokemon-name');
+
+    // ページ内のすべての .nature-btn にイベントを設定
+    document.querySelectorAll('.nature-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            // 1. クリックされたボタンが属するグループを取得
+            const group = this.closest('.nature-btn-group');
+            // 2. そのグループ内の hidden input を取得
+            const hiddenInput = group.querySelector('input[type="hidden"]');
+            
+            // 3. 【見た目の変更】
+            // 同じグループ内の他のボタンから 'active' クラスを取り除く
+            group.querySelectorAll('.nature-btn').forEach(b => b.classList.remove('active'));
+            // クリックされたボタンに 'active' クラスを追加（これで青くなる）
+            this.classList.add('active');
+            
+            // 4. 【値の変更と連携】
+            // ボタンの data-value を hidden input にセット
+            hiddenInput.value = this.getAttribute('data-value');
+            // 既存の計算ロジックを動かすために 'change' イベントを発生させる
+            hiddenInput.dispatchEvent(new Event('change'));
+        });
+    });
 
         /**
  * 現在計算されている残りHP実数値を、最大HPの入力欄に上書き反映する
@@ -5030,19 +5099,19 @@ window.onclick = function(event) {
 }
 </script>
 <script>
-    /**
- * 努力値・性格補正によるダメージ早見表を生成してモーダルに表示する
+/**
+ * 棒グラフ（HPバー形式）を採用したダメージ早見表
  */
 function openQuickTableModal2() {
     const container = document.getElementById('quick-table-container');
-    container.innerHTML = ''; // クリア
+    container.innerHTML = ''; 
 
-    // 現在の入力値を取得（技威力、相性、補正などは現在の設定を流用）
+    // --- 前半のデータ取得・計算準備ロジックは以前と同様 ---
     const moveName = document.getElementById('move-name').value;
+    const normalizedMoveName = hiraganaToKatakana(moveName);
     const attackerName = document.getElementById('attacker-pokemon-name').value;
     const defenderName = document.getElementById('defender-pokemon-name').value;
     
-    // ポケモンデータ取得
     const atkIds = NAME_TO_KEY_MAP[hiraganaToKatakana(attackerName)];
     const defIds = NAME_TO_KEY_MAP[hiraganaToKatakana(defenderName)];
     if (!atkIds || !defIds) {
@@ -5052,89 +5121,139 @@ function openQuickTableModal2() {
     const atkPoke = POKEDATA_MAP[atkIds[0]];
     const defPoke = POKEDATA_MAP[defIds[0]];
 
-    // 表のヘッダー（防御側：無振り、H252、H252+B補正など）
     const defPatterns = [
-        { label: "無振り", hpEV: 0, defEV: 0, nature: 1.0 },
-        { label: "H10", hpEV: 10, defEV: 0, nature: 1.0 },
-        { label: "H20", hpEV: 20, defEV: 0, nature: 1.0 },
-        { label: "H32", hpEV: 32, defEV: 0, nature: 1.0 },
-        { label: "H32+", hpEV: 32, defEV: 0, nature: 1.1 },
-        { label: "BD10", hpEV: 0, defEV: 10, nature: 1.0 },
-        { label: "BD20", hpEV: 0, defEV: 20, nature: 1.0 },
-        { label: "BD32", hpEV: 0, defEV: 32, nature: 1.0 },
-        { label: "BD32+", hpEV: 0, defEV: 32, nature: 1.1 },
-        { label: "H32BD10", hpEV: 32, defEV: 10, nature: 1.0 },
-        { label: "H32BD20", hpEV: 32, defEV: 20, nature: 1.0 },
-        { label: "HBD32", hpEV: 32, defEV: 32, nature: 1.0 },
-        { label: "H32BD10+", hpEV: 32, defEV: 10, nature: 1.0 },
-        { label: "H32BD20+", hpEV: 32, defEV: 20, nature: 1.0 },
-        { label: "HBD特化", hpEV: 32, defEV: 32, nature: 1.1 }
+        { label: "無", hpEV: 0, defEV: 0, nature: 1.0 },
+        { label: "H10", hpEV: 76, defEV: 0, nature: 1.0 },
+        { label: "H20", hpEV: 156, defEV: 0, nature: 1.0 },
+        { label: "H32", hpEV: 252, defEV: 0, nature: 1.0 },
+        { label: "H32+", hpEV: 252, defEV: 0, nature: 1.1 },
+        { label: "BD32", hpEV: 0, defEV: 252, nature: 1.0 },
+        { label: "BD32+", hpEV: 0, defEV: 252, nature: 1.1 },
+        { label: "H32BD10", hpEV: 252, defEV: 76, nature: 1.0 },
+        { label: "H32BD20", hpEV: 252, defEV: 156, nature: 1.0 },
+        { label: "HBD32", hpEV: 252, defEV: 252, nature: 1.0 },
+        { label: "H32BD10+", hpEV: 252, defEV: 76, nature: 1.1 },
+        { label: "H32BD20+", hpEV: 252, defEV: 156, nature: 1.1 },
+        { label: "HBD特化", hpEV: 252, defEV: 252, nature: 1.1 }
     ];
 
-    // 表の行（攻撃側：無振り、A252、A252+性格補正）
     const atkPatterns = [
-        { label: "無振り", ev: 0, nature: 1.0 },
-        { label: "10", ev: 10, nature: 1.0 },
-        { label: "20", ev: 20, nature: 1.0 },
-        { label: "32", ev: 32, nature: 1.0 },
-        { label: "10+", ev: 10, nature: 1.1 },
-        { label: "20+", ev: 20, nature: 1.1 },
-        { label: "特化", ev: 32, nature: 1.1 }
+        { label: "無", ev: 0, nature: 1.0 },
+        { label: "10", ev: 76, nature: 1.0 },
+        { label: "20", ev: 156, nature: 1.0 },
+        { label: "32", ev: 252, nature: 1.0 },
+        { label: "10+", ev: 76, nature: 1.1 },
+        { label: "20+", ev: 156, nature: 1.1 },
+        { label: "特化", ev: 252, nature: 1.1 }
     ];
 
     const table = document.createElement('table');
     table.className = 'quick-table';
-    
-    // ヘッダー行作成
     let thead = `<tr><th>攻撃＼防御</th>`;
     defPatterns.forEach(p => thead += `<th>${p.label}</th>`);
     thead += `</tr>`;
     table.innerHTML = thead;
 
-    // 各行の計算
+    const hitCount = parseInt(document.getElementById('hit_count')?.value) || 1;
+    const isPhysical = document.getElementById('move_type_physical').checked;
+
     atkPatterns.forEach(atkP => {
         let tr = document.createElement('tr');
-        tr.innerHTML = `<td class="power-cell">${atkP.label}</td>`;
+        tr.innerHTML = `<td class="power-cell"><strong>${atkP.label}</strong></td>`;
         
         defPatterns.forEach(defP => {
-            // ステータスを仮想計算
-            const { attackerStatKey, defenderStatKey } = getStatKeys();
-            
-            // 攻撃側の能力値
-            const atkVal = calculateMaxStat(atkPoke[attackerStatKey] || atkPoke.Stats[attackerStatKey], false, atkP.nature, atkP.ev);
-            // 防御側のHPと防御値
-            const hpVal = calculateMaxStat(defPoke.HP || defPoke.Stats.HP, true, 1.0, defP.hpEV);
-            const defVal = calculateMaxStat(defPoke[defenderStatKey] || defPoke.Stats[defenderStatKey], false, defP.nature, defP.defEV);
+            // ステータス・ダメージ計算（中略：ロジックは変更なし）
+            const baseAtk = isPhysical ? (atkPoke.Atk || atkPoke.Stats.Atk) : (atkPoke.SpAtk || atkPoke.Stats.SpAtk);
+            const baseDef = isPhysical ? (defPoke.Def || defPoke.Stats.Def) : (defPoke.SpDef || defPoke.Stats.SpDef);
+            const baseHP = defPoke.HP || defPoke.Stats.HP;
+            const atkVal = Math.floor((Math.floor(baseAtk * 2 + 31 + Math.floor(atkP.ev / 4)) * 50 / 100 + 5) * atkP.nature);
+            const hpVal = Math.floor(Math.floor(baseHP * 2 + 31 + Math.floor(defP.hpEV / 4)) * 50 / 100 + 50 + 10);
+            const defVal = Math.floor((Math.floor(baseDef * 2 + 31 + Math.floor(defP.defEV / 4)) * 50 / 100 + 5) * defP.nature);
 
-            // ダメージ計算用引数の組み立て（現在の画面設定をコピー）
-            const args = {
-                power: parseInt(document.getElementById('power').value),
-                base_attack: atkVal,
-                base_defense: defVal,
-                rank_attack_val: 1.0, nature_attack: 1.0, // 早見表内ではランク±0固定
-                rank_defense_val: 1.0, nature_defense: 1.0,
+            const commonArgs = {
+                hitCount: 1, power: parseInt(document.getElementById('power').value),
+                base_attack: atkVal, base_defense: defVal,
+                rank_attack_val: parseInt(document.getElementById('rank_attack').value) || 0,
+                rank_defense_val: parseInt(document.getElementById('rank_defense').value) || 0,
                 isBurnedChecked: document.getElementById('burn_m_check').checked,
                 stab_m: parseFloat(document.getElementById('stab').value),
                 affinity_m: parseFloat(document.getElementById('affinity').value),
-                item_m_atk: parseInt(document.getElementById('item_m_atk').value),
-                ability_m_atk: parseInt(document.getElementById('ability_m_atk').value),
-                item_m_def: 4096, ability_m_def: 1.0,
+                item_m_atk: parseFloat(document.getElementById('item_m_atk').value),
+                ability_m_atk: parseFloat(document.getElementById('ability_m_atk').value),
+                item_m_def: parseFloat(document.getElementById('item_m_def').value),
+                ability_m_def: parseFloat(document.getElementById('ability_m_def').value),
                 environment: document.getElementById('environment_m_select').value,
-                moveType: document.querySelector('input[name="move_type"]:checked').value,
-                wall_m: 1.0, range_m: 1.0, hp: hpVal, isSubstituteChecked: false, other_m: 1.0
+                moveType: isPhysical ? "Physical" : "Special",
+                wall_m: document.getElementById('wall_single_check').checked ? 0.5 : (document.getElementById('wall_double_check').checked ? 2/3 : 1.0),
+                range_m: document.getElementById('range_m_check').checked ? 0.75 : 1.0,
+                hp: hpVal, isSubstituteChecked: document.getElementById('substitute_check').checked, other_m: 1.0
             };
 
-            const res = runDamageCalculation(false, args);
-            const minP = ((res.minResult / hpVal) * 100).toFixed(1);
-            const maxP = ((res.maxResult / hpVal) * 100).toFixed(1);
+            let dp = new Map([[0, 1n]]);
+            for (let i = 0; i < hitCount; i++) {
+                let hitArgs = { ...commonArgs };
+                if (normalizedMoveName === "トリプルアクセル") hitArgs.power = (i + 1) * 20;
+                if (document.getElementById("attacker-ability").value === "PARENTALBOND" && i > 0) hitArgs.range_m = 0.25;
+                if (document.getElementById("defender-ability").value === "MULTISCALE" && i > 0) hitArgs.ability_m_def = 1.0;
+                const res = runDamageCalculation(false, hitArgs);
+                const hitDamages = res.hitDetails[0].damages;
+                let nextDp = new Map();
+                for (let [currentSum, count] of dp) {
+                    for (let d of hitDamages) {
+                        let newSum = currentSum + d;
+                        nextDp.set(newSum, (nextDp.get(newSum) || 0n) + count);
+                    }
+                }
+                dp = nextDp;
+            }
 
-            let color = res.minResult >= hpVal ? "#ffcccc" : (res.maxResult >= hpVal ? "#fff3cd" : "#d1e7dd");
+            const sortedSums = Array.from(dp.keys()).sort((a, b) => a - b);
+            const totalMin = sortedSums[0];
+            const totalMax = sortedSums[sortedSums.length - 1];
+
+            const hazardDmg = calculateEntryHazardDamage(defIds[0], hpVal)?.totalDamage ?? 0;
+            let effectiveHP = hpVal - hazardDmg;
+            const itemDefKey = document.getElementById('item_m_def_select')?.value;
+            if (itemDefKey === "obon") effectiveHP += Math.floor(hpVal * 0.25);
+
+            const totalCombinations = BigInt(16) ** BigInt(hitCount);
+            let koCount = 0n;
+            for (let [dmg, count] of dp) { if (dmg >= effectiveHP) koCount += count; }
+            const koProb = Number(koCount * 10000n / totalCombinations) / 100;
+
+            // --- バー表示用の計算 ---
+            const minPercent = Math.min(100, (totalMin / effectiveHP) * 100);
+            const maxPercent = Math.min(100, (totalMax / effectiveHP) * 100);
+            const diffPercent = maxPercent - minPercent;
+            
+            // 色判定
+            let barColorMin = "#4caf50"; // 確定耐え（緑）
+            let barColorDiff = "#81c784"; 
+            if (totalMin >= effectiveHP) {
+                barColorMin = "#f44336"; // 確定1発（赤）
+            } else if (totalMax >= effectiveHP) {
+                barColorMin = "#ff9800"; // 乱数（オレンジ）
+                barColorDiff = "#ffb74d";
+            }
+
+            const koText = koProb >= 100 ? "確定1発" : (koProb > 0 ? `乱数1発 (${koProb}%)` : "確定耐え");
 
             tr.innerHTML += `
-                <td style="background-color: ${color}">
-                    <div class="damage-val">${res.minResult}～${res.maxResult}</div>
-                    <div class="percent-val">${minP}%～${maxP}%</div>
-                    <div style="font-size:0.75em; color:#555;">${res.koInfo.koText}</div>
+                <td style="border: 1px solid #ccc; padding: 6px; min-width: 120px; background: #fff;">
+                    <div style="font-size: 0.85em; display: flex; justify-content: space-between; margin-bottom: 3px;">
+                        <span style="font-weight:bold;">${totalMin}〜${totalMax}</span>
+                        <span style="color: #666;">${((totalMax/effectiveHP)*100).toFixed(1)}%</span>
+                    </div>
+                    
+                    <div style="width: 100%; height: 12px; background: #eee; border-radius: 2px; position: relative; overflow: hidden; border: 1px solid #ddd;">
+                        <div style="position: absolute; left: 0; top: 0; height: 100%; width: ${minPercent}%; background: ${barColorMin}; transition: width 0.3s;"></div>
+                        <div style="position: absolute; left: ${minPercent}%; top: 0; height: 100%; width: ${diffPercent}%; background: ${barColorDiff}; opacity: 0.7;"></div>
+                        <div style="position: absolute; left: 100%; top: 0; height: 100%; border-left: 2px solid #333; z-index: 2;"></div>
+                    </div>
+
+                    <div style="font-size: 0.75em; margin-top: 4px; text-align: center; color: #444;">
+                        ${koText}
+                    </div>
                 </td>`;
         });
         table.appendChild(tr);
@@ -5142,10 +5261,6 @@ function openQuickTableModal2() {
 
     container.appendChild(table);
     document.getElementById('quick-table-modal').style.display = 'block';
-}
-
-function closeQuickTableModal2() {
-    document.getElementById('quick-table-modal').style.display = 'none';
 }
 </script>
 </body>
