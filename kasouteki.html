@@ -68,6 +68,43 @@ frame-src https://accounts.google.com https://*.firebaseapp.com;
         button.main-btn { padding: 8px 12px; cursor: pointer; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; }
         .delete-card-btn { position: absolute; top: 8px; right: 8px; background: none; color: #ccc; font-size: 20px; border:none; cursor: pointer; }
         .delete-card-btn:hover { color: #dc3545; }
+        /* ハンバーガーメニューの基本スタイル */
+.hamburger-menu {
+    position: fixed;
+    top: 1px !important; 
+    left: 1px !important;
+    z-index: 10000 !important;
+}
+
+.hamburger-btn {
+    width: 50px; height: 50px; background: #dc3545; border: none; border-radius: 4px;
+    cursor: pointer; display: flex; flex-direction: column; justify-content: center;
+    align-items: center; gap: 6px; padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+/* 仮想敵リストのテーマカラーに合わせて背景を赤(#dc3545)にしています */
+
+.hamburger-btn.active span:nth-child(1) { transform: rotate(45deg) translate(8px, 8px); }
+.hamburger-btn.active span:nth-child(2) { opacity: 0; }
+.hamburger-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(7px, -7px); }
+.hamburger-btn span { width: 25px; height: 3px; background: white; display: block; border-radius: 2px; transition: all 0.3s ease; }
+
+.nav-menu {
+    position: fixed; top: 0; left: -250px; width: 250px; height: 100%;
+    background: white; transition: 0.3s; box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    display: flex; flex-direction: column; padding-top: 100px; z-index: 9999;
+}
+.nav-menu.open { left: 0; }
+
+.nav-link {
+    padding: 18px 25px; text-decoration: none; color: #333; border-bottom: 1px solid #eee;
+    font-size: 1.1rem; font-weight: bold; transition: background 0.2s;
+}
+.nav-link:active, .nav-link:hover { background-color: #fff0f0; color: #dc3545; }
+
+/* メニューボタンが被らないようにコンテンツの左側に余白を作る（任意） */
+@media screen and (min-width: 600px) {
+    .container { margin-left: 70px; }
+}
     </style>
 </head>
 <body>
@@ -98,6 +135,26 @@ let db = { species: [], moves: [], items: [], abilities: {} };
 function toKatakana(str) {
     return str.replace(/[ぁ-ん]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60));
 }
+
+// メニュー開閉
+function toggleMenu() {
+    const btn = document.querySelector('.hamburger-btn');
+    const menu = document.getElementById('navMenu');
+    btn.classList.toggle('active');
+    menu.classList.toggle('open');
+}
+
+// 外側クリックで閉じる
+document.addEventListener('click', function(event) {
+    const hamburger = document.getElementById('hamburgerMenu');
+    const btn = document.querySelector('.hamburger-btn');
+    const menu = document.getElementById('navMenu');
+
+    if (hamburger && !hamburger.contains(event.target)) {
+        if (btn) btn.classList.remove('active');
+        if (menu) menu.classList.remove('open');
+    }
+});
 
 async function init() {
     try {

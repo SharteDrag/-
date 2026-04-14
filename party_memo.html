@@ -33,7 +33,7 @@ manifest-src 'self';
     <link rel="icon" href="icon.png" type="image/png">
     <style>
         /* ハンバーガーメニュー */
-        .hamburger-menu { position: fixed; top: 20px; left: 20px; z-index: 10000; }
+        .hamburger-menu { position: fixed; top: 1px; left: 1px; z-index: 10000; }
         .hamburger-btn {
             width: 50px; height: 50px; background: #007bff; border: none; border-radius: 4px;
             cursor: pointer; display: flex; flex-direction: column; justify-content: center;
@@ -42,15 +42,26 @@ manifest-src 'self';
         .hamburger-btn.active span:nth-child(1) { transform: rotate(45deg) translate(8px, 8px); }
         .hamburger-btn.active span:nth-child(2) { opacity: 0; }
         .hamburger-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(7px, -7px); }
-        .hamburger-btn span { width: 25px; height: 3px; background: white; display: block; border-radius: 2px; transition: all 0.3s ease; }
+        /* --- ハンバーガーメニュー追加分 --- */
+.hamburger-btn span { width: 25px; height: 3px; background: white; display: block; border-radius: 2px; transition: all 0.3s ease; }
 
-        .nav-menu {
-            position: fixed; top: 80px; left: 20px; background: white; border: 1px solid #ccc;
-            border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none;
-            flex-direction: column; min-width: 180px; z-index: 9999;
-        }
-        .nav-menu.open { display: flex; }
-        .nav-link { padding: 12px 16px; text-decoration: none; color: #333; border-bottom: 1px solid #eee; display: block; }
+.nav-menu {
+    position: fixed; top: 0; left: -250px; width: 250px; height: 100%;
+    background: white; transition: 0.3s; box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    display: flex; flex-direction: column; padding-top: 100px; z-index: 9999;
+}
+.nav-menu.open { left: 0; display: flex; } /* スライドして表示 */
+
+.nav-link {
+    padding: 18px 25px; text-decoration: none; color: #333; border-bottom: 1px solid #eee;
+    font-size: 1.1rem; font-weight: bold; transition: background 0.2s;
+}
+.nav-link:hover { background-color: #f0f7ff; color: #007bff; }
+
+/* 画面が広い時にメニューボタンとコンテンツが被らないように調整 */
+@media screen and (min-width: 600px) {
+    .container { padding-left: 80px; }
+}
         
         :root { --primary: #007bff; --bg: #f8f9fa; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; font-size: 14px; }
@@ -255,7 +266,7 @@ manifest-src 'self';
 
 <div class="container">
    <div class="party-controls">
-    <h2>構築メモ(シーテャkids)</h2>
+    <h2>　　　構築メモ(シーテャkids)</h2>
     <input type="text" id="partyName" placeholder="パーティ名" style="flex: 1; min-width: 150px; padding:8px; border:1px solid #ccc; border-radius:4px;">
     <select id="saveSlot" style="width: 110px;"></select>
     <button onclick="saveParty()">保存</button>
@@ -516,8 +527,44 @@ async function exportPartyImage() {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     
-    canvas.width = 1250;
-    canvas.height = 900;
+    // パーティ全体のメモを取得
+    const fullMemo = document.getElementById('partyMemo').value || "";
+    
+    // キャンバスの基本サイズ
+    const baseWidth = 1250;
+    const baseHeight = 900;
+    let extraHeight = 0;
+
+    // 全体メモがある場合、高さを拡張する準備
+    const memoFontSize = 20;
+    const memoLineHeight = 28;
+    const memoPadding = 40;
+    const memoMaxWidth = baseWidth - (memoPadding * 2);
+    let memoLines = [];
+
+    if (fullMemo) {
+        ctx.font = `${memoFontSize}px sans-serif`;
+        // 改行コードで分割してから、さらに幅に合わせて折り返し計算
+        const rawLines = fullMemo.split('\n');
+        rawLines.forEach(line => {
+            let currentLine = "";
+            for (let char of line) {
+                let testLine = currentLine + char;
+                if (ctx.measureText(testLine).width > memoMaxWidth) {
+                    memoLines.push(currentLine);
+                    currentLine = char;
+                } else {
+                    currentLine = testLine;
+                }
+            }
+            memoLines.push(currentLine);
+        });
+        // メモの行数に応じて追加の高さを計算 (余白含む)
+        extraHeight = (memoLines.length * memoLineHeight) + 80; 
+    }
+
+    canvas.width = baseWidth;
+    canvas.height = baseHeight + extraHeight;
     
     // 背景
     ctx.fillStyle = "#f8f9fa";
@@ -530,7 +577,7 @@ async function exportPartyImage() {
     ctx.fillText(`構築メモ: ${partyName}`, 40, 60);
 
     const cards = document.querySelectorAll('.pokemon-card');
-    const loadImages = []; // 全ての画像読み込みPromiseを管理
+    const loadImages = [];
 
     const typeColors = {
         normal: '#A8A878', fire: '#F08030', water: '#6890F0', electric: '#F8D030',
@@ -563,44 +610,36 @@ async function exportPartyImage() {
         const natureName = card.querySelector('.nature-select').value;
         const nature = NATURES[natureName] || {up:0, down:0};
 
-        //画像の描画位置を定義（重ねる処理のため、ループ内で管理）
         const pokemonIconX = x + 10;
         const pokemonIconY = y + 10;
         const pokemonIconSize = 64;
 
-        // --- 画像描画リレー（重なり順を固定） ---
         const spId = card.querySelector('.sp-input').dataset.selectedId;
         const itemId = itemInput.dataset.selectedId;
 
         const drawProcess = new Promise(async (resolve) => {
-            // 1. まずポケモン画像を読み込んで描く
             if (spId) {
                 const initial = spId.charAt(0).toUpperCase();
                 const img = new Image();
                 img.src = `Icons/${initial}/${spId.toUpperCase()}.png`;
-                
                 await new Promise((res) => {
                     img.onload = () => {
                         ctx.drawImage(img, 0, 0, 64, 64, pokemonIconX, pokemonIconY, pokemonIconSize, pokemonIconSize);
                         res();
                     };
-                    img.onerror = res; // エラーでも次へ
+                    img.onerror = res;
                 });
             }
 
-            // 2. ポケモンを描き終わった「後」に持ち物を描く（これで必ず上に来る）
             if (itemId && itemId !== "none") {
                 const itemImg = new Image();
                 itemImg.src = `Items/${itemId}.png`;
-                
                 await new Promise((res) => {
                     itemImg.onload = () => {
                         const itemIconSize = 32;
                         const overlapOffset = 8;
                         const itemX = pokemonIconX + pokemonIconSize - itemIconSize + overlapOffset;
                         const itemY = pokemonIconY + pokemonIconSize - itemIconSize + overlapOffset;
-                        
-                        // 持ち物を描画（後から描くので絶対上になる）
                         ctx.drawImage(itemImg, itemX, itemY, itemIconSize, itemIconSize);
                         res();
                     };
@@ -609,31 +648,19 @@ async function exportPartyImage() {
             }
             resolve();
         });
-
         loadImages.push(drawProcess);
 
-        // --- テキスト描画 (画像と被らないように位置を右へずらす) ---
-        
-        // テキストの開始X座標を一律で右へずらす (x + 85 -> x + 110)
-        // 持ち物アイコンが少しはみ出るのを考慮
         const textStartX = x + 110; 
-
-        // 1. 名前
         ctx.fillStyle = "#000";
         ctx.font = "bold 22px sans-serif";
         ctx.fillText(name || "???", textStartX, y + 40);
         
-        // 2. 特性・持ち物
         ctx.font = "14px sans-serif";
         ctx.fillStyle = "#555";
-        
-        // 特性
         ctx.fillText(`特性: ${abilityName}`, textStartX, y + 65);
+        ctx.fillText(`もちもの: ${itemName || "なし"}`, textStartX, y + 90);
 
-        // 持ち物テキスト (画像と被らない位置へずらす x + 240 -> x + 230 かつStartX基準)
-        ctx.fillText(`もちもの: ${itemName || "なし"}`, textStartX, y + 90);
-
-        // ステータス描画 (変更なし)
+        // ステータス
         const totals = card.querySelectorAll('.total-display');
         const evs = card.querySelectorAll('.ev-input');
         const labels = ['H', 'A', 'B', 'C', 'D', 'S'];
@@ -652,9 +679,9 @@ async function exportPartyImage() {
             
             ctx.fillStyle = statColor;
             ctx.font = "bold 17px monospace";
-            ctx.fillText(totals[j].textContent.padStart(3, ' '), x + 45, rowY);
+            ctx.fillText(totals[j] ? totals[j].textContent.padStart(3, ' ') : "---", x + 45, rowY);
 
-            const evVal = evs[j].value;
+            const evVal = evs[j] ? evs[j].value : 0;
             if (evVal > 0) {
                 ctx.fillStyle = "#28a745";
                 ctx.font = "11px sans-serif";
@@ -662,7 +689,7 @@ async function exportPartyImage() {
             }
         });
 
-        // 技描画 (変更なし)
+        // 技
         const moves = card.querySelectorAll('.move-input');
         moves.forEach((mv, j) => {
             const mName = mv.value;
@@ -680,51 +707,48 @@ async function exportPartyImage() {
             ctx.fillText(mName || "-", mX + 10, mY + 21);
         });
 
-        // 調整メモ (変更なし)
+        // 個別メモ
         const memoArea = card.querySelector('.memo-area');
-        if (memoArea) {
-            const memo = memoArea.value;
-            if (memo) {
-                ctx.fillStyle = "#444";
-                ctx.font = "12px sans-serif";
-                const lineHeight = 16;
-                const maxWidth = 340; 
-                const startX = x + 20;
-                const startY = y + 285;
-                
-                const lines = memo.split('\n');
-                let displayLines = [];
-                
-                lines.forEach(line => {
-                    let currentLine = "";
-                    for (let char of line) {
-                        let testLine = currentLine + char;
-                        try {
-                            let metrics = ctx.measureText(testLine);
-                            if (metrics.width > maxWidth && currentLine !== "") {
-                                displayLines.push(currentLine);
-                                currentLine = char;
-                            } else {
-                                currentLine = testLine;
-                            }
-                        } catch (e) {
-                            currentLine = testLine;
-                        }
-                    }
-                    displayLines.push(currentLine);
-                });
-
-                displayLines.slice(0, 4).forEach((line, index) => {
-                    ctx.fillText(line, startX, startY + (index * lineHeight));
-                });
-            }
+        if (memoArea && memoArea.value) {
+            ctx.fillStyle = "#444";
+            ctx.font = "12px sans-serif";
+            const lines = memoArea.value.split('\n');
+            lines.slice(0, 4).forEach((line, index) => {
+                ctx.fillText(line, x + 20, y + 285 + (index * 16));
+            });
         }
     }
 
-    // --- すべての画像（ポケモン＋持ち物）読み込み完了を待機 ---
+    // すべてのポケモン画像を待機
     await Promise.all(loadImages);
 
-    // ダウンロード処理 (変更なし)
+    // --- 【追加】パーティ全体メモの描画 ---
+    if (memoLines.length > 0) {
+        const memoStartY = baseHeight;
+        
+        // メモセクションの見出し
+        ctx.fillStyle = "#6f42c1";
+        ctx.font = "bold 24px sans-serif";
+        ctx.fillText("備考欄・選出パターン等", memoPadding, memoStartY);
+
+        // 背景枠
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.roundRect(memoPadding, memoStartY + 20, baseWidth - (memoPadding * 2), (memoLines.length * memoLineHeight) + 20, 8);
+        ctx.fill();
+        ctx.strokeStyle = "#6f42c1";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // テキスト描画
+        ctx.fillStyle = "#333";
+        ctx.font = `${memoFontSize}px sans-serif`;
+        memoLines.forEach((line, idx) => {
+            ctx.fillText(line, memoPadding + 15, memoStartY + 55 + (idx * memoLineHeight));
+        });
+    }
+
+    // ダウンロード
     const link = document.createElement('a');
     link.download = `${partyName}.png`;
     link.href = canvas.toDataURL('image/png');
@@ -983,6 +1007,27 @@ function calcStats(idx) {
         }
     });
 }
+
+// メニュー開閉制御
+function toggleMenu() {
+    const btn = document.querySelector('.hamburger-btn');
+    const menu = document.getElementById('navMenu');
+    btn.classList.toggle('active');
+    menu.classList.toggle('open');
+}
+
+// メニューの外側をクリックした時に閉じる
+document.addEventListener('click', function(event) {
+    const hamburger = document.getElementById('hamburgerMenu');
+    const btn = document.querySelector('.hamburger-btn');
+    const menu = document.getElementById('navMenu');
+
+    if (hamburger && !hamburger.contains(event.target)) {
+        if (btn) btn.classList.remove('active');
+        if (menu) menu.classList.remove('open');
+    }
+});
+
 // 圧縮してURL形式で書き出す
 function exportPartyCode() {
     const partyData = {
