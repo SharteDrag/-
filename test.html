@@ -513,42 +513,6 @@ body {
     }
 }
 </style>
-<style>/* 画面が縦長（横幅が狭い、または高さが幅より大きい）の時に非表示にする */
-/* 「画面の高さ」が「画面の横幅」より大きい場合、または横幅が極端に狭い場合に非表示 */
-@media screen and (orientation: portrait), screen and (max-aspect-ratio: 1/1), screen and (max-width: 800px) {
-    #result-sticky-footer {
-        display: none !important;
-    }
-}
-.btn-calc-fixed-top {
-    position: fixed;
-    top: 0;                /* 上端に密着 */
-    right: 20px;           /* 右端から少しスペースを空ける */
-    z-index: 12000;
-    
-    /* 横長の四角デザイン */
-    width: 100px;          /* 少しコンパクトにして邪魔にならないように */
-    height: 45px;
-    font-size: 1.5rem;
-    border: none;
-    border-radius: 0 0 10px 10px; /* 下の角だけ丸く */
-    background-color: #d9534f;
-    color: white;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    cursor: pointer;
-    
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s, transform 0.1s;
-}
-
-/* 押した時のリアクション */
-.btn-calc-fixed-top:active {
-    background-color: #c9302c;
-    transform: translateY(2px);
-}
-</style>
 <style>
     /* 下部メニューが重ならないようにbodyの下余白を調整 */
 body {
@@ -692,8 +656,8 @@ details .input-inline-group {
     }
     .ev-button {
     /* 最小サイズを確保（指のサイズに合わせる） */
-    min-width: 28px; 
-    height: 28px;
+    min-width: 36px; 
+    height: 36px;
     
     /* 文字を中央に配置 */
     display: flex;
@@ -717,6 +681,28 @@ details .input-inline-group {
 .ev-button[data-step] {
     background-color: #03bc35;
     font-size: 18px; /* 記号は見やすいように少し大きく */
+}
+</style>
+<style>
+/* 横幅が1024px以下の時（PCの縦長ウィンドウやスマホ）は非表示にする */
+@media screen and (max-width: 1024px) {
+    #result-sticky-footer {
+        display: none !important;
+    }
+}
+
+/* 逆に、画面が広い（PC全画面など）時だけ表示させたい場合 */
+@media screen and (min-width: 1025px) {
+    #result-sticky-footer {
+        display: block !important;
+    }
+}
+
+/* 横向き（landscape）かつPCサイズの時は上部バーを隠す */
+@media screen and (orientation: landscape) and (min-width: 1025px) {
+    #top-sticky-summary, #top-spacer {
+        display: none !important;
+    }
 }
 </style>
 </head>
@@ -900,18 +886,49 @@ document.addEventListener('click', function(event) {
     <div id="move-quick-selection" style="margin-bottom: 15px;"></div>
 </div>
 
-<div id="timer-display" style="display: none; position: fixed; top: 10px; right: 130px; background: rgba(0,0,0,0.8); color: #00ff00; padding: 10px 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 24px; z-index: 1000; border: 2px solid #00ff00; box-shadow: 0 0 10px rgba(0,255,0,0.5);">
-    ⌛<span id="time-left">20:30</span>
+<div id="timer-display" style="display: none; position: fixed; top: 55px; right: 0px; background: rgba(0,0,0,0.8); color: #00ff00; padding: 1px 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 24px; z-index: 1000; border: 2px solid #00ff00; box-shadow: 0 0 10px rgba(0,255,0,0.5);">
+    <span id="time-left">20:30</span>
 </div>
     <h2>ダメ計ツール(シーテャkids)</h2>
         <button type="button" 
         onclick="calculateDamage(); openResultModal();" 
-        class="btn-calc-fixed-top">
-    📝計算
+        class="btn-table">
+    詳細計算
 </button>
         <button type="button" onclick="openQuickTableModal()" class="btn-table">技早見</button>
         <button type="button" onclick="openQuickTableModal2()" class="btn-table">調整早見</button>
     </div>
+    <div id="top-sticky-summary" style="
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    z-index: 9999; 
+    background: rgba(255, 255, 255, 0.98); 
+    border-bottom: 2px solid #e74c3c; 
+    padding: 6px 12px; 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    display: none;
+">
+    <div style="max-width: 600px; margin: 0 auto;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 2px;">
+            <div id="top-damage-percent" style="font-size: 1.1rem; font-weight: bold; color: #d35400; white-space: nowrap;">
+                0% ～ 0%
+            </div>
+            <div style="flex-grow: 1; background: #e9ecef; border-radius: 4px; height: 14px; border: 1px solid #ccc; position: relative; overflow: hidden;">
+                <div id="top-hp-bar-fill" style="width: 100%; height: 100%; background: #28a745; transition: width 0.3s ease;"></div>
+            </div>
+            <div id="top-hp-text" style="font-size: 0.8rem; font-weight: bold; color: #666; min-width: 45px; text-align: right;">
+                100%
+            </div>
+        </div>
+        
+        <div id="top-judgment" style="font-size: 0.9rem; font-weight: bold; line-height: 1.2;">
+            </div>
+    </div>
+</div>
+
+<div style="height: 65px; display: none;" id="top-spacer"></div>
         <div class="container">
     <div class="main-inputs">
     <form id="damageForm">
@@ -1060,14 +1077,20 @@ document.addEventListener('click', function(event) {
     <input type="number" id="base_attack" value="100" min="1" class="fixed-value">
 </div>
 
-<div class="input-inline-group">
-    <label for="attacker_ev">努力値</label>
-    <input type="number" id="attacker_ev" value="32" min="0" max="32" step="1" style="width: 60px; flex-grow: 0;">
-    <div class="checkbox-group" style="display: flex; gap: 2px;">
+<div class="input-inline-group" style="display: flex; align-items: center; gap: 10px;">
+    <label for="attacker_ev" style="white-space: nowrap;">努力値</label>
+    
+    <div class="checkbox-group" style="display: flex; align-items: center; gap: 4px;">
         <button type="button" class="ev-button" data-stat="attacker" data-ev="0">0</button>
-        <button type="button" class="ev-button" data-stat="attacker" data-ev="32">32</button>
-        <button type="button" class="ev-button" data-stat="attacker" data-step="1">+</button>
+        
         <button type="button" class="ev-button" data-stat="attacker" data-step="-1">-</button>
+        
+        <input type="number" id="attacker_ev" value="32" min="0" max="32" step="1" 
+               style="width: 60px; height: 40px; text-align: center; flex-grow: 0;">
+        
+        <button type="button" class="ev-button" data-stat="attacker" data-step="1">+</button>
+        
+        <button type="button" class="ev-button" data-stat="attacker" data-ev="32">32</button>
     </div>
 </div>
 
@@ -1176,44 +1199,46 @@ document.addEventListener('click', function(event) {
             <button type="button" onclick="swapAttackerDefender()" style="padding: 5px 15px; background-color: #6c757d; border: none; color: white; border-radius: 4px; cursor: pointer;">⇄ 攻防入れ替え</button>
         </div>
 
-        <div class="input-inline-group">
-            <label for="hp">HP</label>
-            <div style="display: flex; gap: 8px; align-items: center; flex-grow: 1;">
-                <input type="number" id="hp" value="150" min="1" oninput="updateHPByPercent()" style="flex: 2;">
-                <span>/</span>
-                <div style="flex: 3; display: flex; align-items: center; gap: 5px;">
-                    <input type="number" id="hp_percent" value="100.0" min="0.1" max="100.0" step="0.1" oninput="updateHPByPercent()">
-                    <span>%</span>
-                </div>
-            </div>
+        <div class="input-inline-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+    <label for="hp" style="width: 80px; white-space: nowrap;">HP</label>
+    <div style="display: flex; gap: 8px; align-items: center; flex-grow: 1;">
+        <input type="number" id="hp" value="150" min="1" oninput="updateHPByPercent()" style="flex: 2; height: 40px;">
+        <span>/</span>
+        <div style="flex: 3; display: flex; align-items: center; gap: 5px;">
+            <input type="number" id="hp_percent" value="100.0" min="0.1" max="100.0" step="0.1" oninput="updateHPByPercent()" style="height: 40px; width: 100%;">
+            <span>%</span>
         </div>
+    </div>
+</div>
 
-        <div class="input-inline-group">
-            <label for="hp_ev">H努力値</label>
-            <input type="number" id="hp_ev" value="32" min="0" max="32" step="1" style="max-width: 60px; flex-grow: 0;">
-            <div class="checkbox-group" style="display: flex; gap: 2px;">
-                <button type="button" class="ev-button" data-stat="hp" data-ev="0">0</button>
-                <button type="button" class="ev-button" data-stat="hp" data-ev="32">32</button>
-                <button type="button" class="ev-button" data-stat="hp" data-step="1">+</button>
-                <button type="button" class="ev-button" data-stat="hp" data-step="-1">-</button>
-            </div>
-        </div>
+<div class="input-inline-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+    <label for="hp_ev" style="width: 80px; white-space: nowrap;">H努力値</label>
+    <div class="checkbox-group" style="display: flex; align-items: center; gap: 4px;">
+        <button type="button" class="ev-button" data-stat="hp" data-ev="0">0</button>
+        <button type="button" class="ev-button" data-stat="hp" data-step="-1">-</button>
+        <input type="number" id="hp_ev" value="32" min="0" max="32" step="1" 
+               style="width: 60px; height: 40px; text-align: center; flex-grow: 0;">
+        <button type="button" class="ev-button" data-stat="hp" data-step="1">+</button>
+        <button type="button" class="ev-button" data-stat="hp" data-ev="32">32</button>
+    </div>
+</div>
 
-<div class="input-inline-group">
-            <label for="base_defense" id="label_base_defense">能力値(B,D)</label>
-            <input type="number" id="base_defense" value="100" min="1" class="fixed-value">
-        </div>
+<div class="input-inline-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+    <label for="base_defense" id="label_base_defense" style="width: 80px; white-space: nowrap;">能力値(B,D)</label>
+    <input type="number" id="base_defense" value="100" min="1" class="fixed-value" style="height: 40px; flex-grow: 1;">
+</div>
 
-        <div class="input-inline-group">
-            <label for="defender_ev">BD努力値</label>
-            <input type="number" id="defender_ev" value="32" min="0" max="32" step="1" style="max-width: 60px; flex-grow: 0;">
-            <div class="checkbox-group" style="display: flex; gap: 2px;">
-                <button type="button" class="ev-button" data-stat="defender" data-ev="0">0</button>
-                <button type="button" class="ev-button" data-stat="defender" data-ev="32">32</button>
-                <button type="button" class="ev-button" data-stat="defender" data-step="1">+</button>
-                <button type="button" class="ev-button" data-stat="defender" data-step="-1">-</button>
-            </div>
-        </div>
+<div class="input-inline-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+    <label for="defender_ev" style="width: 80px; white-space: nowrap;">BD努力値</label>
+    <div class="checkbox-group" style="display: flex; align-items: center; gap: 4px;">
+        <button type="button" class="ev-button" data-stat="defender" data-ev="0">0</button>
+        <button type="button" class="ev-button" data-stat="defender" data-step="-1">-</button>
+        <input type="number" id="defender_ev" value="32" min="0" max="32" step="1" 
+               style="width: 60px; height: 40px; text-align: center; flex-grow: 0;">
+        <button type="button" class="ev-button" data-stat="defender" data-step="1">+</button>
+        <button type="button" class="ev-button" data-stat="defender" data-ev="32">32</button>
+    </div>
+</div>
 
         <div class="input-inline-group">
     <label>性格</label>
@@ -1362,21 +1387,22 @@ document.addEventListener('click', function(event) {
         </div>
     </form>
 
-</form>
-</div> </div> <div id="result-sticky-footer">
-    <div id="result" class="card">
-        <strong>計算結果:</strong>
-        <div id="damage-output">ここに結果が表示されます</div>
-    </div>
-    <div id="result-sticky-wrapper">
-        <div id="hp_status_display" style="font-size: 0.9em; color: #666;">
-            計算対象HP: <span id="current_hp_val" style="font-weight: bold; color: #d9534f;">150</span>
-            <button type="button" onclick="applyCurrentHPAsMax()" style="font-size: 0.8em; padding: 2px 8px; cursor: pointer;">
-                この数値を最大HPに設定
-            </button>
+</form> 
+
+    <div id="result-sticky-footer">
+        <div id="result" class="card">
+            <strong>計算結果:</strong>
+            <div id="damage-output">ここに結果が表示されます</div>
+        </div>
+        <div id="result-sticky-wrapper">
+            <div id="hp_status_display" style="font-size: 0.9em; color: #666;">
+                計算対象HP: <span id="current_hp_val" style="font-weight: bold; color: #d9534f;">150</span>
+                <button type="button" onclick="applyCurrentHPAsMax()" style="font-size: 0.8em; padding: 2px 8px; cursor: pointer;">
+                    この数値を最大HPに設定
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
 <div id="quick-table-modal" class="modal">
     <div class="modal-content">
@@ -3668,34 +3694,86 @@ if (itemDefKey === "obon") {
             if (!found) koText = `<span>確定 11 発以上</span>`;
         }
         // --- 5. 結果の表示 (修正版) ---
-        let outputHTML = '';
+let outputHTML = '';
 
-        // 追加：攻撃側・防御側・技名の取得
-        const resAtkName = document.getElementById('attacker-pokemon-name').value || "攻撃側";
-        const resDefName = document.getElementById('defender-pokemon-name')?.value || "防御側";
-        const resMoveName = document.getElementById('move-name').value || "わざ";
+// 追加：攻撃側・防御側・技名の取得
+const resAtkName = document.getElementById('attacker-pokemon-name').value || "攻撃側";
+const resDefName = document.getElementById('defender-pokemon-name')?.value || "防御側";
+const resMoveName = document.getElementById('move-name').value || "わざ";
 
-        // 名前と技の表示エリアを追記
-        outputHTML += `
-        <div class="result-battle-header" style="background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:10px; border-left:5px solid #007bff; font-size:0.95rem; line-height:1.4;">
-            <strong>⚔️ ${resAtkName}</strong> の <strong>${resMoveName}</strong><br>
-            <span style="color:#666;">　→ 🛡️ ${resDefName}</span>
-        </div>`;
-        
-        // 合計ダメージと確定数の表示ボックス (以下、既存の処理を継続)
-        outputHTML += `
-        <div class="result-total-box" style="background:#fff4f4; padding:15px; border-radius:8px; margin-bottom:15px; border:2px solid #e74c3c;">
-            <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">🔥 ${hitCount}ヒット合計ダメージ</div>
-            <div style="font-size: 1.4em; font-weight: bold; color: #d35400;">
-                ${totalMin} ～ ${totalMax} <span style="font-size: 0.7em;">ダメージ</span>
-            </div>
-            <div style="font-size: 1.1em; font-weight: bold; margin: 5px 0;">
-                割合: ${(totalMin/effectiveTargetHP*100).toFixed(1)}% ～ ${(totalMax/effectiveTargetHP*100).toFixed(1)}%
-            </div>
-            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e74c3c; font-size: 1.1em;">
-                <strong>判定: ${koText}</strong>
-            </div>
-        </div>`;
+// 名前と技の表示エリア（少し文字サイズを落とし、スッキリさせる）
+outputHTML += `
+<div class="result-battle-header" style="background:#f8f9fa; padding:8px 12px; border-radius:8px; margin-bottom:10px; border-left:5px solid #007bff; font-size:0.85rem; line-height:1.4;">
+    <strong>⚔️ ${resAtkName}</strong> <span style="color:#666;">の</span> <strong>${resMoveName}</strong><br>
+    <span style="color:#666;">　→ 🛡️ ${resDefName}</span>
+</div>`;
+
+// ダメージ割合の計算
+const minPercent = (totalMin / effectiveTargetHP * 100).toFixed(1);
+const maxPercent = (totalMax / effectiveTargetHP * 100).toFixed(1);
+const remainingHPPercent = Math.max(0, 100 - (totalMax / effectiveTargetHP * 100)).toFixed(1);
+
+// HPバーの色を残りHPに応じて変更するロジック
+let barColor = "#28a745"; // 緑
+if (remainingHPPercent < 20) barColor = "#dc3545"; // 赤
+else if (remainingHPPercent < 50) barColor = "#ffc107"; // 黄
+
+// 合計ダメージとHPバーの表示ボックス
+outputHTML += `
+<div class="result-total-box" style="background:#fff4f4; padding:12px; border-radius:8px; margin-bottom:15px; border:2px solid #e74c3c; text-align:center;">
+    <div style="font-size: 0.8em; color: #666; margin-bottom: 3px;">🔥 ${hitCount}ヒット合計ダメージ</div>
+    <div style="font-size: 1.25em; font-weight: bold; color: #d35400; margin-bottom: 5px;">
+        ${totalMin} ～ ${totalMax} <span style="font-size: 0.6em; font-weight:normal;">ダメージ</span>
+    </div>
+    
+    <div style="background: #e9ecef; border-radius: 10px; height: 18px; width: 100%; margin: 8px 0; overflow: hidden; border: 1px solid #ccc; position: relative;">
+        <div style="background: ${barColor}; width: ${remainingHPPercent}%; height: 100%; transition: width 0.3s ease;"></div>
+        <div style="position: absolute; top:0; left:0; width:100%; height:100%; font-size: 0.75em; font-weight: bold; display: flex; align-items: center; justify-content: center; text-shadow: 1px 1px 1px #fff;">
+            残りHP: ${remainingHPPercent}%
+        </div>
+    </div>
+
+    <div style="font-size: 0.95em; font-weight: bold; margin-bottom: 8px;">
+        割合: ${minPercent}% ～ ${maxPercent}%
+    </div>
+    
+    <div style="padding-top: 8px; border-top: 1px dashed #e74c3c; font-size: 1.0em; color: #222;">
+        <strong>判定: ${koText}</strong>
+    </div>
+</div>`;
+
+// --- ダメージ計算関数内の適切な場所に挿入 ---
+const topBar = document.getElementById('top-sticky-summary');
+const topSpacer = document.getElementById('top-spacer');
+const topDamage = document.getElementById('top-damage-percent');
+const topFill = document.getElementById('top-hp-bar-fill');
+const topText = document.getElementById('top-hp-text');
+const topJudgment = document.getElementById('top-judgment');
+
+if (topBar) {
+    const minP = (totalMin / effectiveTargetHP * 100).toFixed(1);
+    const maxP = (totalMax / effectiveTargetHP * 100).toFixed(1);
+    const remainP = Math.max(0, 100 - (totalMax / effectiveTargetHP * 100)).toFixed(1);
+
+    // 1. ダメージ％と残りHP率の更新
+    topDamage.innerText = `${minP}% ～ ${maxP}%`;
+    topText.innerText = `${remainP}%`;
+    topFill.style.width = `${remainP}%`;
+
+    // 2. 判定テキストの更新 (タグが含まれているので innerHTML を使用)
+    topJudgment.innerHTML = koText; 
+
+    // 3. HPバーの色変更
+    let bCol = "#28a745"; 
+    if (remainP < 20) bCol = "#dc3545"; 
+    else if (remainP < 50) bCol = "#ffc107"; 
+    topFill.style.backgroundColor = bCol;
+
+    // 4. 表示状態にする
+    topBar.style.display = 'block';
+    if(topSpacer) topSpacer.style.display = 'block';
+}
+
 
         outputHTML += formatResultHTML("1発あたりの通常ダメージ", standardResult, effectiveTargetHP);
         
@@ -5171,7 +5249,7 @@ function startCountdown() {
             clearInterval(countdownInterval);
             timeLeftSpan.textContent = "終了！";
             timeLeftSpan.style.color = "red";
-            alert("20分が経過しました。");
+            alert("20分30秒が経過しました。");
         } else {
             totalSeconds--;
         }
@@ -5234,101 +5312,114 @@ window.onclick = function(event) {
 </script>
 <script>
 /**
- * 棒グラフ（HPバー形式）を採用したダメージ早見表
+ * チャンピオンズ仕様(0-32) + KO確率・特殊処理をすべて反映した完全版ダメージ早見表
  */
 function openQuickTableModal2() {
     const container = document.getElementById('quick-table-container');
     container.innerHTML = ''; 
 
-    // --- 前半のデータ取得・計算準備ロジックは以前と同様 ---
+    // 1. 基本データの取得
     const moveName = document.getElementById('move-name').value;
     const normalizedMoveName = hiraganaToKatakana(moveName);
-    const attackerName = document.getElementById('attacker-pokemon-name').value;
-    const defenderName = document.getElementById('defender-pokemon-name').value;
     
-    const atkIds = NAME_TO_KEY_MAP[hiraganaToKatakana(attackerName)];
-    const defIds = NAME_TO_KEY_MAP[hiraganaToKatakana(defenderName)];
-    if (!atkIds || !defIds) {
-        alert("ポケモン名を正しく入力してください。");
+    const currentAtk = parseFloat(document.getElementById('base_attack').value) || 0;
+    const currentDef = parseFloat(document.getElementById('base_defense').value) || 0;
+    const currentHP  = parseFloat(document.getElementById('hp').value) || 0;
+
+    const atkEv = parseInt(document.getElementById('attacker_ev').value) || 0;
+    const defEv = parseInt(document.getElementById('defender_ev').value) || 0;
+    const hpEv  = parseInt(document.getElementById('hp_ev').value) || 0;
+    const natureAtk = parseFloat(document.getElementById('nature_attack').value) || 1.0;
+    const natureDef = parseFloat(document.getElementById('nature_defense').value) || 1.0;
+
+    if (currentAtk === 0 || currentHP === 0) {
+        alert("ステータスが入力されていることを確認してください。");
         return;
     }
-    const atkPoke = POKEDATA_MAP[atkIds[0]];
-    const defPoke = POKEDATA_MAP[defIds[0]];
+
+    // --- 2. チャンピオンズ流・ステータス計算ヘルパー ---
+    const getStatChampions = (currentVal, currentEv, currentNature, targetEv, targetNature) => {
+        const rawBase = Math.round(currentVal / currentNature) - currentEv;
+        return Math.floor((rawBase + targetEv) * targetNature);
+    };
+
+    // 攻撃・防御のパターン定義
+    const atkPatterns = [
+        { label: "無", ev: 0, nat: 1.0 },
+        { label: "10", ev: 10, nat: 1.0 },
+        { label: "20", ev: 20, nat: 1.0 },
+        { label: "32", ev: 32, nat: 1.0 },
+        { label: "10+", ev: 10, nat: 1.1 },
+        { label: "20+", ev: 20, nat: 1.1 },
+        { label: "特化", ev: 32, nat: 1.1 }
+    ];
 
     const defPatterns = [
-        { label: "無", hpEV: 0, defEV: 0, nature: 1.0 },
-        { label: "H10", hpEV: 76, defEV: 0, nature: 1.0 },
-        { label: "H20", hpEV: 156, defEV: 0, nature: 1.0 },
-        { label: "H32", hpEV: 252, defEV: 0, nature: 1.0 },
-        { label: "H32+", hpEV: 252, defEV: 0, nature: 1.1 },
-        { label: "BD32", hpEV: 0, defEV: 252, nature: 1.0 },
-        { label: "BD32+", hpEV: 0, defEV: 252, nature: 1.1 },
-        { label: "H32BD10", hpEV: 252, defEV: 76, nature: 1.0 },
-        { label: "H32BD20", hpEV: 252, defEV: 156, nature: 1.0 },
-        { label: "HBD32", hpEV: 252, defEV: 252, nature: 1.0 },
-        { label: "H32BD10+", hpEV: 252, defEV: 76, nature: 1.1 },
-        { label: "H32BD20+", hpEV: 252, defEV: 156, nature: 1.1 },
-        { label: "HBD特化", hpEV: 252, defEV: 252, nature: 1.1 }
+        { label: "H2", hEv: 2, dEv: 0, nat: 1.0 },
+        { label: "H10", hEv: 10, dEv: 0, nat: 1.0 },
+        { label: "H20", hEv: 20, dEv: 0, nat: 1.0 },
+        { label: "H32", hEv: 32, dEv: 0, nat: 1.0 },
+        { label: "H32+", hEv: 32, dEv: 0, nat: 1.1 },
+        { label: "BD32", hEv: 0, dEv: 32, nat: 1.0 },
+        { label: "HBD10", hEv: 32, dEv: 32, nat: 1.0 },
+        { label: "HBD20", hEv: 32, dEv: 32, nat: 1.0 },
+        { label: "HBD32", hEv: 32, dEv: 32, nat: 1.0 },
+        { label: "HBD10+", hEv: 32, dEv: 32, nat: 1.1 },
+        { label: "HBD20+", hEv: 32, dEv: 32, nat: 1.1 },
+        { label: "HBD特化", hEv: 32, dEv: 32, nat: 1.1 }
     ];
 
-    const atkPatterns = [
-        { label: "無", ev: 0, nature: 1.0 },
-        { label: "10", ev: 76, nature: 1.0 },
-        { label: "20", ev: 156, nature: 1.0 },
-        { label: "32", ev: 252, nature: 1.0 },
-        { label: "10+", ev: 76, nature: 1.1 },
-        { label: "20+", ev: 156, nature: 1.1 },
-        { label: "特化", ev: 252, nature: 1.1 }
-    ];
+    // 3. 共通設定の取得
+    const hitCount = parseInt(document.getElementById('hit_count')?.value) || 1;
+    const isPhysical = document.querySelector('input[name="move_type"]:checked').value === "Physical";
+    
+    const commonArgs = {
+        power: parseInt(document.getElementById('power').value) || 0,
+        rank_attack_val: document.getElementById('rank_attack').value,
+        rank_defense_val: document.getElementById('rank_defense').value,
+        isBurnedChecked: document.getElementById('burn_m_check').checked,
+        environment: document.getElementById('environment_m_select').value,
+        moveType: isPhysical ? "Physical" : "Special",
+        stab_m: parseFloat(document.getElementById('stab').value) || 1.0,
+        affinity_m: parseFloat(document.getElementById('affinity').value) || 1.0,
+        item_m_atk: parseFloat(document.getElementById('item_m_atk').value) || 1.0,
+        ability_m_atk: parseFloat(document.getElementById('ability_m_atk').value) || 1.0,
+        item_m_def: parseFloat(document.getElementById('item_m_def').value) || 1.0,
+        ability_m_def: parseFloat(document.getElementById('ability_m_def').value) || 1.0,
+        wall_m: document.getElementById('wall_single_check').checked ? 0.5 : (document.getElementById('wall_double_check').checked ? 2732/4096 : 1.0),
+        range_m: document.getElementById('range_m_check').checked ? 0.75 : 1.0,
+        isSubstituteChecked: document.getElementById('substitute_check').checked,
+        other_m: parseFloat(document.getElementById('supreme_overlord')?.value) || 1.0
+    };
 
+    // 4. テーブル生成
     const table = document.createElement('table');
     table.className = 'quick-table';
     let thead = `<tr><th>攻撃＼防御</th>`;
-    defPatterns.forEach(p => thead += `<th>${p.label}</th>`);
-    thead += `</tr>`;
-    table.innerHTML = thead;
-
-    const hitCount = parseInt(document.getElementById('hit_count')?.value) || 1;
-    const isPhysical = document.getElementById('move_type_physical').checked;
+    defPatterns.forEach(p => {
+        const h = getStatChampions(currentHP, hpEv, 1.0, p.hEv, 1.0);
+        const d = getStatChampions(currentDef, defEv, natureDef, p.dEv, p.nat);
+        thead += `<th>${p.label}<br><small>H${h} B${d}</small></th>`;
+    });
+    table.innerHTML = thead + `</tr>`;
 
     atkPatterns.forEach(atkP => {
+        const atkVal = getStatChampions(currentAtk, atkEv, natureAtk, atkP.ev, atkP.nat);
         let tr = document.createElement('tr');
-        tr.innerHTML = `<td class="power-cell"><strong>${atkP.label}</strong></td>`;
+        tr.innerHTML = `<td class="power-cell"><strong>${atkP.label}</strong><br><small>${atkVal}</small></td>`;
         
         defPatterns.forEach(defP => {
-            // ステータス・ダメージ計算（中略：ロジックは変更なし）
-            const baseAtk = isPhysical ? (atkPoke.Atk || atkPoke.Stats.Atk) : (atkPoke.SpAtk || atkPoke.Stats.SpAtk);
-            const baseDef = isPhysical ? (defPoke.Def || defPoke.Stats.Def) : (defPoke.SpDef || defPoke.Stats.SpDef);
-            const baseHP = defPoke.HP || defPoke.Stats.HP;
-            const atkVal = Math.floor((Math.floor(baseAtk * 2 + 31 + Math.floor(atkP.ev / 4)) * 50 / 100 + 5) * atkP.nature);
-            const hpVal = Math.floor(Math.floor(baseHP * 2 + 31 + Math.floor(defP.hpEV / 4)) * 50 / 100 + 50 + 10);
-            const defVal = Math.floor((Math.floor(baseDef * 2 + 31 + Math.floor(defP.defEV / 4)) * 50 / 100 + 5) * defP.nature);
+            const hVal = getStatChampions(currentHP, hpEv, 1.0, defP.hEv, 1.0);
+            const dVal = getStatChampions(currentDef, defEv, natureDef, defP.dEv, defP.nat);
 
-            const commonArgs = {
-                hitCount: 1, power: parseInt(document.getElementById('power').value),
-                base_attack: atkVal, base_defense: defVal,
-                rank_attack_val: parseInt(document.getElementById('rank_attack').value) || 0,
-                rank_defense_val: parseInt(document.getElementById('rank_defense').value) || 0,
-                isBurnedChecked: document.getElementById('burn_m_check').checked,
-                stab_m: parseFloat(document.getElementById('stab').value),
-                affinity_m: parseFloat(document.getElementById('affinity').value),
-                item_m_atk: parseFloat(document.getElementById('item_m_atk').value),
-                ability_m_atk: parseFloat(document.getElementById('ability_m_atk').value),
-                item_m_def: parseFloat(document.getElementById('item_m_def').value),
-                ability_m_def: parseFloat(document.getElementById('ability_m_def').value),
-                environment: document.getElementById('environment_m_select').value,
-                moveType: isPhysical ? "Physical" : "Special",
-                wall_m: document.getElementById('wall_single_check').checked ? 0.5 : (document.getElementById('wall_double_check').checked ? 2/3 : 1.0),
-                range_m: document.getElementById('range_m_check').checked ? 0.75 : 1.0,
-                hp: hpVal, isSubstituteChecked: document.getElementById('substitute_check').checked, other_m: 1.0
-            };
-
+            // DP法による複数回攻撃の計算
             let dp = new Map([[0, 1n]]);
             for (let i = 0; i < hitCount; i++) {
-                let hitArgs = { ...commonArgs };
+                let hitArgs = { ...commonArgs, base_attack: atkVal, base_defense: dVal, hp: hVal };
+                // 特殊処理
                 if (normalizedMoveName === "トリプルアクセル") hitArgs.power = (i + 1) * 20;
-                if (document.getElementById("attacker-ability").value === "PARENTALBOND" && i > 0) hitArgs.range_m = 0.25;
-                if (document.getElementById("defender-ability").value === "MULTISCALE" && i > 0) hitArgs.ability_m_def = 1.0;
+                if (document.getElementById("attacker-ability")?.value === "PARENTALBOND" && i > 0) hitArgs.range_m = 0.25;
+                
                 const res = runDamageCalculation(false, hitArgs);
                 const hitDamages = res.hitDetails[0].damages;
                 let nextDp = new Map();
@@ -5341,54 +5432,57 @@ function openQuickTableModal2() {
                 dp = nextDp;
             }
 
+            // ダメージ範囲と実効HP（オボン等）の計算
             const sortedSums = Array.from(dp.keys()).sort((a, b) => a - b);
             const totalMin = sortedSums[0];
             const totalMax = sortedSums[sortedSums.length - 1];
-
-            const hazardDmg = calculateEntryHazardDamage(defIds[0], hpVal)?.totalDamage ?? 0;
-            let effectiveHP = hpVal - hazardDmg;
+            
+            let effectiveHP = hVal;
             const itemDefKey = document.getElementById('item_m_def_select')?.value;
-            if (itemDefKey === "obon") effectiveHP += Math.floor(hpVal * 0.25);
+            if (itemDefKey === "obon") effectiveHP += Math.floor(hVal * 0.25);
 
+            // KO確率計算
             const totalCombinations = BigInt(16) ** BigInt(hitCount);
             let koCount = 0n;
             for (let [dmg, count] of dp) { if (dmg >= effectiveHP) koCount += count; }
             const koProb = Number(koCount * 10000n / totalCombinations) / 100;
 
-            // --- バー表示用の計算 ---
-            const minPercent = Math.min(100, (totalMin / effectiveHP) * 100);
-            const maxPercent = Math.min(100, (totalMax / effectiveHP) * 100);
-            const diffPercent = maxPercent - minPercent;
-            
-            // 色判定
-            let barColorMin = "#4caf50"; // 確定耐え（緑）
-            let barColorDiff = "#81c784"; 
-            if (totalMin >= effectiveHP) {
-                barColorMin = "#f44336"; // 確定1発（赤）
-            } else if (totalMax >= effectiveHP) {
-                barColorMin = "#ff9800"; // 乱数（オレンジ）
-                barColorDiff = "#ffb74d";
-            }
+            // 表示用パラメータ
+            // --- 表示用パラメータの計算部分 ---
+const minPercentText = ((totalMin / effectiveHP) * 100).toFixed(1); // 最小％
+const maxPercentText = ((totalMax / effectiveHP) * 100).toFixed(1); // 最大％
 
-            const koText = koProb >= 100 ? "確定1発" : (koProb > 0 ? `乱数1発 (${koProb}%)` : "確定耐え");
+const minBarWidth = Math.min(100, (totalMin / effectiveHP) * 100);
+const diffBarWidth = Math.min(100, (totalMax / effectiveHP) * 100) - minBarWidth;
 
-            tr.innerHTML += `
-                <td style="border: 1px solid #ccc; padding: 6px; min-width: 120px; background: #fff;">
-                    <div style="font-size: 0.85em; display: flex; justify-content: space-between; margin-bottom: 3px;">
-                        <span style="font-weight:bold;">${totalMin}〜${totalMax}</span>
-                        <span style="color: #666;">${((totalMax/effectiveHP)*100).toFixed(1)}%</span>
-                    </div>
-                    
-                    <div style="width: 100%; height: 12px; background: #eee; border-radius: 2px; position: relative; overflow: hidden; border: 1px solid #ddd;">
-                        <div style="position: absolute; left: 0; top: 0; height: 100%; width: ${minPercent}%; background: ${barColorMin}; transition: width 0.3s;"></div>
-                        <div style="position: absolute; left: ${minPercent}%; top: 0; height: 100%; width: ${diffPercent}%; background: ${barColorDiff}; opacity: 0.7;"></div>
-                        <div style="position: absolute; left: 100%; top: 0; height: 100%; border-left: 2px solid #333; z-index: 2;"></div>
-                    </div>
+            let barColor = "#4caf50"; 
+            if (totalMin >= effectiveHP) barColor = "#f44336"; 
+            else if (totalMax >= effectiveHP) barColor = "#ff9800";
 
-                    <div style="font-size: 0.75em; margin-top: 4px; text-align: center; color: #444;">
-                        ${koText}
-                    </div>
-                </td>`;
+            const koText = koProb >= 100 ? "確定1発" : (koProb > 0 ? `乱数1発(${koProb}%)` : "確定耐え");
+
+// --- HTML出力部分（tr.innerHTML += ... の中身） ---
+tr.innerHTML += `
+    <td style="padding:8px; border:1px solid #ccc; min-width:130px; background:#fff;">
+        <div style="font-size:11px; margin-bottom:2px;">
+            <div style="display:flex; justify-content:space-between;">
+                <strong>${totalMin} 〜 ${totalMax}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; color:#666; font-size:10px;">
+                <span>(${minPercentText}%)</span>
+                <span>(${maxPercentText}%)</span>
+            </div>
+        </div>
+        
+        <div style="width:100%; height:10px; background:#eee; border-radius:4px; overflow:hidden; margin:4px 0; border:1px solid #ddd; position:relative;">
+            <div style="position:absolute; left:0; width:${minBarWidth}%; height:100%; background:${barColor};"></div>
+            <div style="position:absolute; left:${minBarWidth}%; width:${diffBarWidth}%; height:100%; background:${barColor}; opacity:0.4;"></div>
+        </div>
+        
+        <div style="font-size:10px; text-align:center; color:#444; font-weight:bold;">
+            ${koText}
+        </div>
+    </td>`;
         });
         table.appendChild(tr);
     });
