@@ -656,8 +656,8 @@ details .input-inline-group {
     }
     .ev-button {
     /* 最小サイズを確保（指のサイズに合わせる） */
-    min-width: 36px; 
-    height: 36px;
+    min-width: 30px; 
+    height: 30px;
     
     /* 文字を中央に配置 */
     display: flex;
@@ -703,6 +703,23 @@ details .input-inline-group {
     #top-sticky-summary, #top-spacer {
         display: none !important;
     }
+}
+/* すべての設定を上書きして強制的に位置を変える */
+.hamburger-menu {
+    top: 55px !important;   /* ←ここで高さを自由に調整してください */
+    left: 0px !important;
+    position: fixed !important;
+    z-index: 1000 !important; /* 他の帯より確実に手前に出す */
+}
+
+/* ボタンの中身の位置も微調整が必要な場合 */
+.hamburger-btn {
+    margin: 0 !important;
+}
+
+/* メニューの中身（nav-menu）の開始位置もボタンに合わせる */
+.nav-menu {
+    top: 100px !important; /* topと同じ数値にするとボタンの横からメニューが出ます */
 }
 </style>
 </head>
@@ -1080,7 +1097,7 @@ document.addEventListener('click', function(event) {
 <div class="input-inline-group" style="display: flex; align-items: center; gap: 10px;">
     <label for="attacker_ev" style="white-space: nowrap;">努力値</label>
     
-    <div class="checkbox-group" style="display: flex; align-items: center; gap: 4px;">
+    <div class="checkbox-group" style="display: flex; align-items: center; gap: 1px;">
         <button type="button" class="ev-button" data-stat="attacker" data-ev="0">0</button>
         
         <button type="button" class="ev-button" data-stat="attacker" data-step="-1">-</button>
@@ -1213,7 +1230,7 @@ document.addEventListener('click', function(event) {
 
 <div class="input-inline-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
     <label for="hp_ev" style="width: 80px; white-space: nowrap;">H努力値</label>
-    <div class="checkbox-group" style="display: flex; align-items: center; gap: 4px;">
+    <div class="checkbox-group" style="display: flex; align-items: center; gap: 1px;">
         <button type="button" class="ev-button" data-stat="hp" data-ev="0">0</button>
         <button type="button" class="ev-button" data-stat="hp" data-step="-1">-</button>
         <input type="number" id="hp_ev" value="32" min="0" max="32" step="1" 
@@ -1230,7 +1247,7 @@ document.addEventListener('click', function(event) {
 
 <div class="input-inline-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
     <label for="defender_ev" style="width: 80px; white-space: nowrap;">BD努力値</label>
-    <div class="checkbox-group" style="display: flex; align-items: center; gap: 4px;">
+    <div class="checkbox-group" style="display: flex; align-items: center; gap: 1px;">
         <button type="button" class="ev-button" data-stat="defender" data-ev="0">0</button>
         <button type="button" class="ev-button" data-stat="defender" data-step="-1">-</button>
         <input type="number" id="defender_ev" value="32" min="0" max="32" step="1" 
