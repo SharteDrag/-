@@ -706,8 +706,8 @@ details .input-inline-group {
 }
 /* すべての設定を上書きして強制的に位置を変える */
 .hamburger-menu {
-    top: 55px !important;   /* ←ここで高さを自由に調整してください */
-    left: 0px !important;
+    top: 50px !important;   /* ←ここで高さを自由に調整してください */
+    left: 1px !important;
     position: fixed !important;
     z-index: 1000 !important; /* 他の帯より確実に手前に出す */
 }
@@ -915,33 +915,23 @@ document.addEventListener('click', function(event) {
         <button type="button" onclick="openQuickTableModal()" class="btn-table">技早見</button>
         <button type="button" onclick="openQuickTableModal2()" class="btn-table">調整早見</button>
     </div>
-    <div id="top-sticky-summary" style="
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    z-index: 9999; 
-    background: rgba(255, 255, 255, 0.98); 
-    border-bottom: 2px solid #e74c3c; 
-    padding: 6px 12px; 
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    display: none;
-">
+    <div id="top-sticky-summary" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; background: rgba(255, 255, 255, 0.98); border-bottom: 2px solid #e74c3c; padding: 6px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
     <div style="max-width: 600px; margin: 0 auto;">
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 2px;">
-            <div id="top-damage-percent" style="font-size: 1.1rem; font-weight: bold; color: #d35400; white-space: nowrap;">
-                0% ～ 0%
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+            <div style="display: flex; flex-direction: column; align-items: flex-start; min-width: 110px;">
+                <div id="top-damage-percent" style="font-size: 1.1rem; font-weight: bold; color: #d35400; white-space: nowrap; line-height: 1.1;">0% ～ 0%</div>
+                <div id="top-damage-real" style="font-size: 0.75rem; color: #666; font-weight: normal; white-space: nowrap; margin-top: 2px;">(0 ～ 0)</div>
             </div>
-            <div style="flex-grow: 1; background: #e9ecef; border-radius: 4px; height: 14px; border: 1px solid #ccc; position: relative; overflow: hidden;">
-                <div id="top-hp-bar-fill" style="width: 100%; height: 100%; background: #28a745; transition: width 0.3s ease;"></div>
+
+            <div style="flex-grow: 1;">
+                <div style="background: #e9ecef; border-radius: 4px; height: 14px; border: 1px solid #ccc; position: relative; overflow: hidden; margin-bottom: 2px;">
+                    <div id="top-hp-bar-fill" style="width: 100%; height: 100%; background: #28a745; transition: width 0.3s ease;"></div>
+                </div>
+                <div id="top-judgment" style="font-size: 0.85rem; font-weight: bold; color: #333; text-align: center;"></div>
             </div>
-            <div id="top-hp-text" style="font-size: 0.8rem; font-weight: bold; color: #666; min-width: 45px; text-align: right;">
-                100%
-            </div>
+
+            <div id="top-hp-text" style="font-size: 0.9rem; font-weight: bold; color: #666; min-width: 50px; text-align: right;">100%</div>
         </div>
-        
-        <div id="top-judgment" style="font-size: 0.9rem; font-weight: bold; line-height: 1.2;">
-            </div>
     </div>
 </div>
 
@@ -3759,10 +3749,10 @@ outputHTML += `
     </div>
 </div>`;
 
-// --- ダメージ計算関数内の適切な場所に挿入 ---
+// --- ダメージ計算関数内の sticky表示 更新処理 ---
 const topBar = document.getElementById('top-sticky-summary');
-const topSpacer = document.getElementById('top-spacer');
 const topDamage = document.getElementById('top-damage-percent');
+const topDamageReal = document.getElementById('top-damage-real'); // 追加
 const topFill = document.getElementById('top-hp-bar-fill');
 const topText = document.getElementById('top-hp-text');
 const topJudgment = document.getElementById('top-judgment');
@@ -3770,25 +3760,30 @@ const topJudgment = document.getElementById('top-judgment');
 if (topBar) {
     const minP = (totalMin / effectiveTargetHP * 100).toFixed(1);
     const maxP = (totalMax / effectiveTargetHP * 100).toFixed(1);
-    const remainP = Math.max(0, 100 - (totalMax / effectiveTargetHP * 100)).toFixed(1);
+    
+    // 残りHPの計算（端数がいらない場合は Math.floor か Math.round を使う）
+    // 例：最大ダメージを喰らった後の残り％を「整数」にする
+    const remainP = Math.max(0, Math.floor(100 - (totalMax / effectiveTargetHP * 100)));
 
-    // 1. ダメージ％と残りHP率の更新
+    // 1. ダメージ％と実数値
     topDamage.innerText = `${minP}% ～ ${maxP}%`;
-    topText.innerText = `${remainP}%`;
+    document.getElementById('top-damage-real').innerText = `(${totalMin} ～ ${totalMax})`;
+
+    // 2. 残りHP％（「%」を付けて表示）
+    topText.innerText = ``; 
     topFill.style.width = `${remainP}%`;
 
-    // 2. 判定テキストの更新 (タグが含まれているので innerHTML を使用)
+    // 3. 判定（確定数など）
+    // koTextに「確定 2 発」などが入っている想定
     topJudgment.innerHTML = koText; 
 
-    // 3. HPバーの色変更
+    // 4. バーの色変更
     let bCol = "#28a745"; 
     if (remainP < 20) bCol = "#dc3545"; 
     else if (remainP < 50) bCol = "#ffc107"; 
     topFill.style.backgroundColor = bCol;
 
-    // 4. 表示状態にする
     topBar.style.display = 'block';
-    if(topSpacer) topSpacer.style.display = 'block';
 }
 
 
