@@ -943,7 +943,9 @@ document.addEventListener('click', function(event) {
         <div id="tab-atk" class="tab-panel active">
             <div class="card">
                 <h3>⚔️ 攻撃側</h3>
-                <div class="card">
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+            <button type="button" onclick="resetAttackerStats()" style="padding: 5px 15px; background-color: #0b9c3c; border: none; color: white; border-radius: 4px; cursor: pointer;">リセット</button>
+        </div>
         <div class="pokemon-select-group">
     <div class="input-inline-group">
         <label for="attacker-pokemon-name">名前</label>
@@ -1078,7 +1080,6 @@ document.addEventListener('click', function(event) {
         ※チェックを入れると威力が <span id="power-multiplier-value">---</span> 倍になります。
     </div>
 </div>
-</div>
 <div class="input-inline-group">
     <label for="base_attack" id="label_base_attack">能力値(A,C)</label>
     <input type="number" id="base_attack" value="100" min="1" class="fixed-value">
@@ -1114,7 +1115,10 @@ document.addEventListener('click', function(event) {
 
 <div class="input-inline-group">
     <label for="rank_attack">ランク</label>
-    <select id="rank_attack">
+
+    <button type="button" onclick="changeRank('rank_attack', -1)">−</button>
+
+    <select id="rank_attack" style="width: 120px;">
         <option value="4.0">+6 (4.0倍)</option>
         <option value="3.5">+5 (3.5倍)</option>
         <option value="3.0">+4 (3.0倍)</option>
@@ -1122,13 +1126,15 @@ document.addEventListener('click', function(event) {
         <option value="2.0">+2 (2.0倍)</option>
         <option value="1.5">+1 (1.5倍)</option>
         <option value="1.0" selected>±0 (1.0倍)</option>
-        <option value="0.66666">-1 (2/3倍)</option>
-        <option value="0.5">-2 (1/2倍)</option>
+        <option value="0.667">-1 (2/3倍)</option>
+        <option value="0.5">-2 (2/4倍)</option>
         <option value="0.4">-3 (2/5倍)</option>
-        <option value="0.33333">-4 (1/3倍)</option>
-        <option value="0.28571">-5 (2/7倍)</option>
-        <option value="0.25">-6 (1/4倍)</option>
+        <option value="0.333">-4 (2/6倍)</option>
+        <option value="0.286">-5 (2/7倍)</option>
+        <option value="0.25">-6 (2/8倍)</option>
     </select>
+
+    <button type="button" onclick="changeRank('rank_attack', 1)">＋</button>
 </div>
 
 <div class="input-inline-group">
@@ -1184,7 +1190,9 @@ document.addEventListener('click', function(event) {
 
 <div id="tab-def" class="tab-panel">
     <div class="card">
-        <h3>🛡️ 防御側</h3>
+        <h3>🛡️ 防御側</h3><div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+            <button type="button" onclick="resetDefenderStats()" style="padding: 5px 15px; background-color: #047f29; border: none; color: white; border-radius: 4px; cursor: pointer;">リセット</button>
+        </div>
 
         <div class="input-inline-group">
             <label for="defender-pokemon-name">名前</label>
@@ -1259,23 +1267,28 @@ document.addEventListener('click', function(event) {
 </div>
 
         <div class="input-inline-group">
-            <label for="rank_defense">ランク</label>
-            <select id="rank_defense">
-                    <option value="4.0">+6 (4.0倍)</option>
-                    <option value="3.5">+5 (3.5倍)</option>
-                    <option value="3.0">+4 (3.0倍)</option>
-                    <option value="2.5">+3 (2.5倍)</option>
-                    <option value="2.0">+2 (2.0倍)</option>
-                    <option value="1.5">+1 (1.5倍)</option>
-                    <option value="1.0" selected>±0 (1.0倍)</option>
-                    <option value="0.66666">-1 (2/3倍)</option>
-                    <option value="0.5">-2 (1/2倍)</option>
-                    <option value="0.4">-3 (2/5倍)</option>
-                    <option value="0.33333">-4 (1/3倍)</option>
-                    <option value="0.28571">-5 (2/7倍)</option>
-                    <option value="0.25">-6 (1/4倍)</option>
-                </select>
-        </div>
+    <label for="rank_defense">ランク</label>
+    
+    <button type="button" onclick="changeRank('rank_defense', -1)">−</button>
+    
+    <select id="rank_defense" style="width: 120px;">
+        <option value="4.0">+6 (4.0倍)</option>
+        <option value="3.5">+5 (3.5倍)</option>
+        <option value="3.0">+4 (3.0倍)</option>
+        <option value="2.5">+3 (2.5倍)</option>
+        <option value="2.0">+2 (2.0倍)</option>
+        <option value="1.5">+1 (1.5倍)</option>
+        <option value="1.0" selected>±0 (1.0倍)</option>
+        <option value="0.667">-1 (2/3倍)</option>
+        <option value="0.5">-2 (2/4倍)</option>
+        <option value="0.4">-3 (2/5倍)</option>
+        <option value="0.333">-4 (2/6倍)</option>
+        <option value="0.286">-5 (2/7倍)</option>
+        <option value="0.25">-6 (2/8倍)</option>
+    </select>
+    
+    <button type="button" onclick="changeRank('rank_defense', 1)">＋</button>
+</div>
 
         <div class="input-inline-group">
             <label for="item_m_def_select">持ち物</label>
@@ -1755,58 +1768,206 @@ function updateHPByPercent() {
         calculateDamage();
     }
 }
+function resetAttackerStats() {
+    // 1. 基本入力値のリセット
+    const elements = {
+        'attacker_ev': '0',      // 努力値 (お好みの初期値に)
+        'power': '100',           // 威力
+        'affinity': '1.0',        // 相性
+        'stab': '1.5',            // タイプ一致
+        'ability_m_atk': '4096'   // 特性補正
+    };
+
+    for (let id in elements) {
+        const el = document.getElementById(id);
+        if (el) el.value = elements[id];
+    }
+
+    // 2. セレクトボックスのリセット
+    if (document.getElementById('rank_attack')) {
+        document.getElementById('rank_attack').selectedIndex = 6; // ±0
+    }
+    if (document.getElementById('item_m_atk')) {
+        document.getElementById('item_m_atk').selectedIndex = 0; // なし
+    }
+
+    // 3. 性格ボタンのリセット
+    const natureAtk = document.getElementById('nature_attack');
+    if (natureAtk) {
+        natureAtk.value = "1.0";
+        const btnGroup = natureAtk.closest('.nature-btn-group');
+        if (btnGroup) {
+            btnGroup.querySelectorAll('.nature-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-value') === "1.0");
+            });
+        }
+    }
+
+    // 4. 特殊UIのリセット（連続技、ジャイロ、特殊威力など）
+    const specialUIs = ['multi-hit-ui', 'gyro-ball-ui', 'stored-power-ui', 'rage-fist-ui', 'last-respects-ui', 'hp-dependent-move-ui', 'conditional-power-ui'];
+    specialUIs.forEach(id => {
+        const ui = document.getElementById(id);
+        if (ui) ui.style.display = 'none';
+    });
+
+    // 5. 分類（物理/特殊）を物理にリセット
+    if (document.getElementById('move_type_physical')) {
+        document.getElementById('move_type_physical').checked = true;
+    }
+
+    // --- 重要：実数値の強制再計算 ---
+    
+    // 6. 努力値などの変更をシステムに通知
+    const triggerIds = ['attacker_ev', 'power', 'ability_m_atk'];
+    triggerIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    // 7. ポケモン名変更イベントを飛ばして種族値ベースの再計算を走らせる
+    const nameInput = document.getElementById('attacker-pokemon-name');
+    if (nameInput) {
+        nameInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // 8. 最終計算
+    if (typeof calculateDamage === "function") {
+        calculateDamage();
+    }
+
+    console.log("攻撃側のステータスをリセットしました。");
+}
+function resetDefenderStats() {
+    // 1. 各入力値を強制的に書き換え
+    const elements = {
+        'hp_ev': '0',
+        'defender_ev': '0',
+        'hp_percent': '100.0',
+        'ability_m_def': '1.0',
+        'nature_defense': '1.0'
+    };
+
+    for (let id in elements) {
+        const el = document.getElementById(id);
+        if (el) el.value = elements[id];
+    }
+
+    // 2. セレクトボックス（ランクと持ち物）のリセット
+    const rankDef = document.getElementById('rank_defense');
+    if (rankDef) rankDef.selectedIndex = 6; // ±0 の位置
+
+    const itemSelect = document.getElementById('item_m_def_select');
+    if (itemSelect) itemSelect.value = "none";
+
+    // 3. 性格ボタンの「active」クラスをリセット
+    const natureGroup = document.querySelector('#nature_defense').closest('.nature-btn-group');
+    if (natureGroup) {
+        natureGroup.querySelectorAll('.nature-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-value') === "1.0");
+        });
+    }
+
+    // --- ここからが重要：実数値の強制再計算 ---
+
+    // 4. 入力イベントを強制的に発生させる
+    // これにより、inputタグに紐付いている既存の計算ロジック（updateHPByPercentなど）が動きます
+    const idsToTrigger = ['hp_ev', 'defender_ev', 'hp_percent'];
+    idsToTrigger.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    // 5. ポケモン名が変わった時と同じ処理を走らせる
+    // 名前は変えませんが、名前変更イベントを飛ばすことで種族値に基づいた再計算を促します
+    const nameInput = document.getElementById('defender-pokemon-name');
+    if (nameInput) {
+        nameInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // 6. 最終的なダメージ計算
+    if (typeof calculateDamage === "function") {
+        calculateDamage();
+    }
+    
+    console.log("防御側を完全にリセットしました。");
+}
 /**
- * 攻撃側と防御側の情報を入れ替える関数 (修正版)
+ * 攻撃側と防御側のポケモン名を入れ替え、その他の情報をリセットする
  */
 function swapAttackerDefender() {
-    // 1. 入れ替えるデータのペアを定義
-    // [攻撃側要素ID, 防御側要素ID]
-    const swapPairs = [
-        ['attacker-pokemon-name', 'defender-pokemon-name'],
-        ['attacker_ev', 'defender_ev'],
-        ['attacker_iv', 'defender_iv'],
-        ['nature_attack', 'nature_defense'],
-        ['rank_attack', 'rank_defense'],
-        ['attacker-ability', 'defender-ability'], // 特性は最後に処理
-        ['attacker-item', 'defender-item']
+    // 1. ポケモン名（ID）を取得
+    const elAtkName = document.getElementById('attacker-pokemon-name');
+    const elDefName = document.getElementById('defender-pokemon-name');
+
+    if (!elAtkName || !elDefName) return;
+
+    // 2. 名前の入れ替え（退避させてから交換）
+    const tempName = elAtkName.value;
+    elAtkName.value = elDefName.value;
+    elDefName.value = tempName;
+
+    // 3. その他すべての要素をリセット
+    // リセットしたい要素のIDをリストアップ
+    const resetElements = [
+        // 努力値
+        { id: 'attacker_ev', value: '0' },
+        { id: 'hp_ev', value: '0' }, // デフォルト値に合わせて変更してください
+        { id: 'defender_ev', value: '0' },
+        // ランク
+        { id: 'rank_attack', value: '1.0' }, // ±0
+        { id: 'rank_defense', value: '1.0' },
+        // 性格補正（隠しフィールドなど）
+        { id: 'nature_attack', value: '1.0' },
+        { id: 'nature_defense', value: '1.0' },
+        // 持ち物
+        { id: 'attacker-item', value: 'none' }, // 実際の初期値に合わせてください
+        { id: 'defender-item', value: 'none' },
+        // 特性（後ほどポケモン名変更イベントでリセットされるが、念のため）
+        { id: 'attacker-ability', value: '' },
+        { id: 'defender-ability', value: '' }
     ];
 
-    // 2. 値の退避と入れ替え
-    const tempData = {};
-    swapPairs.forEach(pair => {
-        const el = document.getElementById(pair[0]);
-        tempData[pair[0]] = el ? el.value : "";
+    resetElements.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (el) el.value = item.value;
     });
 
-    swapPairs.forEach(pair => {
-        const elAtk = document.getElementById(pair[0]);
-        const elDef = document.getElementById(pair[1]);
-        if (elAtk && elDef) {
-            elAtk.value = elDef.value;
-            elAtk.value = elDef.value;
-            elDef.value = tempData[pair[0]];
-        }
-    });
-
-    // 3. 特殊な入れ替え（HPと実数値の物理・特殊判定などはシステムに任せるため、イベントを発火）
-    
-    // 4. 重要：ポケモン名が変わったことをシステムに通知する
-    // これにより、それぞれのポケモンの種族値や「特性リスト」が再生成されます
+    // 4. 重要：ポケモン名が変わったことをシステムに通知
+    // これにより、種族値の読み込みや特性リストの更新が走ります
     const event = new Event('change');
-    document.getElementById('attacker-pokemon-name').dispatchEvent(event);
-    document.getElementById('defender-pokemon-name').dispatchEvent(event);
+    elAtkName.dispatchEvent(event);
+    elDefName.dispatchEvent(event);
 
-    // 5. 特性と持ち物を改めてセット（ポケモン名の変更でリストがリセットされる場合があるため）
+    // 5. 反映を待って再計算
     setTimeout(() => {
-        const atkAbility = document.getElementById('attacker-ability');
-        const defAbility = document.getElementById('defender-ability');
-        if (atkAbility) atkAbility.value = document.getElementById('defender-ability').value; // 前の値を再セット
-        
-        // 最終的な再計算
-        updateStatsAndRecalculate();
-    }, 50); // リスト生成を待つために僅かなディレイを入れる
+        if (typeof updateStatsAndRecalculate === "function") {
+            updateStatsAndRecalculate();
+        } else if (typeof calculateDamage === "function") {
+            calculateDamage();
+        }
+    }, 50);
 
-    console.log("攻守を入れ替えました。");
+    console.log("名前を入れ替え、データをリセットしました。");
+}
+
+function changeRank(id, step) {
+    const select = document.getElementById(id);
+    if (!select) return;
+
+    let currentIndex = select.selectedIndex;
+    let newIndex = currentIndex - step;
+
+    if (newIndex >= 0 && newIndex < select.options.length) {
+        select.selectedIndex = newIndex;
+        
+        // 1. Changeイベントを発生させる（念のため）
+        select.dispatchEvent(new Event('change'));
+
+        // 2. 直接計算関数を呼び出す（これが重要！）
+        if (typeof calculateDamage === "function") {
+            calculateDamage();
+        }
+    }
 }
 
 // 既存の calculateDamage 関数内の、HP割合計算部分を以下のように修正・活用します
@@ -1977,64 +2138,96 @@ async function loadAbilityData() {
 function updateMegaToggle(target, speciesData) {
     const container = document.getElementById(`${target}-mega-container`);
     if (!container) return;
-    container.innerHTML = ''; // リセット
+    container.innerHTML = ''; 
 
     const currentName = speciesData.Name || "";
     
-    // 1. 基底名（ベースとなる名前）を特定する
-    // メガシンカ個体なら「メガ」を取り除き、通常個体ならそのまま
-    const isCurrentlyMega = currentName.startsWith("メガ") && !["メガヤンマ", "メガニウム"].includes(currentName);
-    const baseName = isCurrentlyMega 
-        ? currentName.replace("メガ", "").replace(/X$|Y$|Z$/, "") 
-        : currentName;
+    // --- 1. 特殊な関係性の定義 ---
+    const MEGA_EXCEPTIONS = {
+        "メガフラエッテ": "フラエッテ(えいえん)",
+        "メガニャオニクス": ["ニャオニクス(オス)", "ニャオニクス(メス)"], // 配列にして両方対応
+        "メガジガルデ": "ジガルデ(パーフェクト)"
+    };
 
-    // 2. DBから「メガ候補」をすべて探す
-    // 名前に「メガ + 基底名」が含まれるものを抽出
-    const megaForms = Object.keys(POKEDATA_MAP).filter(key => {
-        const name = POKEDATA_MAP[key].Name;
-        return name.startsWith(`メガ${baseName}`) && name !== "メガヤンマ" && name !== "メガニウム";
+    const FORM_CHANGE_MAP = {
+        "ギルガルド(シールド)": "ギルガルド(ブレード)",
+        "イルカマン(ナイーブ)": "イルカマン(マイティ)",
+        "ヨワシ(たんどく)": "ヨワシ(ぎょぐん)",
+        "メテノ(りゅうせい)": "メテノ(コア)",
+        "ヒヒダルマ": "ヒヒダルマ(ダルマモード)",
+        "ガラルヒヒダルマ": "ガラルヒヒダルマ(ダルマモード)",
+        "メロエッタ(ボイス)": "メロエッタ(ステップ)"
+    };
+
+    // 逆引き用データの準備
+    const REVERSE_MEGA = {};
+    Object.entries(MEGA_EXCEPTIONS).forEach(([mega, base]) => {
+        if (Array.isArray(base)) {
+            base.forEach(b => REVERSE_MEGA[b] = mega);
+        } else {
+            REVERSE_MEGA[base] = mega;
+        }
     });
+    const REVERSE_FORM = Object.fromEntries(Object.entries(FORM_CHANGE_MAP).map(([k, v]) => [v, k]));
 
-    // メガシンカ個体でもなく、メガシンカ先も見つからない場合は何もしない
-    if (!isCurrentlyMega && megaForms.length === 0) return;
+    // --- 2. 判定ロジック ---
+    const isCurrentlyMega = (currentName.startsWith("メガ") && !["メガヤンマ", "メガニウム"].includes(currentName)) || 
+                             !!MEGA_EXCEPTIONS[currentName];
+    
+    const formTarget = FORM_CHANGE_MAP[currentName] || REVERSE_FORM[currentName];
 
-    // 3. ボタン生成用ヘルパー
+    // --- 3. ボタン生成用ヘルパー ---
     const createButton = (targetName, label, color) => {
         const btn = document.createElement('button');
         btn.type = "button";
         btn.className = 'mega-toggle-btn';
         btn.textContent = label;
-        btn.style.cssText = `width:100%; padding:6px; font-size:12px; margin:2px 0; background:${color}; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;`;
+        btn.style.cssText = `width:100%; padding:6px; font-size:11px; margin:2px 0; background:${color}; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;`;
         
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             const input = document.getElementById(`${target}-pokemon-name`);
             input.value = targetName;
-            // dispatchEvent で既存の更新ロジック(updateStatsAndRecalculate等)を走らせる
             input.dispatchEvent(new Event('change', { bubbles: true }));
         });
         return btn;
     };
 
-    // 4. UIの構築
-    if (isCurrentlyMega) {
-        // 現在メガシンカ中なら「通常に戻る」ボタンを表示
-        container.appendChild(createButton(baseName, `← ${baseName} に戻す`, "#6c757d"));
+    // --- 4. UIの構築 ---
+
+    // A. フォルムチェンジボタン
+    if (formTarget) {
+        container.appendChild(createButton(formTarget, `🔄 ${formTarget} へ`, "#17a2b8"));
     }
 
-    // メガシンカ候補（X, Yなど）をすべてボタンとして並べる
+    // B. メガシンカ解除ボタン（ニャオニクスの多対一対応）
+    if (isCurrentlyMega) {
+        const base = MEGA_EXCEPTIONS[currentName];
+        if (Array.isArray(base)) {
+            // メガニャオニクスの場合は、オスとメス両方の戻り先ボタンを出す
+            base.forEach(b => {
+                container.appendChild(createButton(b, `← ${b} に戻す`, "#6c757d"));
+            });
+        } else {
+            const baseName = base || currentName.replace("メガ", "").replace(/X$|Y$|Z$/, "");
+            container.appendChild(createButton(baseName, `← ${baseName} に戻す`, "#6c757d"));
+        }
+    }
+
+    // C. メガシンカ先ボタン
+    // 1. 通常の「メガ+名前」
+    const baseNameForSearch = currentName.replace(/X$|Y$|Z$/, ""); 
+    const megaForms = Object.keys(POKEDATA_MAP).filter(key => {
+        const name = POKEDATA_MAP[key].Name;
+        const isStandardMega = name.startsWith(`メガ${baseNameForSearch}`) && name !== "メガヤンマ" && name !== "メガニウム";
+        const isExceptionalMega = REVERSE_MEGA[currentName] === name;
+        return isStandardMega || isExceptionalMega;
+    });
+
     megaForms.forEach(megaKey => {
         const megaName = POKEDATA_MAP[megaKey].Name;
-        // 現在選択中のメガシンカ体そのものは表示しない
         if (megaName === currentName) return;
-
-        let label = `${megaName} へ`;
-        // リザードンX/Yなどの場合、末尾の文字を強調
-        if (megaName.endsWith("X")) label = `メガ${baseName}X へ`;
-        if (megaName.endsWith("Y")) label = `メガ${baseName}Y へ`;
-        if (megaName.endsWith("Z")) label = `メガ${baseName}Z へ`;
-
-        container.appendChild(createButton(megaName, label, "#e83e8c"));
+        container.appendChild(createButton(megaName, `${megaName} へ`, "#e83e8c"));
     });
 }
 // ポケモン変更時に特性欄を更新
@@ -2554,6 +2747,22 @@ if (["MULTISCALE","SHADOWSHIELD"].includes(ability)) {
 if (["DISGUISE"].includes(ability)) {
         document.getElementById("hp_percent").value = "87.5";
     }
+
+    // 1. 現在の補正値を取得（他の特性ですでに書き換えられていてもOK）
+let currentAtkMod = parseInt(document.getElementById("ability_m_atk").value) || 4096;
+
+// 2. オーラの発動条件を判定（自分 or 相手が持っている）
+const isDarkAuraActive = (ability === "DARKAURA" && move?.Type === "DARK");
+const isFairyAuraActive = (ability === "FAIRYAURA" && move?.Type === "FAIRY");
+
+// 3. オーラが有効な場合のみ、現在の値に 1.33倍(5448/4096) を掛ける
+if (isDarkAuraActive || isFairyAuraActive) {
+    // 他の特性（例：ちからもちで8192になってる等）に対し、オーラ補正を乗算
+    currentAtkMod = Math.round(currentAtkMod * 5448 / 4096);
+}
+
+// 4. 最終的な値をセット
+document.getElementById("ability_m_atk").value = currentAtkMod;
 
     calculateDamage();
 });

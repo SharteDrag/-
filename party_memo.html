@@ -906,19 +906,26 @@ function updateSpecies(idx, speciesData) {
     const name = speciesData.Name;
     const itemInput = card.querySelector('.item-input');
     
-    // --- 追加：専用アイテムの自動設定 ---
-    if (MEGA_STONE_MAP[name]) {
+    // 1. 専用アイテムの自動設定
+    if (typeof MEGA_STONE_MAP !== 'undefined' && MEGA_STONE_MAP[name]) {
         const stoneName = MEGA_STONE_MAP[name];
         itemInput.value = stoneName;
-        // db.itemsからIDも検索してデータセットに入れておく（保存用）
         const itemObj = db.items.find(i => i.name === stoneName);
         if (itemObj) itemInput.dataset.selectedId = itemObj.id;
     }
 
-    // メガシンカ判定
-    const isMega = name.startsWith("メガ") && !["メガヤンマ", "メガニウム"].includes(name);
+    // 2. 例外マッピング定義
+    // ※ db.species内の正確な名前に書き換えてください（例: カッコが全角か半角かなど）
+    const MEGA_EXCEPTIONS = {
+        "メガフラエッテ": "フラエッテ(えいえん)",
+        "メガニャオニクス": "ニャオニクス(オス)",
+        "メガジガルデ": "ジガルデ(パーフェクト)"
+    };
+
+    // 3. メガシンカ判定
+    const isMega = (name.startsWith("メガ") && !["メガヤンマ", "メガニウム"].includes(name)) || 
+                   !!MEGA_EXCEPTIONS[name];
     
-    // 既存ボタンのクリーンアップ
     const container = card.querySelector('.sp-input').parentNode;
     const oldBtn = container.querySelector('.mega-toggle-btn');
     if (oldBtn) oldBtn.remove();
@@ -935,14 +942,21 @@ function updateSpecies(idx, speciesData) {
             const isShowingMega = btn.dataset.mode === "mega";
             
             if (isShowingMega) {
-                // メガシンカ解除時はアイテムを消すべきか？ 
-                // 構築メモとしては残しておいたほうが親切なので、ここではアイテム操作はしない
-                const baseName = name.replace("メガ", "").replace(/X$|Y$|Z$/, "");
+                // 例外テーブルにあるか確認、なければ正規表現で置換
+                const baseName = MEGA_EXCEPTIONS[name] || name.replace("メガ", "").replace(/X$|Y$|Z$/, "");
+                
+                // デバッグ用：名前が一致しているかコンソールで確認できるようにします
+                console.log("Searching for base species:", baseName);
+
                 const baseSpecies = db.species.find(s => s.name === baseName);
+                
                 if (baseSpecies) {
                     applyStats(idx, baseSpecies.data);
                     btn.dataset.mode = "normal";
                     btn.textContent = "メガシンカ後へ";
+                } else {
+                    console.error("Base species not found in db.species:", baseName);
+                    // 見つからない場合、カッコの種類を変えて再試行するなどの処理が必要かもしれません
                 }
             } else {
                 applyStats(idx, speciesData);
