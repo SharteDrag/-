@@ -721,6 +721,52 @@ details .input-inline-group {
 .nav-menu {
     top: 100px !important; /* topと同じ数値にするとボタンの横からメニューが出ます */
 }
+/* PC用：計算機の右外側に配置 */
+.floating-memo {
+    position: absolute;
+    top: 0;
+    left: 100%;         /* 計算機の右端を起点にする */
+    margin-left: 40px;  /* 計算機との隙間を少し広げて圧迫感を解消 */
+    
+    width: 450px;       /* ★ここを大幅にアップ（300px → 450px） */
+    background: #ffffff;
+    border: 2px solid #007bff;
+    border-radius: 12px; /* 少し角を丸くしてノート感を出す */
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    padding: 15px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+}
+
+/* メモ入力エリア */
+#battle-memo {
+    width: 100%;
+    height: 700px;      /* 高さも少しアップ */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    font-size: 1.05rem; /* 文字を少し大きく読みやすく */
+    line-height: 1.6;
+    color: #333;
+    resize: vertical;
+    box-sizing: border-box;
+    outline: none;      /* クリック時の青枠を消す（任意） */
+}
+
+#battle-memo:focus {
+    border-color: #007bff; /* フォーカス時に枠線を強調 */
+}
+
+/* 【重要】非表示にする閾値を調整 
+  計算機(900px) + メモ(450px) + 隙間(40px) + 余裕 = 約1450px
+  これ以下の幅では被る前に非表示にする
+*/
+@media (max-width: 1450px), (orientation: portrait) {
+    .floating-memo {
+        display: none !important;
+    }
+}
 </style>
 </head>
 <script>
@@ -854,7 +900,7 @@ document.addEventListener('click', function(event) {
     <nav class="tab-menu">
         <button type="button" class="tab-btn active" onclick="openTab('tab-atk')">⚔️ 攻撃</button>
         <button type="button" class="tab-btn" onclick="openTab('tab-def')">🛡️ 防御</button>
-        <button type="button" class="tab-btn" onclick="openTab('tab-env')">🌍 フィールド</button>
+        <button type="button" class="tab-btn" onclick="openTab('tab-env')">🌍 その他</button>
     </nav>
 </div>
 <!-- ハンバーガーメニュー -->
@@ -1116,9 +1162,9 @@ document.addEventListener('click', function(event) {
 <div class="input-inline-group">
     <label for="rank_attack">ランク</label>
 
-    <button type="button" onclick="changeRank('rank_attack', -1)">−</button>
+    <button type="button" onclick="changeRank('rank_attack', -1)"style="width: 30px; height: 30px; font-size: 1.2em; cursor: pointer;">−</button>
 
-    <select id="rank_attack" style="width: 120px;">
+    <select id="rank_attack" style="width: 100px;">
         <option value="4.0">+6 (4.0倍)</option>
         <option value="3.5">+5 (3.5倍)</option>
         <option value="3.0">+4 (3.0倍)</option>
@@ -1134,7 +1180,7 @@ document.addEventListener('click', function(event) {
         <option value="0.25">-6 (2/8倍)</option>
     </select>
 
-    <button type="button" onclick="changeRank('rank_attack', 1)">＋</button>
+    <button type="button" onclick="changeRank('rank_attack', 1)"style="width: 30px; height: 30px; font-size: 1.2em; cursor: pointer;">＋</button>
 </div>
 
 <div class="input-inline-group">
@@ -1148,6 +1194,10 @@ document.addEventListener('click', function(event) {
     <option value="HONETAMA">でんきだま/ふといホネ (2.0x)</option>
     </select>
 </div>
+<div class="checkbox-group">
+                    <label for="critical_m_check">✅ 急所(1.5倍)</label>
+                    <input type="checkbox" id="critical_m_check">
+                </div>
 <details>
     <summary style="cursor: pointer; list-style: none;">
         <span>詳細</span>
@@ -1269,9 +1319,9 @@ document.addEventListener('click', function(event) {
         <div class="input-inline-group">
     <label for="rank_defense">ランク</label>
     
-    <button type="button" onclick="changeRank('rank_defense', -1)">−</button>
+    <button type="button" onclick="changeRank('rank_defense', -1)"style="width: 30px; height: 30px; font-size: 1.2em; cursor: pointer;">−</button>
     
-    <select id="rank_defense" style="width: 120px;">
+    <select id="rank_defense" style="width: 100px;">
         <option value="4.0">+6 (4.0倍)</option>
         <option value="3.5">+5 (3.5倍)</option>
         <option value="3.0">+4 (3.0倍)</option>
@@ -1287,7 +1337,7 @@ document.addEventListener('click', function(event) {
         <option value="0.25">-6 (2/8倍)</option>
     </select>
     
-    <button type="button" onclick="changeRank('rank_defense', 1)">＋</button>
+    <button type="button" onclick="changeRank('rank_defense', 1)"style="width: 30px; height: 30px; font-size: 1.2em; cursor: pointer;">＋</button>
 </div>
 
         <div class="input-inline-group">
@@ -1327,7 +1377,7 @@ document.addEventListener('click', function(event) {
 
         <div id="tab-env" class="tab-panel">
             <div class="card">
-                <h3>🌍 フィールド、その他設定</h3>
+                <h3>🌍 天候、フィールド、その他設定</h3>
     <div class="input-inline-group">
     <label for="environment_m_select_weather">天候</label>
     <select id="environment_m_select" name="environment_m_select">
@@ -1373,10 +1423,7 @@ document.addEventListener('click', function(event) {
     </div>
 </div>
                 
-                <div class="checkbox-group">
-                    <label for="critical_m_check">✅ 急所(1.5倍)</label>
-                    <input type="checkbox" id="critical_m_check">
-                </div>
+                
                 
                 <div class="checkbox-group">
                     <label for="burn_m_check">🔥やけど(0.5倍)</label>
@@ -1409,7 +1456,8 @@ document.addEventListener('click', function(event) {
 
 </form> 
 
-    <div id="result-sticky-footer">
+    <div class="main-wrapper" style="display: flex; gap: 20px; align-items: flex-start;">
+    <div id="result-sticky-footer" style="flex: 1; min-width: 0;">
         <div id="result" class="card">
             <strong>計算結果:</strong>
             <div id="damage-output">ここに結果が表示されます</div>
@@ -1447,6 +1495,21 @@ document.addEventListener('click', function(event) {
             閉じる
         </button>
     </div>
+</div>
+
+<div class="calculator-container" style="position: relative; max-width: 1200px; margin: 0 auto;">
+    
+    <div id="result-sticky-footer">
+        </div>
+
+    <div id="pc-floating-memo" class="floating-memo">
+        <div class="memo-header">
+            <span>📝 対戦メモ</span>
+            <button type="button" onclick="clearBattleMemoOnly()" style="font-size: 0.7rem; cursor: pointer;">消去</button>
+        </div>
+        <textarea id="battle-memo" placeholder="相手の選出予想など..."></textarea>
+    </div>
+    
 </div>
 
 <div id="quick-table-container-outer" style="margin-top: 30px; overflow-x: auto;">
@@ -1803,6 +1866,16 @@ function resetAttackerStats() {
         }
     }
 
+
+    // 2. チェックボックスのリセット
+    const checkboxes = [ 
+        'critical_m_check'
+    ];
+    checkboxes.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.checked = false;
+    });
+
     // 4. 特殊UIのリセット（連続技、ジャイロ、特殊威力など）
     const specialUIs = ['multi-hit-ui', 'gyro-ball-ui', 'stored-power-ui', 'rage-fist-ui', 'last-respects-ui', 'hp-dependent-move-ui', 'conditional-power-ui'];
     specialUIs.forEach(id => {
@@ -1890,6 +1963,20 @@ function resetDefenderStats() {
     }
     
     console.log("防御側を完全にリセットしました。");
+}
+/**
+ * メモのテキストエリアとローカルストレージだけを空にする
+ * ページのリロード（Ctrl+F5相当）は行わない
+ */
+function clearBattleMemoOnly() {
+    // 1. 確認ダイアログ（誤操作防止）
+        
+        const memoArea = document.getElementById('battle-memo');
+            // 2. テキストエリアを空にする
+            memoArea.value = "";
+            
+            // 3. 保存されているデータも消去する
+            localStorage.removeItem('poke_memo_data');
 }
 /**
  * 攻撃側と防御側のポケモン名を入れ替え、その他の情報をリセットする
@@ -2254,8 +2341,15 @@ document.getElementById("defender-pokemon-name").addEventListener("change", () =
     }
 });
 
-document.getElementById("attacker-ability").addEventListener("change", () => {
+// 攻撃側の特性が変わったとき
+document.getElementById("attacker-ability").addEventListener("change", updateAbilitiesAndCalculate);
+
+// 防御側の特性が変わったとき
+document.getElementById("defender-ability").addEventListener("change", updateAbilitiesAndCalculate);
+
+function updateAbilitiesAndCalculate() {
     const ability = document.getElementById("attacker-ability").value;
+    const defAbility = document.getElementById("defender-ability").value;
     const moveName = document.getElementById("move-name").value;
     const move = MOVEDATA_MAP[hiraganaToKatakana(moveName)] || MOVEDATA_MAP[moveName];
 
@@ -2283,7 +2377,7 @@ document.getElementById("attacker-ability").addEventListener("change", () => {
 
     // 特性補正を初期化
     abilityAtkMult = 1.0;
-    document.getElementById("ability_m_atk").value = "4096";
+    let atkMod = 4096;
 
     // ⭐ 防御側の実数値補正を初期化
     defenderDefMult = 1.0;
@@ -2319,7 +2413,7 @@ document.getElementById("attacker-ability").addEventListener("change", () => {
 
         // よわき
     if (ability === "DEFEATIST") {
-        abilityAtkMult = 2.0;
+        abilityAtkMult = 0.5;
     }
 
     // こんじょう
@@ -2338,102 +2432,89 @@ document.getElementById("attacker-ability").addEventListener("change", () => {
 
         //どくぼうそう
     if ((ability === "TOXICBOOST") && move?.Category === "Physical") {
-        document.getElementById("ability_m_atk").value = "6144";
+        atkMod = Math.round(atkMod * 6144 / 4096);
     }
 
         //ねつぼうそう
     if ((ability === "FLAREBOOST") && move?.Category === "Special") {
-        document.getElementById("ability_m_atk").value = "6144";
+        atkMod = Math.round(atkMod * 6144 / 4096);
     }
 
     // がんじょうあご（噛みつく技）
     if (ability === "STRONGJAW" && move?.Flags?.includes("Biting")) {
-        document.getElementById("ability_m_atk").value = "6144";
+        atkMod = Math.round(atkMod * 6144 / 4096);
     }
 
     // かたいツメ
     if (ability === "TOUGHCLAWS" && move?.Flags?.includes("Contact")) {
-        document.getElementById("ability_m_atk").value = "5325";
+        atkMod = Math.round(atkMod * 5325 / 4096);
     }
 
     // きれあじ（斬撃）
     if (ability === "SHARPNESS" && move?.Flags?.includes("Slicing")) {
-        document.getElementById("ability_m_atk").value = "6144";
+        atkMod = Math.round(atkMod * 6144 / 4096);
     }
 
      // すてみ
     if (ability === "RECKLESS" && move?.Flags?.includes("Recoil")) {
-        document.getElementById("ability_m_atk").value = "4915";
+        atkMod = Math.round(atkMod * 4915 / 4096);
     }
 
      // メガランチャー
     if (ability === "MEGALAUNCHER" && move?.Flags?.includes("Pulse")) {
-        document.getElementById("ability_m_atk").value = "6144";
+        atkMod = Math.round(atkMod * 6144 / 4096);
     }
 
      // ちからずく
     if (ability === "SHEERFORCE") {
-        document.getElementById("ability_m_atk").value = "5325";
+        atkMod = Math.round(atkMod * 5325 / 4096);
     }
 
     // そうだいしょう
     if (ability === "SUPREMEOVERLORD1") {
-        document.getElementById("ability_m_atk").value = "4505";
+        atkMod = Math.round(atkMod * 4505 / 4096);
     }
 
     if (ability === "SUPREMEOVERLORD2") {
-        document.getElementById("ability_m_atk").value = "4915";
+        atkMod = Math.round(atkMod * 4915 / 4096);
     }
 
     if (ability === "SUPREMEOVERLORD3") {
-        document.getElementById("ability_m_atk").value = "5325";
+        atkMod = Math.round(atkMod * 5325 / 4096);
     }
 
     if (ability === "SUPREMEOVERLORD4") {
-        document.getElementById("ability_m_atk").value = "5734";
+        atkMod = Math.round(atkMod * 5734 / 4096);
     }
 
     if (ability === "SUPREMEOVERLORD5") {
-        document.getElementById("ability_m_atk").value = "6144";
+        atkMod = Math.round(atkMod * 6144 / 4096);
     }
 
      // アナライズ
     if (ability === "ANALYTIC") {
-        document.getElementById("ability_m_atk").value = "5325";
+        atkMod = Math.round(atkMod * 5325 / 4096);
     }
 
     // てつのこぶし（パンチ技）
     if (ability === "IRONFIST" && move?.Flags?.includes("Punching")) {
-        document.getElementById("ability_m_atk").value = "4915";
+        atkMod = Math.round(atkMod * 4915 / 4096);
     }
 
         // パンクロック
     if (ability === "PUNKROCK" && move?.Flags?.includes("Sound")) {
-        document.getElementById("ability_m_atk").value = "5325";
+        atkMod = Math.round(atkMod * 5325 / 4096);
     }
 
         // ちからもち / ヨガパワー（攻撃実数値2倍）
     if ((ability === "HUGEPOWER" || ability === "PUREPOWER") && move?.Category === "Physical") {
-        document.getElementById("ability_m_atk").value = "8192";
-    }
-
-            // オーラ
-    if (["DARKAURA"].includes(ability)) {
-        if (move?.Type === "DARK") {
-            document.getElementById("ability_m_atk").value = "5448";
-        }
-    }
-            // オーラ
-    if (["FAIRYAURA"].includes(ability)) {
-        if (move?.Type === "FAIRY") {
-            document.getElementById("ability_m_atk").value = "5448";
-        }
+        atkMod = Math.round(atkMod * 8192 / 4096);
     }
 
                 // はがねのせいしん
     if (["STEELYSPIRIT"].includes(ability)) {
         if (move?.Type === "STEEL") {
-            document.getElementById("ability_m_atk").value = "6144";
+            atkMod = Math.round(atkMod * 6144 / 4096);
         }
     }
 
@@ -2527,7 +2608,7 @@ if (ability === "NORMALIZE") {
         move.Type = "NORMAL";
         
         // ⭐ M補正を1.2倍に設定
-        document.getElementById("ability_m_atk").value = "4915";
+        atkMod = Math.round(atkMod * 4915 / 4096);
         
         // ⭐ タイプが変更されたことを反映させるために再計算をトリガー
         // updateMoveDataAndRecalculateが、技の威力、STAB、相性、その他の補正を再計算します。
@@ -2547,7 +2628,7 @@ if (ability === "NORMALIZE") {
                 DRAGONIZE: "DRAGON"
             }[ability];
             move.Type = newType;
-            document.getElementById("ability_m_atk").value = "4915";
+            atkMod = Math.round(atkMod * 4915 / 4096);
             updateMoveDataAndRecalculate(moveName);
             return;
         }
@@ -2556,7 +2637,7 @@ if (ability === "NORMALIZE") {
     // すなのちから (Sand Force) の処理 (砂嵐時、地面・岩・鋼技の威力1.3倍)
     if (ability === "SANDFORCE" && isSandstorm) {
         if (moveType === "GROUND" || moveType === "ROCK" || moveType === "STEEL") {
-            document.getElementById("ability_m_atk").value = "5325";
+            atkMod = Math.round(atkMod * 5325 / 4096);
         }
     }
 
@@ -2588,7 +2669,7 @@ if (ability === "HADRONENGINE" && isElectricTerrain && move?.Category === "Speci
     if (ability === "TECHNICIAN") {
         const power = parseInt(document.getElementById('power').value) || 0;
         if (power > 0 && power <= 60) {
-            document.getElementById("ability_m_atk").value = "6144";
+            atkMod = Math.round(atkMod * 6144 / 4096);
         }
     }
 
@@ -2649,8 +2730,18 @@ if (ability === "HADRONENGINE" && isElectricTerrain && move?.Category === "Speci
         SNIPER_MODE = false;
     }
 
+    // --- 4. オーラの判定 (自分 or 相手が持っている) ---
+    const isDarkAuraActive = (ability === "DARKAURA" || defAbility === "DARKAURA") && moveType === "DARK";
+    const isFairyAuraActive = (ability === "FAIRYAURA" || defAbility === "FAIRYAURA") && moveType === "FAIRY";
+
+    if (isDarkAuraActive || isFairyAuraActive) {
+        atkMod = Math.round(atkMod * 5448 / 4096);
+    }
+
+    document.getElementById("ability_m_atk").value = atkMod;
+
     calculateDamage();
-});
+};
 
 
 document.getElementById("defender-ability").addEventListener("change", () => {
@@ -2747,22 +2838,6 @@ if (["MULTISCALE","SHADOWSHIELD"].includes(ability)) {
 if (["DISGUISE"].includes(ability)) {
         document.getElementById("hp_percent").value = "87.5";
     }
-
-    // 1. 現在の補正値を取得（他の特性ですでに書き換えられていてもOK）
-let currentAtkMod = parseInt(document.getElementById("ability_m_atk").value) || 4096;
-
-// 2. オーラの発動条件を判定（自分 or 相手が持っている）
-const isDarkAuraActive = (ability === "DARKAURA" && move?.Type === "DARK");
-const isFairyAuraActive = (ability === "FAIRYAURA" && move?.Type === "FAIRY");
-
-// 3. オーラが有効な場合のみ、現在の値に 1.33倍(5448/4096) を掛ける
-if (isDarkAuraActive || isFairyAuraActive) {
-    // 他の特性（例：ちからもちで8192になってる等）に対し、オーラ補正を乗算
-    currentAtkMod = Math.round(currentAtkMod * 5448 / 4096);
-}
-
-// 4. 最終的な値をセット
-document.getElementById("ability_m_atk").value = currentAtkMod;
 
     calculateDamage();
 });
@@ -4034,8 +4109,18 @@ const historyBtnHtml = `
     <div id="damage-history-list" style="margin-top:15px; padding:10px; background:#f8f9fa; border-radius:8px; border:1px solid #ddd;">
         </div>
 `;
+// --- コピーボタンのHTML ---
+const copyBtnHtml = `
+    <div style="margin-top:10px;">
+        <button type="button" onclick="copyResultToClipboard()" 
+                style="cursor:pointer; width:100%; padding:10px; background:#007bff; color:white; border:none; border-radius:6px; font-weight:bold; margin-bottom:5px;">
+            📋 結果をテキストでコピー
+        </button>
+    </div>
+`;
 
-// 既存の resultDiv への出力に追加
+// 既存の resultDiv への出力に追加 (履歴ボタンの前など)
+resultDiv.insertAdjacentHTML('beforeend', copyBtnHtml);
 resultDiv.insertAdjacentHTML('beforeend', historyBtnHtml);
 
 // 描画後に履歴を再表示（リロード対策）
@@ -4050,6 +4135,32 @@ updateHistoryUI();
     }
 }
 
+/**
+ * 計算結果を整形してクリップボードにコピーする
+ */
+function copyResultToClipboard() {
+    // 値の取得
+    const atkName = document.getElementById('attacker-pokemon-name').value || "攻撃側";
+    const defName = document.getElementById('defender-pokemon-name').value || "防御側";
+    const moveName = document.getElementById('move-name').value || "わざ";
+    
+    // ダメージ数値や割合（計算済みの変数がない場合はDOMから取得）
+    const damageReal = document.getElementById('top-damage-real')?.innerText || "";
+    const damagePercent = document.getElementById('top-damage-percent')?.innerText || "";
+    const judgment = document.getElementById('top-judgment')?.innerText || "";
+
+    // テキストの組み立て
+    // 例: カイリュー 神速 → サーフゴー 45 ～ 54 (26.3% ～ 31.5%) 確定4発
+    const textToCopy = `${atkName} ${moveName} → ${defName} ${damageReal} (${damagePercent}) ${judgment}`;
+
+    // クリップボード書き込み
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+        }).catch(err => {
+            console.error("コピーに失敗しました", err);
+        });
+    }
+}
 
 
 // 関数外（scriptタグ内のどこか）に以下のヘルパー関数も追加してください
@@ -4980,6 +5091,19 @@ moveNameInput.addEventListener('input', (e) => {
                 if (defenderName) updateStatsAndRecalculate('defender', defenderName);
                 calculateDamage();
             });
+
+            // ページ読み込み時に保存されたメモを復元
+document.addEventListener('DOMContentLoaded', () => {
+    const savedMemo = localStorage.getItem('pokemon_battle_memo');
+    if (savedMemo) {
+        document.getElementById('battle-memo').value = savedMemo;
+    }
+});
+
+// 入力するたびに保存
+document.getElementById('battle-memo')?.addEventListener('input', (e) => {
+    localStorage.setItem('pokemon_battle_memo', e.target.value);
+});
 
            document.querySelectorAll('.ev-button').forEach(button => {
     button.addEventListener('click', (e) => {
