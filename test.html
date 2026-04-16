@@ -1520,7 +1520,7 @@ document.addEventListener('click', function(event) {
         const ceil = Math.ceil;
         const Q12_BASE = 4096;
         const LEVEL = 50;
-        const MIN_RANDOM = 85;
+        const MIN_RANDOM = 86;
         const MAX_RANDOM = 100;
         const RANDOM_RANGE_SIZE = MAX_RANDOM - MIN_RANDOM + 1;
         const MAX_KO_PROBABILITY_CALC = 6;
@@ -3933,7 +3933,7 @@ if (itemDefKey === "obon") {
         const isMultiscaleTarget = (document.getElementById('defender-ability')?.value === "MULTISCALE" || document.getElementById('defender-ability')?.value === "SHADOWSHIELD");
 
         // 全ヒットの同じインデックス（乱数位置）を足し合わせる
-        damageDistributionForFirstSet = Array(16).fill(0).map((_, idx) => {
+        damageDistributionForFirstSet = Array(15).fill(0).map((_, idx) => {
             let sum = 0;
             for (let j = 0; j < hitCount; j++) {
                 if (j === 0 && isMultiscaleTarget) {
@@ -3950,7 +3950,7 @@ if (itemDefKey === "obon") {
         // --- 確定数（KO率）の判定ロジック ---
         // 1セット目(マルチスケイル考慮)の最小・最大を再定義
         const firstSetMinActual = damageDistributionForFirstSet[0];
-        const firstSetMaxActual = damageDistributionForFirstSet[15];
+        const firstSetMaxActual = damageDistributionForFirstSet[14];
 
         if (firstSetMinActual >= effectiveTargetHP) {
             koText = `<span style="color:#e74c3c; font-weight:bold;">確定1発</span>`;
@@ -5787,7 +5787,7 @@ function openQuickTableModal2() {
             if (itemDefKey === "obon") effectiveHP += Math.floor(hVal * 0.25);
 
             // KO確率計算
-            const totalCombinations = BigInt(16) ** BigInt(hitCount);
+            const totalCombinations = BigInt(15) ** BigInt(hitCount);
             let koCount = 0n;
             for (let [dmg, count] of dp) { if (dmg >= effectiveHP) koCount += count; }
             const koProb = Number(koCount * 10000n / totalCombinations) / 100;
