@@ -1422,7 +1422,24 @@ document.addEventListener('click', function(event) {
         <button type="button" class="nature-btn" data-value="3">3</button>
     </div>
 </div>
-                
+
+<div class="input-group" style="display: flex; align-items: center; gap: 5px;">
+    <label for="other_fixed_damage_select" style="white-space: nowrap;">その他定数</label>
+    
+    <button type="button" onclick="stepSelect('other_fixed_damage_select', -1)" style="padding: 10px 10px;">-</button>
+    
+    <select id="other_fixed_damage_select" style="flex-grow: 1;">
+        <option value="none">なし</option>
+        <option value="SIXTEENTH">1/16 (天候・火傷等)</option>
+        <option value="TENTH">1/10 (いのちのたま反動)</option>
+        <option value="EIGHTH">1/8 (さめはだ・毒等)</option>
+        <option value="SIXTH">1/6 (ゴツメ・バインド最大)</option>
+        <option value="FOURTH">1/4 (みがわり・のろい)</option>
+        <option value="HALF">1/2 (カタストロフィ・前歯)</option>
+    </select>
+    
+    <button type="button" onclick="stepSelect('other_fixed_damage_select', 1)" style="padding: 10px 10px;">+</button>
+</div>
                 
                 
                 <div class="checkbox-group">
@@ -1965,6 +1982,23 @@ function resetDefenderStats() {
     console.log("防御側を完全にリセットしました。");
 }
 /**
+ * セレクトボックスの選択肢を1つ前、または後ろに動かす
+ * @param {string} id 対象のselect要素のID
+ * @param {number} step 動かす方向（1 or -1）
+ */
+function stepSelect(id, step) {
+    const select = document.getElementById(id);
+    const newIndex = select.selectedIndex + step;
+
+    // 範囲外チェック（最初の項目より前、または最後の項目より後には行かない）
+    if (newIndex >= 0 && newIndex < select.options.length) {
+        select.selectedIndex = newIndex;
+        
+        // 変更を計算に反映させるため、手動でchangeイベントを発火させる
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+}
+/**
  * メモのテキストエリアとローカルストレージだけを空にする
  * ページのリロード（Ctrl+F5相当）は行わない
  */
@@ -2351,39 +2385,67 @@ function updateAbilitiesAndCalculate() {
     const ability = document.getElementById("attacker-ability").value;
     const defAbility = document.getElementById("defender-ability").value;
     const moveName = document.getElementById("move-name").value;
-    const move = MOVEDATA_MAP[hiraganaToKatakana(moveName)] || MOVEDATA_MAP[moveName];
 
-    // 天候情報を取得
-    // 1. まず現在の画面の天候を取得
+    // 1. 元のデータを保護するため、コピーを作成してそれを使用する
+    const rawMove = MOVEDATA_MAP[hiraganaToKatakana(moveName)] || MOVEDATA_MAP[moveName];
+    if (!rawMove) return;
+    const tempMove = { ...rawMove };
+
+    // 天候情報の取得
     let currentEnv = document.getElementById('environment_m_select').value;
-
-    // 2. メガソーラーなら、変数の中身を「Sun」に上書きする
     if (ability === "MEGASOL" || ability === "DROUGHT") {
         currentEnv = "Sun";
-        // (任意) 画面上のセレクトボックスの表示も「晴れ」に変えたい場合
         document.getElementById('environment_m_select').value = "Sun";
     }
-    // 2. メガソーラーなら、変数の中身を「Sun」に上書きする
     if (ability === "DRIZZLE") {
         currentEnv = "Rain";
-        // (任意) 画面上のセレクトボックスの表示も「晴れ」に変えたい場合
         document.getElementById('environment_m_select').value = "Rain";
     }
     
     const isSun = currentEnv === "Sun";
     const isSandstorm = currentEnv === "Sandstorm";
     const isElectricTerrain = currentEnv === "ElectricTerrain";
-    const moveType = move?.Type?.toUpperCase();
 
-    // 特性補正を初期化
+    // 変数初期化
     abilityAtkMult = 1.0;
     let atkMod = 4096;
-
-    // ⭐ 防御側の実数値補正を初期化
     defenderDefMult = 1.0;
     defenderSpDefMult = 1.0;
     defenderAtkMult = 1.0;
     defenderSpAtkMult = 1.0;
+
+    // --- ⭐ スキン特性によるタイプ確定ロジック ---
+    let currentType = tempMove.Type; 
+
+    if (ability === "NORMALIZE") {
+        currentType = "NORMAL";
+        atkMod = Math.round(atkMod * 4915 / 4096); // 1.2倍
+    } else if (["PIXILATE","REFRIGERATE","AERILATE","GALVANIZE","DRAGONIZE"].includes(ability)) {
+        if (currentType === "NORMAL" || currentType === "Normal") {
+            const skinMap = { 
+                PIXILATE: "FAIRY", REFRIGERATE: "ICE", AERILATE: "FLYING",
+                GALVANIZE: "ELECTRIC", DRAGONIZE: "DRAGON"
+            };
+            currentType = skinMap[ability];
+            atkMod = Math.round(atkMod * 4915 / 4096); // 1.2倍
+        }
+    }
+        // うるおいボイス（音技がみずタイプ）
+    if (ability === "LIQUIDVOICE" && move?.Flags?.includes("Sound")) {
+        currentType = "WATER";
+    }
+
+    // ⭐ 重要：以降の判定で使う moveType を「確定後のタイプ」に更新する
+    const moveTypeUpper = currentType.toUpperCase();
+
+    // --- 相性と一致補正の計算（確定後のタイプを渡す！） ---
+    const attackerName = document.getElementById('attacker-pokemon-name').value;
+    const defenderName = document.getElementById('defender-pokemon-name').value;
+    const effect = calculateEffectiveness(attackerName, defenderName, moveName, currentType);
+
+    // ⭐ 計算結果を即座にUIへ反映（後の判定で affinity.value を使うため）
+    document.getElementById('affinity').value = effect.affinity.toFixed(2);
+    document.getElementById('stab').value = effect.stab.toFixed(1);
 
     // --- ⭐ わざわい系特性の補正 (攻撃側特性 または チェックボックス) ---
     const ruin_def_checked = document.getElementById("ruin_def")?.checked;
@@ -2581,57 +2643,13 @@ function updateAbilitiesAndCalculate() {
     }
     // もしてきおうりょくが適用されなかった場合は、通常のSTAB計算ロジック（1.5または1.0）に戻す
     if (!isAdaptabilityApplied) {
-         // 通常のSTAB計算を再度実行し、DOMに値をセット
-         const attackerName = document.getElementById('attacker-pokemon-name').value;
-         const defenderName = document.getElementById('defender-pokemon-name').value;
-         const { affinity, stab } = calculateEffectiveness(attackerName, defenderName, moveName);
+         // ⭐ ここでも currentType (スキン適用後) を渡すように修正
+         const { affinity, stab } = calculateEffectiveness(attackerName, defenderName, moveName, currentType);
          document.getElementById('stab').value = stab.toFixed(1); 
     }
                 //へんげんじざい / リベロ
     if (ability === "PROTEAN" || ability === "LIBERO") {
         document.getElementById("stab").value = "1.5"; 
-    }
-
-// ノーマルスキン (Normalize) の処理 (全ての技をノーマルタイプに変更し、威力1.2倍)
-// ※ 技のタイプを一時的に変更する処理は、スキン特性の処理と競合しないように注意が必要です。
-if (ability === "NORMALIZE") {
-    // moveNameから元の技データを取得（MOVEDATA_MAPが破壊されないことを前提）
-    const originalMove = MOVEDATA_MAP[hiraganaToKatakana(moveName)] || MOVEDATA_MAP[moveName];
-    
-    if (originalMove) {
-        // MOVEDATA_MAP内のデータを直接変更せず、一時的に新しいオブジェクトでタイプを上書きします。
-        // ただし、既存のコードがMOVEDATA_MAPの値を変更している可能性があるため、
-        // ここでは一旦、既存のスキン特性の処理を模倣し、updateMoveDataAndRecalculateに任せる形にします。
-
-        // ⭐ 技のタイプを強制的に「NORMAL」に設定
-        // moveオブジェクト自体を変更する（または、次の updateMoveDataAndRecalculate で再評価させる）
-        move.Type = "NORMAL";
-        
-        // ⭐ M補正を1.2倍に設定
-        atkMod = Math.round(atkMod * 4915 / 4096);
-        
-        // ⭐ タイプが変更されたことを反映させるために再計算をトリガー
-        // updateMoveDataAndRecalculateが、技の威力、STAB、相性、その他の補正を再計算します。
-        // updateMoveDataAndRecalculate が内部で calculateDamage() を呼ぶため、returnします。
-        updateMoveDataAndRecalculate(moveName);
-        return; 
-    }
-}
-    // スキン特性（タイプ変換+1.2倍）
-    if (["PIXILATE","REFRIGERATE","AERILATE","GALVANIZE","DRAGONIZE"].includes(ability)) {
-        if (move?.Type === "NORMAL") {
-            let newType = {
-                PIXILATE: "FAIRY",
-                REFRIGERATE: "ICE",
-                AERILATE: "FLYING",
-                GALVANIZE: "ELECTRIC",
-                DRAGONIZE: "DRAGON"
-            }[ability];
-            move.Type = newType;
-            atkMod = Math.round(atkMod * 4915 / 4096);
-            updateMoveDataAndRecalculate(moveName);
-            return;
-        }
     }
 
     // すなのちから (Sand Force) の処理 (砂嵐時、地面・岩・鋼技の威力1.3倍)
@@ -2936,8 +2954,9 @@ function initAppDisplay(moveDataLoaded) {
     }
 }
         
-        function calculateEffectiveness(attackerName, defenderName, moveName, attackerAbilityID) {
-            const ability = document.getElementById("attacker-ability").value;
+        // 第4引数を attackerAbilityID ではなく overrideType に変更
+function calculateEffectiveness(attackerName, defenderName, moveName, overrideType = null) {
+    const ability = document.getElementById("attacker-ability").value;
     const normalizedAttackerName = hiraganaToKatakana(attackerName);
     const normalizedDefenderName = hiraganaToKatakana(defenderName);
     const normalizedMoveName = hiraganaToKatakana(moveName);
@@ -2946,26 +2965,27 @@ function initAppDisplay(moveDataLoaded) {
     const defenderKey = NAME_TO_KEY_MAP[normalizedDefenderName];
     const moveData = MOVEDATA_MAP[normalizedMoveName];
 
-    const moveType = moveData ? moveData.Type : null;
+    // ⭐ 引数 overrideType があればそれを優先、なければ技データから取得
+    const moveType = overrideType || (moveData ? moveData.Type : null);
     const isFreezeDry = (normalizedMoveName === "フリーズドライ");
 
     if (!moveType) return { affinity: 1.0, stab: 1.0 }; 
 
+    const moveTypeUpper = moveType.toUpperCase();
+
     // --- ① タイプ一致補正 (STAB) の計算 ---
     let stab = 1.0;
     if (attackerKey) {
-        const attackerTypes = POKEDATA_MAP[attackerKey].Types.filter(t => t);
-        const moveTypeUpper = moveType.toUpperCase();
+        // POKEDATA_MAP は配列を返す場合があるため最初の要素を取得
+        const pKey = Array.isArray(attackerKey) ? attackerKey[0] : attackerKey;
+        const attackerTypes = POKEDATA_MAP[pKey].Types.filter(t => t).map(t => t.toUpperCase());
         
-        // 特性による判定
         const isHengen = (ability === "PROTEAN" || ability === "LIBERO");
         const isTekio = (ability === "ADAPTABILITY");
 
         if (isHengen) {
-            // 変幻自在・リベロ：技が何タイプでも一致（1.5倍）
             stab = 1.5; 
         } else if (attackerTypes.includes(moveTypeUpper)) {
-            // 元のタイプと一致している場合：適応力なら2.0、それ以外は1.5
             stab = isTekio ? 2.0 : 1.5;
         }
     }
@@ -2973,17 +2993,17 @@ function initAppDisplay(moveDataLoaded) {
     // --- ② 相性倍率 (Affinity) の計算 ---
     let affinity = 1.0;
     if (defenderKey) {
-        const defenderTypes = POKEDATA_MAP[defenderKey].Types.filter(t => t);
-        const moveTypeUpper = moveType.toUpperCase();
+        const dKey = Array.isArray(defenderKey) ? defenderKey[0] : defenderKey;
+        const defenderTypes = POKEDATA_MAP[dKey].Types.filter(t => t);
         
         for (const defType of defenderTypes) {
+            const defTypeUpper = defType.toUpperCase();
             const typeEffectiveness = TYPE_EFFECTIVENESS[moveTypeUpper];
-            let multiplier = typeEffectiveness && typeEffectiveness.hasOwnProperty(defType) 
-                                ? typeEffectiveness[defType] 
+            let multiplier = typeEffectiveness && typeEffectiveness.hasOwnProperty(defTypeUpper) 
+                                ? typeEffectiveness[defTypeUpper] 
                                 : 1.0;
 
-            // フリーズドライ専用処理
-            if (isFreezeDry && defType === "WATER") {
+            if (isFreezeDry && defTypeUpper === "WATER") {
                 multiplier = 2.0;
             }
 
@@ -2993,7 +3013,6 @@ function initAppDisplay(moveDataLoaded) {
     
     return { affinity, stab };
 }
-
         function updateMoveDataAndRecalculate(moveName) {
             const normalizedName = hiraganaToKatakana(moveName); 
             const move = MOVEDATA_MAP[normalizedName]; 
@@ -3103,17 +3122,35 @@ function initAppDisplay(moveDataLoaded) {
     calculateDamage();
 }
 
-/**
- * 相性・タイプ一致の計算とUI反映を共通化
- */
 function updateBasicEffectiveness() {
     const attackerName = document.getElementById('attacker-pokemon-name').value;
     const defenderName = document.getElementById('defender-pokemon-name').value;
     const moveName = document.getElementById('move-name').value;
+    const ability = document.getElementById("attacker-ability").value; // 追加
 
-    const attackerAbility = document.getElementById('attacker-ability').value;
+    // 技の元のタイプを取得
+    const normalizedMoveName = hiraganaToKatakana(moveName);
+    const moveData = MOVEDATA_MAP[normalizedMoveName];
+    let currentType = moveData ? moveData.Type : null;
 
-    const { affinity, stab } = calculateEffectiveness(attackerName, defenderName, moveName);
+    // ⭐ スキン特性によるタイプ上書き判定を追加
+    if (ability === "NORMALIZE") {
+        currentType = "NORMAL";
+    } else if (["PIXILATE","REFRIGERATE","AERILATE","GALVANIZE","DRAGONIZE"].includes(ability)) {
+        if (currentType === "NORMAL" || currentType === "Normal") {
+            const skinMap = { 
+                PIXILATE: "FAIRY", REFRIGERATE: "ICE", AERILATE: "FLYING",
+                GALVANIZE: "ELECTRIC", DRAGONIZE: "DRAGON"
+            };
+            currentType = skinMap[ability];
+        }
+    }
+    if (ability === "LIQUIDVOICE") {
+        currentType = "WATER";
+    }
+
+    // 引数に確定した currentType を渡す
+    const { affinity, stab } = calculateEffectiveness(attackerName, defenderName, moveName, currentType);
     
     const affinityEl = document.getElementById('affinity');
     const stabEl = document.getElementById('stab');
@@ -3188,6 +3225,16 @@ function updateHazardDisplay(defenderKey) {
     srDisplay.textContent = `(岩相性: ${srEffectiveness}倍)`;
 }
 
+// ダメージ分母の定数セット
+const DAMAGE_DIVISORS = {
+    SIXTEENTH: 16, // 天候(砂/霰), どく, 食べ残し等
+    TENTH: 10,     // いのちのたま(反動)等
+    EIGHTH: 8,      // まきびし1層, 火傷, ステルスロック(等倍)等
+    SIXTH: 6,       // まきびし2層等
+    FOURTH: 4,      // まきびし3層, みがわり, ステルスロック(2倍)等
+    HALF: 2         // カタストロフィ, いかりのまえ歯, ステルスロック(4倍)等
+};
+
 function calculateEntryHazardDamage(defenderKey, maxHP) {
     let totalHazardDamage = 0;
     let hazardCalcDetails = [];
@@ -3229,6 +3276,20 @@ function calculateEntryHazardDamage(defenderKey, maxHP) {
             const spikesDamage = Math.floor(maxHP / divisors[spikesLayers - 1]);
             totalHazardDamage += spikesDamage;
             hazardCalcDetails.push(`まきびし(${spikesLayers}層): ${spikesDamage}`);
+        }
+    }
+
+    // --- 【新規】その他定数ダメージ（UIに項目がある想定） ---
+    // 例: 「しおづけ」「カタストロフィ」などのダメージ計算用
+    const otherFixedDamageElement = document.getElementById('other_fixed_damage_select');
+    if (otherFixedDamageElement && otherFixedDamageElement.value !== "none") {
+        const selectedType = otherFixedDamageElement.value; // "HALF" や "SIXTEENTH" が入る想定
+        const divisor = DAMAGE_DIVISORS[selectedType];
+        
+        if (divisor) {
+            const extraDamage = Math.floor(maxHP / divisor);
+            totalHazardDamage += extraDamage;
+            hazardCalcDetails.push(`その他定数ダメージ: ${extraDamage} (1/${divisor})`);
         }
     }
 
@@ -3541,10 +3602,10 @@ function applyPowerModifier(power, modifier4096) {
 }
 
 
-      /**
- * 【完全復活版】
- * 最新の連続技（ヒット数）仕様を維持しつつ、
- * 設置物（ステロ・まきびし）、災い特性、天候補正をすべて反映した計算ロジック
+     /**
+ * 【完全修正版】
+ * 特性補正（スキン等）を威力に対して正しく反映し、数値のズレを解消。
+ * 連続技・ハザード・災い特性等の既存ロジックは一切損なわず維持。
  */
 function runDamageCalculation(isCriticalOverride, args) {
     const {
@@ -3564,23 +3625,18 @@ function runDamageCalculation(isCriticalOverride, args) {
 
     const isPhysical = document.getElementById('move_type_physical').checked;
 
-    // --- 1. 防御側の情報を特定（ハザード・天候補正用） ---
+    // --- 1. 防御側の情報を特定 ---
     const defenderName = document.getElementById('defender-pokemon-name').value;
     const normalizedDefenderName = hiraganaToKatakana(defenderName);
     const defenderKey = NAME_TO_KEY_MAP[normalizedDefenderName];
-    // ポケモンが特定できない場合でも計算できるよう空配列をデフォルトに
     const defenderTypes = defenderKey ? POKEDATA_MAP[defenderKey].Types.map(t => t.toUpperCase()) : [];
 
-    // --- 2. 【復活】設置物（ハザード）ダメージの算出 ---
-    // ここでUIの「ステルスロック」「まきびし」の状態を読み取って計算します
+    // --- 2. 設置物ダメージの算出 ---
     const hazardResult = calculateEntryHazardDamage(defenderKey, hp);
     const totalHazardDamage = hazardResult?.totalDamage ?? 0;
 
-    // --- 3. 【復活】ハザード後HP（有効HP）の確定 ---
-    // まず設置ダメージを引いた後のHPを出し、それが1未満にならないようにします
+    // --- 3. ハザード後HP（有効HP）の確定 ---
     const effectiveHP = Math.max(1, hp - totalHazardDamage);
-
-    // KO判定の対象となるHPを決定（身代わり時は身代わりHP、それ以外はハザード後HP）
     let subHP = Math.floor(hp * 0.25);
     let targetHP = isSubstituteChecked ? subHP : effectiveHP;
 
@@ -3588,6 +3644,7 @@ function runDamageCalculation(isCriticalOverride, args) {
     let allHitDamages = [];
     let accumulatedMin = 0;
     let accumulatedMax = 0;
+
     // --- 4. 各ヒットごとの計算ループ ---
     for (let i = 0; i < totalHits; i++) {
         const oyako_m = 1.0;
@@ -3596,39 +3653,34 @@ function runDamageCalculation(isCriticalOverride, args) {
         const burn_m = (isPhysical && isBurnedChecked) ? 0.5 : 1.0;
         const weather_m = getEnvironmentMultiplier(moveType, environment);
 
-        // --- 5. 【復活】災い特性の適用 ---
+        // --- 5. 災い特性の適用 ---
         let ruinAtkMult = isPhysical ? (defenderAtkMult || 1.0) : (defenderSpAtkMult || 1.0);
         let ruinDefMult = isPhysical ? (defenderDefMult || 1.0) : (defenderSpDefMult || 1.0);
 
-        // --- 6. 能力値計算（ランク・特性・災い） ---
+        // --- 6. 能力値計算 ---
         let atkWithAbility = Math.floor(base_attack * (abilityAtkMult || 1.0));
-
         const itemAtkSelection = document.getElementById('item_m_atk').value;
 
         if (itemAtkSelection === "HONETAMA") {
-            // 攻撃（または特攻）の実数値を2倍にする
-        atkWithAbility = Math.floor(atkWithAbility * 2.0);
+            atkWithAbility = Math.floor(atkWithAbility * 2.0);
         }
 
         atkWithAbility = Math.floor(atkWithAbility * ruinAtkMult);
         const A = Math.floor(atkWithAbility * getRankMultiplier(rank_attack_val, isCrit, true));
 
-        let itemDefKey = document.getElementById('item_m_def_select').value; // 追加
-        
+        let itemDefKey = document.getElementById('item_m_def_select').value; 
         let defWithAbility = Math.floor(base_defense * (abilityDefMult || 1.0));
         defWithAbility = Math.floor(defWithAbility * ruinDefMult);
 
-        // 【追加】しんかのきせき・とつげきチョッキの適用
         if (itemDefKey === "shinka") {
             defWithAbility = Math.floor(defWithAbility * 1.5);
         } else if (itemDefKey === "chokki" && !isPhysical) {
-        // 特殊技（isPhysicalがfalse）の時だけチョッキが適用される
             defWithAbility = Math.floor(defWithAbility * 1.5);
         }
 
         let D = Math.floor(defWithAbility * getRankMultiplier(rank_defense_val, isCrit, false));
 
-        // --- 7. 【復活】天候によるタイプ別防御補正 ---
+        // --- 7. 天候補正 ---
         const currentStatKey = isPhysical ? 'Def' : 'SpDef';
         if (environment === 'Sandstorm' && !isPhysical && currentStatKey === 'SpDef' && defenderTypes.includes('ROCK')) {
             D = Math.round(D * 1.5);
@@ -3638,27 +3690,59 @@ function runDamageCalculation(isCriticalOverride, args) {
 
         // --- 8. ダメージ計算実行 ---
         let finalPower = power;
-        if (ability_m_atk && ability_m_atk !== 4096) finalPower = applyPowerModifier(finalPower, ability_m_atk);
-        if (item_m_atk && item_m_atk !== 4096) finalPower = applyPowerModifier(finalPower, item_m_atk);
+        
+        /**
+         * 厳密な五捨五超入の判定関数
+         * @param {number} val 補正前の値
+         * @param {number} modifier 補正倍率 (4096を1.0とする)
+         */
+        const applyStrictModifier = (val, modifier) => {
+            if (!modifier || modifier === 4096) return val;
+            const product = val * modifier;
+            // product / 4096 の余りが 2048 (ちょうど0.5) を超える場合のみ切り上げる
+            // 2048以下なら切り捨て
+            return (product % 4096 > 2048) 
+                ? Math.ceil(product / 4096) 
+                : Math.floor(product / 4096);
+        };
+
+        // 特性威力補正（スキン等）を適用
+        if (ability_m_atk && ability_m_atk !== 4096) {
+            finalPower = applyStrictModifier(finalPower, ability_m_atk);
+        }
+        
+        // 持ち物威力補正（帯、メガネ等）を適用
+        if (item_m_atk && item_m_atk !== 4096) {
+            finalPower = applyStrictModifier(finalPower, item_m_atk);
+        }
+        
         finalPower = Math.max(1, finalPower);
 
+        // 以下、修正済みの finalPower を使って damageBase を計算
         let damageBase = Math.floor(
-            Math.floor((LEVEL * 2) / 5 + 2) *
-            finalPower * A / D
-        );
-        damageBase = Math.floor(damageBase / 50) + 2;
+            Math.floor(Math.floor((LEVEL * 2) / 5 + 2) * finalPower * A / D) / 50
+        ) + 2;
 
         let currentItemMDef = 4096;
-            if (itemDefKey === "hangen") {
-            // 本来はタイプ判定が必要ですが、簡易実装として選択時は一律0.5倍にします
+        if (itemDefKey === "hangen") {
             currentItemMDef = 2048; 
         }
 
+        // 重要：威力補正として適用済みの項目は「1.0」として渡す
         const damages = calculateAllDamages(damageBase, {
-            range_m, oyako_m, critical_m, weather_m, wall_m, stab_m, affinity_m,
-            burn_m, item_m_atk: 1.0, ability_m_atk: 1.0, 
-            item_m_atk: 1.0, ability_m_atk: 1.0, 
-    item_m_def: currentItemMDef / 4096, ability_m_def, other_m
+            range_m, 
+            oyako_m, 
+            critical_m, 
+            weather_m, 
+            wall_m, 
+            stab_m, 
+            affinity_m,
+            burn_m, 
+            item_m_atk: 1.0,    // すでにfinalPowerに反映済み
+            ability_m_atk: 1.0, // すでにfinalPowerに反映済み
+            item_m_def: currentItemMDef / 4096, 
+            ability_m_def, 
+            other_m
         });
 
         const hMin = Math.min(...damages);
@@ -3679,14 +3763,14 @@ function runDamageCalculation(isCriticalOverride, args) {
     return {
         minResult: accumulatedMin,
         maxResult: accumulatedMax,
-        targetHP: targetHP, // これが設置ダメージ考慮済みのHP
+        targetHP: targetHP,
         substituteHP: subHP,
-        koInfo: getKOAnalysis(targetHP, allHitDamages), // 設置ダメージ考慮後のHPに対して判定
+        koInfo: getKOAnalysis(targetHP, allHitDamages),
         totalHits,
         critHitsCount: targetCritCount,
         hitDetails,
         isCritical: targetCritCount > 0,
-        totalHazardDamage: totalHazardDamage // UI表示用に保持
+        totalHazardDamage: totalHazardDamage
     };
 }
         // メインのダメージ計算関数
