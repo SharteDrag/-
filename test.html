@@ -767,6 +767,46 @@ details .input-inline-group {
         display: none !important;
     }
 }
+/* 技入力欄のサイズ調整 */
+#move-name {
+    width: 100%;           /* コンテナいっぱいに広げる */
+    padding: 10px 12px;    /* 上下左右の余白を増やして大きく見せる */
+    font-size: 16px;       /* スマホでのズーム防止のため16px以上を推奨 */
+    box-sizing: border-box;
+}
+
+/* 候補リストの基本設定 */
+.suggestion-list {
+    display: block;        /* デフォルトは1列 */
+    max-height: 300px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #ccc;
+    z-index: 1000;
+}
+
+/* 候補内の各アイテム */
+.suggestion-item {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+/* 【重要】スマホ表示（画面幅768px以下）の設定 */
+@media (max-width: 768px) {
+    .suggestion-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* 2列にする */
+    }
+    
+    .suggestion-item {
+        border-right: 1px solid #eee;  /* 縦の区切り線 */
+        font-size: 14px;               /* 文字がはみ出さないよう少し小さめに */
+        white-space: nowrap;           /* 改行を防ぐ */
+        overflow: hidden;
+        text-overflow: ellipsis;       /* 長い技名は「...」で省略 */
+    }
+}
 </style>
 </head>
 <script>
@@ -1198,6 +1238,16 @@ document.addEventListener('click', function(event) {
                     <label for="critical_m_check">✅ 急所(1.5倍)</label>
                     <input type="checkbox" id="critical_m_check">
                 </div>
+
+                <div class="input-inline-group">
+ <div style="display: flex; align-items: center; flex-grow: 1;">
+        <label for="stealth_rock_check" style="min-width: auto; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+            <input type="checkbox" id="stealth_rock_check"> ステロ
+        </label>
+        <span id="stealth_rock_display" style="margin-left: 10px; font-size: 0.85em; color: #cc5500;">(岩相性: 1.0倍)</span>
+    </div>
+</div>
+
 <details>
     <summary style="cursor: pointer; list-style: none;">
         <span>詳細</span>
@@ -1400,15 +1450,6 @@ document.addEventListener('click', function(event) {
             <option value="PsychicTerrain">🧠 サイコ (超1.3)</option>
         </optgroup>
     </select>
-</div>
-
-<div class="input-inline-group">
- <div style="display: flex; align-items: center; flex-grow: 1;">
-        <label for="stealth_rock_check" style="min-width: auto; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-            <input type="checkbox" id="stealth_rock_check"> ステロ
-        </label>
-        <span id="stealth_rock_display" style="margin-left: 10px; font-size: 0.85em; color: #cc5500;">(岩相性: 1.0倍)</span>
-    </div>
 </div>
 
 <div class="input-inline-group">
@@ -1828,22 +1869,24 @@ function updateHPByPercent() {
     const percentInput = document.getElementById('hp_percent');
     const displaySpan = document.getElementById('current_hp_val');
     
-    // ％を取得
     let percent = parseFloat(percentInput.value);
     if (isNaN(percent)) percent = 100;
 
-    // ★重要：保存しておいた「本来の最大HP」に％を掛ける
+    // もし％が100%なら、HP欄に入力された数値をそのまま「最大HP」として認める
+    if (percent === 100) {
+        const currentVal = parseInt(hpInput.value) || 0;
+        if (currentVal > 0) {
+            originMaxHP = currentVal; // 直接入力された値を基準値に更新
+        }
+    }
+
     const calculatedHP = Math.floor(originMaxHP * (percent / 100));
-    
-    // 防御側最大HPの入力欄を書き換える
     hpInput.value = calculatedHP;
     
-    // 表示用の数値（赤字の部分など）も更新
     if (displaySpan) {
         displaySpan.innerText = calculatedHP;
     }
     
-    // ダメージ計算を実行
     if (typeof calculateDamage === "function") {
         calculateDamage();
     }
@@ -2860,9 +2903,35 @@ if (["DISGUISE"].includes(ability)) {
     calculateDamage();
 });
 
+// 実数値入力欄を手動で書き換えた時にも計算を実行するようにする
+document.getElementById('base_attack').addEventListener('change', () => {
+    calculateDamage(); 
+});
 
+document.getElementById('base_defense').addEventListener('change', () => {
+    calculateDamage();
+});
 
+document.getElementById('hp').addEventListener('change', () => {
+    // HPが変わった場合は、現在の％表示なども整合性を取るために更新
+    updateHPByPercent();
+    calculateDamage();
+});
 
+// 防御側HPの直接入力
+document.getElementById('hp').addEventListener('input', function() {
+    const val = parseInt(this.value) || 0;
+    if (val > 0) {
+        // 直接打った場合は、その数値を「最大HP」としてバックアップを更新
+        originMaxHP = val;
+        document.getElementById('current_hp_val').innerText = val;
+        document.getElementById('hp_percent').value = "100.0";
+        
+        // 努力値を逆算してスライダー/数値を同期（必要なら）
+        // calculateDamage() を呼んで計算結果を更新
+        if (typeof calculateDamage === "function") calculateDamage();
+    }
+});
 
         async function loadPokemonData() {
     try {
@@ -3050,19 +3119,25 @@ function calculateEffectiveness(attackerName, defenderName, moveName, overrideTy
     const normalizedName = hiraganaToKatakana(japaneseName); 
     const ids = NAME_TO_KEY_MAP[normalizedName]; 
 
-    // 特性リストの更新（役割に応じて実行）
+    // 特性リストの更新
     const nameInputId = (role === 'attacker') ? "attacker-pokemon-name" : "defender-pokemon-name";
     const abilitySelectId = (role === 'attacker') ? "attacker-ability" : "defender-ability";
     updateAbilitySelector(nameInputId, abilitySelectId);
 
-    // 計算されたHP（100%の状態）を基準値としてバックアップ
-    const hpInput = document.getElementById('hp');
-    originMaxHP = parseInt(hpInput.value) || 1;
-    
-    // パーセントが100%以外になっている可能性を考慮して再計算
-    updateHPByPercent();
+    // --- ここを修正 ---
+    if (role === 'defender') {
+        const hpInput = document.getElementById('hp');
+        const calculatedHP = parseInt(hpInput.value) || 1;
+        
+        // ポケモンを選択し直した時だけ、その計算結果を「100%の基準」として保存する
+        originMaxHP = calculatedHP; 
+        
+        // ％入力欄を100にリセット（直接入力の邪魔をしないため）
+        document.getElementById('hp_percent').value = "100.0";
+        document.getElementById('current_hp_val').innerText = calculatedHP;
+    }
+    // ------------------
 
-    // ポケモンデータが見つからない場合の早期リターン
     if (!ids || ids.length === 0) {
         updateBasicEffectiveness();
         calculateDamage();
