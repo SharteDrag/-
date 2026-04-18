@@ -775,9 +775,9 @@ details .input-inline-group {
     box-sizing: border-box;
 }
 
-/* 候補リストの基本設定 */
+/* デフォルト（1列） */
 .suggestion-list {
-    display: block;        /* デフォルトは1列 */
+    display: none; /* JSで表示制御されるため最初は隠す */
     max-height: 300px;
     overflow-y: auto;
     background: white;
@@ -785,26 +785,23 @@ details .input-inline-group {
     z-index: 1000;
 }
 
-/* 候補内の各アイテム */
+/* 候補アイテムの基本スタイル */
 .suggestion-item {
-    padding: 8px;
+    padding: 10px;
     border-bottom: 1px solid #eee;
-    cursor: pointer;
 }
 
-/* 【重要】スマホ表示（画面幅768px以下）の設定 */
-@media (max-width: 768px) {
+/* スマホ、または画面幅が800px以下の時は2列化 */
+@media screen and (max-width: 800px) {
     .suggestion-list {
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* 2列にする */
+        /* JSで display='' にされた時に grid が適用されるようにする */
+        display: grid !important; 
+        grid-template-columns: 1fr 1fr;
     }
     
-    .suggestion-item {
-        border-right: 1px solid #eee;  /* 縦の区切り線 */
-        font-size: 14px;               /* 文字がはみ出さないよう少し小さめに */
-        white-space: nowrap;           /* 改行を防ぐ */
-        overflow: hidden;
-        text-overflow: ellipsis;       /* 長い技名は「...」で省略 */
+    /* リストが表示されていない時は grid も消すための設定 */
+    .suggestion-list[style*="display: none"] {
+        display: none !important;
     }
 }
 </style>
