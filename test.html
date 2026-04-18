@@ -1311,14 +1311,17 @@ document.addEventListener('click', function(event) {
             <button type="button" onclick="swapAttackerDefender()" style="padding: 5px 15px; background-color: #6c757d; border: none; color: white; border-radius: 4px; cursor: pointer;">⇄ 攻防入れ替え</button>
         </div>
 
-        <div class="input-inline-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-    <label for="hp" style="width: 80px; white-space: nowrap;">HP</label>
-    <div style="display: flex; gap: 8px; align-items: center; flex-grow: 1;">
-        <input type="number" id="hp" value="150" min="1" oninput="updateHPByPercent()" style="flex: 2; height: 40px;">
-        <span>/</span>
-        <div style="flex: 3; display: flex; align-items: center; gap: 5px;">
-            <input type="number" id="hp_percent" value="100.0" min="0.1" max="100.0" step="0.1" oninput="updateHPByPercent()" style="height: 40px; width: 100%;">
-            <span>%</span>
+        <div class="input-inline-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+    <label for="hp" style="width: 80px; white-space: nowrap;">HP実数値</label>
+    <div style="display: flex; flex-direction: column; flex-grow: 1; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="number" id="hp" value="150" min="1" oninput="updateHPByPercent(true)" style="flex: 1; height: 44px; font-size: 16px;">
+            <div style="flex: 1; text-align: right; font-weight: bold; font-size: 14px;">
+                残り: <span id="hp_percent_display">100.0</span>%
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="range" id="hp_percent" value="100.0" min="0" max="100.0" step="0.1" oninput="updateHPByPercent(false)" style="flex: 1; height: 30px;">
         </div>
     </div>
 </div>
@@ -1861,29 +1864,41 @@ document.querySelectorAll('.ev-button[data-ev]').forEach(button => {
     });
 });
 
-function updateHPByPercent() {
+function updateHPByPercent(isManualHPInput = false) {
     const hpInput = document.getElementById('hp');
-    const percentInput = document.getElementById('hp_percent');
+    const percentSlider = document.getElementById('hp_percent');
+    const percentDisplay = document.getElementById('hp_percent_display');
     const displaySpan = document.getElementById('current_hp_val');
-    
-    let percent = parseFloat(percentInput.value);
-    if (isNaN(percent)) percent = 100;
 
-    // もし％が100%なら、HP欄に入力された数値をそのまま「最大HP」として認める
-    if (percent === 100) {
+    if (isManualHPInput) {
+        // 【重要】手動入力時は「最大HP」そのものを更新する
         const currentVal = parseInt(hpInput.value) || 0;
         if (currentVal > 0) {
-            originMaxHP = currentVal; // 直接入力された値を基準値に更新
+            originMaxHP = currentVal; // これを基準にする
+            // パーセントは動かさない（150/203のように削れた状態を入力したい場合は別途ロジックが必要だが、
+            // 基本は実数値を打ち直した＝個体が変わったとみなすのが一般的）
         }
     }
 
-    const calculatedHP = Math.floor(originMaxHP * (percent / 100));
-    hpInput.value = calculatedHP;
+    // スライダーの％を取得
+    let percent = parseFloat(percentSlider.value);
     
-    if (displaySpan) {
-        displaySpan.innerText = calculatedHP;
+    // スライダー連動で「現在HP」を計算
+    const currentHP = Math.floor(originMaxHP * (percent / 100));
+
+    // 表示の更新
+    // 手動入力中（フォーカス中）は勝手に書き換えない（UX向上のため）
+    if (document.activeElement !== hpInput) {
+        hpInput.value = currentHP;
     }
     
+    percentDisplay.innerText = percent.toFixed(1);
+    if (displaySpan) {
+        displaySpan.innerText = currentHP;
+    }
+
+    // ダメージ計算側には「最大HP」ではなく「現在のHP」を渡す必要がある
+    // calculateDamage() 内部で document.getElementById('hp').value を参照していればOK
     if (typeof calculateDamage === "function") {
         calculateDamage();
     }
