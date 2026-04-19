@@ -524,22 +524,20 @@ function importPartyFromCode(code) {
         console.error("URLコード解析エラー:", e);
     }
 }
-
-// インポート用の中身を関数として独立させておくと便利です
-
 async function exportPartyImage() {
+    // 1. 生成を開始した瞬間の最新UI情報を取得
+    const partyName = document.getElementById('partyName').value || "無題のパーティ";
+    const fullMemo = document.getElementById('partyMemo').value || "";
+    const cards = document.querySelectorAll('.pokemon-card');
+
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     
-    // パーティ全体のメモを取得
-    const fullMemo = document.getElementById('partyMemo').value || "";
-    
-    // キャンバスの基本サイズ
     const baseWidth = 1250;
     const baseHeight = 900;
     let extraHeight = 0;
 
-    // 全体メモがある場合、高さを拡張する準備
+    // --- メモの高さ計算 ---
     const memoFontSize = 20;
     const memoLineHeight = 28;
     const memoPadding = 40;
@@ -548,7 +546,6 @@ async function exportPartyImage() {
 
     if (fullMemo) {
         ctx.font = `${memoFontSize}px sans-serif`;
-        // 改行コードで分割してから、さらに幅に合わせて折り返し計算
         const rawLines = fullMemo.split('\n');
         rawLines.forEach(line => {
             let currentLine = "";
@@ -557,31 +554,24 @@ async function exportPartyImage() {
                 if (ctx.measureText(testLine).width > memoMaxWidth) {
                     memoLines.push(currentLine);
                     currentLine = char;
-                } else {
-                    currentLine = testLine;
-                }
+                } else { currentLine = testLine; }
             }
             memoLines.push(currentLine);
         });
-        // メモの行数に応じて追加の高さを計算 (余白含む)
-        extraHeight = (memoLines.length * memoLineHeight) + 80; 
+        extraHeight = (memoLines.length * memoLineHeight) + 100; 
     }
 
     canvas.width = baseWidth;
     canvas.height = baseHeight + extraHeight;
     
-    // 背景
+    // 背景初期化
     ctx.fillStyle = "#f8f9fa";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // タイトル
-    const partyName = document.getElementById('partyName').value || "無題のパーティ";
     ctx.fillStyle = "#333";
     ctx.font = "bold 32px sans-serif";
     ctx.fillText(`構築メモ: ${partyName}`, 40, 60);
-
-    const cards = document.querySelectorAll('.pokemon-card');
-    const loadImages = [];
 
     const typeColors = {
         normal: '#A8A878', fire: '#F08030', water: '#6890F0', electric: '#F8D030',
@@ -591,6 +581,8 @@ async function exportPartyImage() {
         steel: '#B8B8D0', fairy: '#EE99AC'
     };
 
+    const drawTasks = [];
+
     for (let i = 0; i < 6; i++) {
         const card = cards[i];
         if (!card) continue;
@@ -598,165 +590,153 @@ async function exportPartyImage() {
         const x = (i % 3) * 400 + 40;
         const y = Math.floor(i / 3) * 380 + 100;
 
-        // カード外枠
-        ctx.fillStyle = "#fff";
-        ctx.beginPath();
-        ctx.roundRect(x, y, 380, 360, 10);
-        ctx.fill();
-        ctx.strokeStyle = "#ddd";
-        ctx.stroke();
-
-        const name = card.querySelector('.sp-input').value;
+        // UIデータのスナップショット取得
+        const pokemonName = card.querySelector('.sp-input').value || "???";
+        const spId = card.querySelector('.sp-input').dataset.selectedId;
         const itemInput = card.querySelector('.item-input');
-        const itemName = itemInput.value;
+        const itemName = itemInput.value || "なし";
+        const itemId = itemInput.dataset.selectedId;
         const abValue = card.querySelector('.ability-select').value;
         const abilityName = db.abilities[abValue]?.name || abValue || "---";
         const natureName = card.querySelector('.nature-select').value;
         const nature = NATURES[natureName] || {up:0, down:0};
+        const statsTotals = Array.from(card.querySelectorAll('.total-display')).map(el => el.textContent);
+        const statsEVs = Array.from(card.querySelectorAll('.ev-input')).map(el => el.value);
+        const movesData = Array.from(card.querySelectorAll('.move-input')).map(input => {
+            const found = db.moves.find(m => m.name === input.value);
+            return { name: input.value, type: found ? found.type : "" };
+        });
+        const personalMemo = card.querySelector('.memo-area').value || "";
 
-        const pokemonIconX = x + 10;
-        const pokemonIconY = y + 10;
-        const pokemonIconSize = 64;
+        const task = (async () => {
+            // 外枠
+            ctx.fillStyle = "#fff";
+            ctx.beginPath();
+            ctx.roundRect(x, y, 380, 360, 10);
+            ctx.fill();
+            ctx.strokeStyle = "#ddd";
+            ctx.stroke();
 
-        const spId = card.querySelector('.sp-input').dataset.selectedId;
-        const itemId = itemInput.dataset.selectedId;
+            // 基本テキスト描画
+            ctx.fillStyle = "#000";
+            ctx.font = "bold 22px sans-serif";
+            ctx.fillText(pokemonName, x + 110, y + 40);
+            ctx.font = "14px sans-serif";
+            ctx.fillStyle = "#555";
+            ctx.fillText(`特性: ${abilityName}`, x + 110, y + 65);
+            ctx.fillText(`もちもの: ${itemName}`, x + 110, y + 90);
 
-        const drawProcess = new Promise(async (resolve) => {
-            if (spId) {
-                const initial = spId.charAt(0).toUpperCase();
+            // ステータス・技・個別メモの描画（省略せず一括実行）
+            drawStatsAndMoves(ctx, x, y, labels = ['H','A','B','C','D','S'], nature, statsTotals, statsEVs, movesData, typeColors, personalMemo);
+
+            // --- アイコン描画（サイズ指定 64px / 32px） ---
+            const loadImage = (src) => new Promise(res => {
                 const img = new Image();
-                img.src = `Icons/${initial}/${spId.toUpperCase()}.png`;
-                await new Promise((res) => {
-                    img.onload = () => {
-                        ctx.drawImage(img, 0, 0, 64, 64, pokemonIconX, pokemonIconY, pokemonIconSize, pokemonIconSize);
-                        res();
-                    };
-                    img.onerror = res;
-                });
+                img.crossOrigin = "anonymous";
+                img.onload = () => res(img);
+                img.onerror = () => res(null);
+                img.src = `${src}?t=${new Date().getTime()}`;
+            });
+
+            const pokemonIconSize = 64;
+            const itemIconSize = 32;
+            const px = x + 10;
+            const py = y + 10;
+
+            if (spId) {
+                const icon = await loadImage(`Icons/${spId.charAt(0).toUpperCase()}/${spId.toUpperCase()}.png`);
+                if (icon) {
+                    ctx.drawImage(icon, 0, 0, 64, 64, px, py, pokemonIconSize, pokemonIconSize);
+                }
             }
 
             if (itemId && itemId !== "none") {
-                const itemImg = new Image();
-                itemImg.src = `Items/${itemId}.png`;
-                await new Promise((res) => {
-                    itemImg.onload = () => {
-                        const itemIconSize = 32;
-                        const overlapOffset = 8;
-                        const itemX = pokemonIconX + pokemonIconSize - itemIconSize + overlapOffset;
-                        const itemY = pokemonIconY + pokemonIconSize - itemIconSize + overlapOffset;
-                        ctx.drawImage(itemImg, itemX, itemY, itemIconSize, itemIconSize);
-                        res();
-                    };
-                    itemImg.onerror = res;
-                });
+                const itemIcon = await loadImage(`Items/${itemId}.png`);
+                if (itemIcon) {
+                    // 元のコードの重なり計算: 右下に少しはみ出すオフセット
+                    const overlapOffset = 8;
+                    const ix = px + pokemonIconSize - itemIconSize + overlapOffset;
+                    const iy = py + pokemonIconSize - itemIconSize + overlapOffset;
+                    ctx.drawImage(itemIcon, ix, iy, itemIconSize, itemIconSize);
+                }
             }
-            resolve();
-        });
-        loadImages.push(drawProcess);
-
-        const textStartX = x + 110; 
-        ctx.fillStyle = "#000";
-        ctx.font = "bold 22px sans-serif";
-        ctx.fillText(name || "???", textStartX, y + 40);
-        
-        ctx.font = "14px sans-serif";
-        ctx.fillStyle = "#555";
-        ctx.fillText(`特性: ${abilityName}`, textStartX, y + 65);
-        ctx.fillText(`もちもの: ${itemName || "なし"}`, textStartX, y + 90);
-
-        // ステータス
-        const totals = card.querySelectorAll('.total-display');
-        const evs = card.querySelectorAll('.ev-input');
-        const labels = ['H', 'A', 'B', 'C', 'D', 'S'];
-        
-        labels.forEach((label, j) => {
-            const rowY = y + 105 + (j * 26);
-            ctx.fillStyle = "#666";
-            ctx.font = "14px monospace";
-            ctx.fillText(label, x + 20, rowY);
-            
-            let statColor = "#000";
-            if (j !== 0) {
-                if (nature.up === j) statColor = "#d9534f";
-                if (nature.down === j) statColor = "#0275d8";
-            }
-            
-            ctx.fillStyle = statColor;
-            ctx.font = "bold 17px monospace";
-            ctx.fillText(totals[j] ? totals[j].textContent.padStart(3, ' ') : "---", x + 45, rowY);
-
-            const evVal = evs[j] ? evs[j].value : 0;
-            if (evVal > 0) {
-                ctx.fillStyle = "#28a745";
-                ctx.font = "11px sans-serif";
-                ctx.fillText(`(+${evVal})`, x + 85, rowY);
-            }
-        });
-
-        // 技
-        const moves = card.querySelectorAll('.move-input');
-        moves.forEach((mv, j) => {
-            const mName = mv.value;
-            const mData = db.moves.find(m => m.name === mName);
-            const mY = y + 105 + (j * 38);
-            const mX = x + 165;
-
-            ctx.fillStyle = (mData && mData.type) ? typeColors[mData.type.toLowerCase()] : "#eee";
-            ctx.beginPath();
-            ctx.roundRect(mX, mY, 195, 32, 4);
-            ctx.fill();
-
-            ctx.fillStyle = (mData) ? "#fff" : "#333";
-            ctx.font = "bold 14px sans-serif";
-            ctx.fillText(mName || "-", mX + 10, mY + 21);
-        });
-
-        // 個別メモ
-        const memoArea = card.querySelector('.memo-area');
-        if (memoArea && memoArea.value) {
-            ctx.fillStyle = "#444";
-            ctx.font = "12px sans-serif";
-            const lines = memoArea.value.split('\n');
-            lines.slice(0, 4).forEach((line, index) => {
-                ctx.fillText(line, x + 20, y + 285 + (index * 16));
-            });
-        }
+        })();
+        drawTasks.push(task);
     }
 
-    // すべてのポケモン画像を待機
-    await Promise.all(loadImages);
+    await Promise.all(drawTasks);
 
-    // --- 【追加】パーティ全体メモの描画 ---
+    // パーティ全体メモ描画
     if (memoLines.length > 0) {
-        const memoStartY = baseHeight;
-        
-        // メモセクションの見出し
-        ctx.fillStyle = "#6f42c1";
-        ctx.font = "bold 24px sans-serif";
-        ctx.fillText("備考欄・選出パターン等", memoPadding, memoStartY);
-
-        // 背景枠
-        ctx.fillStyle = "#fff";
-        ctx.beginPath();
-        ctx.roundRect(memoPadding, memoStartY + 20, baseWidth - (memoPadding * 2), (memoLines.length * memoLineHeight) + 20, 8);
-        ctx.fill();
-        ctx.strokeStyle = "#6f42c1";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        // テキスト描画
-        ctx.fillStyle = "#333";
-        ctx.font = `${memoFontSize}px sans-serif`;
-        memoLines.forEach((line, idx) => {
-            ctx.fillText(line, memoPadding + 15, memoStartY + 55 + (idx * memoLineHeight));
-        });
+        renderFullMemo(ctx, baseHeight, baseWidth, memoPadding, memoLines, memoFontSize, memoLineHeight);
     }
 
-    // ダウンロード
+    // 保存
     const link = document.createElement('a');
-    link.download = `${partyName}.png`;
+    link.download = `${partyName}_${new Date().getTime()}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
+}
+
+// 描画補助関数（コードをスッキリさせるため）
+function drawStatsAndMoves(ctx, x, y, labels, nature, statsTotals, statsEVs, movesData, typeColors, personalMemo) {
+    labels.forEach((label, j) => {
+        const rowY = y + 105 + (j * 26);
+        ctx.fillStyle = "#666";
+        ctx.font = "14px monospace";
+        ctx.fillText(label, x + 20, rowY);
+        let statColor = "#000";
+        if (j !== 0) {
+            if (nature.up === j) statColor = "#d9534f";
+            if (nature.down === j) statColor = "#0275d8";
+        }
+        ctx.fillStyle = statColor;
+        ctx.font = "bold 17px monospace";
+        ctx.fillText(statsTotals[j].padStart(3, ' '), x + 45, rowY);
+        if (parseInt(statsEVs[j]) > 0) {
+            ctx.fillStyle = "#28a745";
+            ctx.font = "11px sans-serif";
+            ctx.fillText(`(+${statsEVs[j]})`, x + 85, rowY);
+        }
+    });
+
+    movesData.forEach((mv, j) => {
+        const mY = y + 105 + (j * 38);
+        const mX = x + 165;
+        ctx.fillStyle = mv.type ? typeColors[mv.type.toLowerCase()] : "#eee";
+        ctx.beginPath();
+        ctx.roundRect(mX, mY, 195, 32, 4);
+        ctx.fill();
+        ctx.fillStyle = mv.type ? "#fff" : "#333";
+        ctx.font = "bold 14px sans-serif";
+        ctx.fillText(mv.name || "-", mX + 10, mY + 21);
+    });
+
+    if (personalMemo) {
+        ctx.fillStyle = "#444";
+        ctx.font = "12px sans-serif";
+        personalMemo.split('\n').slice(0, 4).forEach((line, idx) => {
+            ctx.fillText(line, x + 20, y + 285 + (idx * 16));
+        });
+    }
+}
+
+function renderFullMemo(ctx, baseHeight, baseWidth, memoPadding, memoLines, memoFontSize, memoLineHeight) {
+    const memoStartY = baseHeight;
+    ctx.fillStyle = "#6f42c1";
+    ctx.font = "bold 24px sans-serif";
+    ctx.fillText("備考欄・選出パターン等", memoPadding, memoStartY);
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.roundRect(memoPadding, memoStartY + 20, baseWidth - (memoPadding * 2), (memoLines.length * memoLineHeight) + 20, 8);
+    ctx.fill();
+    ctx.strokeStyle = "#6f42c1";
+    ctx.stroke();
+    ctx.fillStyle = "#333";
+    ctx.font = `${memoFontSize}px sans-serif`;
+    memoLines.forEach((line, idx) => {
+        ctx.fillText(line, memoPadding + 15, memoStartY + 55 + (idx * memoLineHeight));
+    });
 }
 
 function setupSaveSlots() {
