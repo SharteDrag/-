@@ -2432,7 +2432,6 @@ document.getElementById("defender-pokemon-name").addEventListener("change", () =
         updateMegaToggle('defender', POKEDATA_MAP[key]);
     }
 });
-
 // 攻撃側の特性が変わったとき
 document.getElementById("attacker-ability").addEventListener("change", updateAbilitiesAndCalculate);
 
@@ -2488,8 +2487,9 @@ function updateAbilitiesAndCalculate() {
             atkMod = Math.round(atkMod * 4915 / 4096); // 1.2倍
         }
     }
-        // うるおいボイス（音技がみずタイプ）
-    if (ability === "LIQUIDVOICE" && move?.Flags?.includes("Sound")) {
+    // うるおいボイス（音技がみずタイプ）
+    // 修正：move?.Flags -> tempMove?.Flags
+    if (ability === "LIQUIDVOICE" && tempMove?.Flags?.includes("Sound")) {
         currentType = "WATER";
     }
 
@@ -2505,319 +2505,156 @@ function updateAbilitiesAndCalculate() {
     document.getElementById('affinity').value = effect.affinity.toFixed(2);
     document.getElementById('stab').value = effect.stab.toFixed(1);
 
-    // --- ⭐ わざわい系特性の補正 (攻撃側特性 または チェックボックス) ---
+    // --- ⭐ わざわい系特性の補正 ---
     const ruin_def_checked = document.getElementById("ruin_def")?.checked;
     const ruin_spdef_checked = document.getElementById("ruin_spdef")?.checked;
-    const ruin_atk_checked = document.getElementById("ruin_atk")?.checked;
-    const ruin_spatk_checked = document.getElementById("ruin_spatk")?.checked;
 
-    // わざわいのつるぎ (相手の防御 3/4)
     if (ability === "SWORDOFRUIN" || ruin_def_checked) { 
         defenderDefMult = 3 / 4; 
     }
-    
-    // わざわいのたま (相手の特防 3/4)
     if (ability === "BEADSOFRUIN" || ruin_spdef_checked) {
         defenderSpDefMult = 3 / 4; 
     }
 
-        // こだいかっせい、クォークチャージ
+    // こだいかっせい、クォークチャージ
     if (ability === "PROTOSYNTHESIS" || ability === "QUARKDRIVE") {
         abilityAtkMult = 1.3;
     }
 
-        // はりこみ
-    if (ability === "STAKEOUT") {
-        abilityAtkMult = 2.0;
-    }
+    // はりこみ / よわき
+    if (ability === "STAKEOUT") abilityAtkMult = 2.0;
+    if (ability === "DEFEATIST") abilityAtkMult = 0.5;
 
-        // よわき
-    if (ability === "DEFEATIST") {
-        abilityAtkMult = 0.5;
-    }
+    // カテゴリ判定の修正：move -> tempMove
+    if ((ability === "GUTS") && tempMove?.Category === "Physical") abilityAtkMult = 1.5;
+    if ((ability === "GORILLATACTICS") && tempMove?.Category === "Physical") abilityAtkMult = 1.5;
+    if ((ability === "HUSTLE") && tempMove?.Category === "Physical") abilityAtkMult = 1.5;
 
-    // こんじょう
-    if ((ability === "GUTS") && move?.Category === "Physical") {
-        abilityAtkMult = 1.5;
-    }
+    // どくぼうそう / ねつぼうそう
+    if ((ability === "TOXICBOOST") && tempMove?.Category === "Physical") atkMod = Math.round(atkMod * 6144 / 4096);
+    if ((ability === "FLAREBOOST") && tempMove?.Category === "Special") atkMod = Math.round(atkMod * 6144 / 4096);
 
-        // ごりむちゅう
-    if ((ability === "GORILLATACTICS") && move?.Category === "Physical") {
-        abilityAtkMult = 1.5;
-    }
-        // はりきり
-    if ((ability === "HUSTLE") && move?.Category === "Physical") {
-        abilityAtkMult = 1.5;
-    }
+    // 技のフラグ判定：move -> tempMove
+    if (ability === "STRONGJAW" && tempMove?.Flags?.includes("Biting")) atkMod = Math.round(atkMod * 6144 / 4096);
+    if (ability === "TOUGHCLAWS" && tempMove?.Flags?.includes("Contact")) atkMod = Math.round(atkMod * 5325 / 4096);
+    if (ability === "SHARPNESS" && tempMove?.Flags?.includes("Slicing")) atkMod = Math.round(atkMod * 6144 / 4096);
+    if (ability === "RECKLESS" && tempMove?.Flags?.includes("Recoil")) atkMod = Math.round(atkMod * 4915 / 4096);
+    if (ability === "MEGALAUNCHER" && tempMove?.Flags?.includes("Pulse")) atkMod = Math.round(atkMod * 6144 / 4096);
+    if (ability === "SHEERFORCE") atkMod = Math.round(atkMod * 5325 / 4096);
 
-        //どくぼうそう
-    if ((ability === "TOXICBOOST") && move?.Category === "Physical") {
-        atkMod = Math.round(atkMod * 6144 / 4096);
-    }
+    // そうだいしょう / アナライズ / てつのこぶし / パンクロック
+    if (ability === "SUPREMEOVERLORD1") atkMod = Math.round(atkMod * 4505 / 4096);
+    if (ability === "SUPREMEOVERLORD2") atkMod = Math.round(atkMod * 4915 / 4096);
+    if (ability === "SUPREMEOVERLORD3") atkMod = Math.round(atkMod * 5325 / 4096);
+    if (ability === "SUPREMEOVERLORD4") atkMod = Math.round(atkMod * 5734 / 4096);
+    if (ability === "SUPREMEOVERLORD5") atkMod = Math.round(atkMod * 6144 / 4096);
+    if (ability === "ANALYTIC") atkMod = Math.round(atkMod * 5325 / 4096);
+    if (ability === "IRONFIST" && tempMove?.Flags?.includes("Punching")) atkMod = Math.round(atkMod * 4915 / 4096);
+    if (ability === "PUNKROCK" && tempMove?.Flags?.includes("Sound")) atkMod = Math.round(atkMod * 5325 / 4096);
 
-        //ねつぼうそう
-    if ((ability === "FLAREBOOST") && move?.Category === "Special") {
-        atkMod = Math.round(atkMod * 6144 / 4096);
-    }
-
-    // がんじょうあご（噛みつく技）
-    if (ability === "STRONGJAW" && move?.Flags?.includes("Biting")) {
-        atkMod = Math.round(atkMod * 6144 / 4096);
-    }
-
-    // かたいツメ
-    if (ability === "TOUGHCLAWS" && move?.Flags?.includes("Contact")) {
-        atkMod = Math.round(atkMod * 5325 / 4096);
-    }
-
-    // きれあじ（斬撃）
-    if (ability === "SHARPNESS" && move?.Flags?.includes("Slicing")) {
-        atkMod = Math.round(atkMod * 6144 / 4096);
-    }
-
-     // すてみ
-    if (ability === "RECKLESS" && move?.Flags?.includes("Recoil")) {
-        atkMod = Math.round(atkMod * 4915 / 4096);
-    }
-
-     // メガランチャー
-    if (ability === "MEGALAUNCHER" && move?.Flags?.includes("Pulse")) {
-        atkMod = Math.round(atkMod * 6144 / 4096);
-    }
-
-     // ちからずく
-    if (ability === "SHEERFORCE") {
-        atkMod = Math.round(atkMod * 5325 / 4096);
-    }
-
-    // そうだいしょう
-    if (ability === "SUPREMEOVERLORD1") {
-        atkMod = Math.round(atkMod * 4505 / 4096);
-    }
-
-    if (ability === "SUPREMEOVERLORD2") {
-        atkMod = Math.round(atkMod * 4915 / 4096);
-    }
-
-    if (ability === "SUPREMEOVERLORD3") {
-        atkMod = Math.round(atkMod * 5325 / 4096);
-    }
-
-    if (ability === "SUPREMEOVERLORD4") {
-        atkMod = Math.round(atkMod * 5734 / 4096);
-    }
-
-    if (ability === "SUPREMEOVERLORD5") {
-        atkMod = Math.round(atkMod * 6144 / 4096);
-    }
-
-     // アナライズ
-    if (ability === "ANALYTIC") {
-        atkMod = Math.round(atkMod * 5325 / 4096);
-    }
-
-    // てつのこぶし（パンチ技）
-    if (ability === "IRONFIST" && move?.Flags?.includes("Punching")) {
-        atkMod = Math.round(atkMod * 4915 / 4096);
-    }
-
-        // パンクロック
-    if (ability === "PUNKROCK" && move?.Flags?.includes("Sound")) {
-        atkMod = Math.round(atkMod * 5325 / 4096);
-    }
-
-        // ちからもち / ヨガパワー（攻撃実数値2倍）
-    if ((ability === "HUGEPOWER" || ability === "PUREPOWER") && move?.Category === "Physical") {
+    // ちからもち / はがねのせいしん
+    if ((ability === "HUGEPOWER" || ability === "PUREPOWER") && tempMove?.Category === "Physical") {
         atkMod = Math.round(atkMod * 8192 / 4096);
     }
-
-                // はがねのせいしん
-    if (["STEELYSPIRIT"].includes(ability)) {
-        if (move?.Type === "STEEL") {
-            atkMod = Math.round(atkMod * 6144 / 4096);
-        }
+    if (ability === "STEELYSPIRIT" && moveTypeUpper === "STEEL") {
+        atkMod = Math.round(atkMod * 6144 / 4096);
     }
 
-        //いろめがね
-    if (ability === "TINTEDLENS" && document.getElementById('affinity').value < 1.0) {
-        document.getElementById('affinity').value *= 2.0;
+    // いろめがね / ブレインフォース
+    if (ability === "TINTEDLENS" && parseFloat(document.getElementById('affinity').value) < 1.0) {
+        document.getElementById('affinity').value = (parseFloat(document.getElementById('affinity').value) * 2.0).toFixed(2);
     }
-    // ▼ ブレインフォース (Neuroforce)
-    // 効果バツグン (affinity > 1.0)
-    if (ability === "NEUROFORCE" && document.getElementById('affinity').value > 1.0) {
-        document.getElementById('affinity').value *= 1.25;
+    if (ability === "NEUROFORCE" && parseFloat(document.getElementById('affinity').value) > 1.0) {
+        document.getElementById('affinity').value = (parseFloat(document.getElementById('affinity').value) * 1.25).toFixed(2);
     }
 
-    // ⭐【修正版】きもったま・しんがんの処理
+    // きもったま・しんがん
     if (ability === "SCRAPPY" || ability === "MINDSEYE") {
-        const moveTypeUpper = move?.Type?.toUpperCase();
-        // ノーマル・格闘技のみ対象
         if (moveTypeUpper === "NORMAL" || moveTypeUpper === "FIGHTING") {
             const dName = document.getElementById('defender-pokemon-name').value;
             const dKey = NAME_TO_KEY_MAP[hiraganaToKatakana(dName)];
             const dTypes = POKEDATA_MAP[dKey]?.Types || [];
-            
-            // 相手にゴーストが含まれている場合のみ再計算
             if (dTypes.some(t => t?.toUpperCase() === "GHOST")) {
                 let newAffinity = 1.0;
                 dTypes.forEach(defType => {
                     if (!defType) return;
                     const typeEffectiveness = TYPE_EFFECTIVENESS[moveTypeUpper];
-                    let multiplier = typeEffectiveness && typeEffectiveness.hasOwnProperty(defType) 
-                                        ? typeEffectiveness[defType] 
-                                        : 1.0;
-
-                    // ⭐ ゴーストによる 0倍 だけを 1.0倍 に置き換える
-                    if (defType.toUpperCase() === "GHOST" && multiplier === 0) {
-                        multiplier = 1.0;
-                    }
+                    let multiplier = (typeEffectiveness && typeEffectiveness.hasOwnProperty(defType)) ? typeEffectiveness[defType] : 1.0;
+                    if (defType.toUpperCase() === "GHOST" && multiplier === 0) multiplier = 1.0;
                     newAffinity *= multiplier;
                 });
-                // 計算した相性をUIの隠しパラメータ/表示に反映
                 document.getElementById('affinity').value = newAffinity.toFixed(2);
             }
         }
     }
 
-    // てきおうりょく (Adaptability) の処理 (STABを2.0に上書き)
+    // てきおうりょく
     let isAdaptabilityApplied = false;
     if (ability === "ADAPTABILITY") {
-        if (move && move.Type) { 
-            const attackerName = document.getElementById('attacker-pokemon-name').value;
-            const normalizedAttackerName = hiraganaToKatakana(attackerName);
-            const attackerKey = NAME_TO_KEY_MAP[normalizedAttackerName];
-            
-            if (attackerKey) {
-                const attackerTypes = POKEDATA_MAP[attackerKey].Types.filter(t => t !== null && t).map(t => t.toUpperCase());
-                const moveTypeUpper = move.Type.toUpperCase();
-
-                // タイプ一致の場合のみSTABを2.0に設定
-                if (attackerTypes.includes(moveTypeUpper)) {
-                    document.getElementById("stab").value = "2.0"; 
-                    isAdaptabilityApplied = true;
-                }
+        const attackerKey = NAME_TO_KEY_MAP[hiraganaToKatakana(attackerName)];
+        if (attackerKey) {
+            const attackerTypes = POKEDATA_MAP[attackerKey].Types.filter(t => t).map(t => t.toUpperCase());
+            if (attackerTypes.includes(moveTypeUpper)) {
+                document.getElementById("stab").value = "2.0"; 
+                isAdaptabilityApplied = true;
             }
         }
     }
-    // もしてきおうりょくが適用されなかった場合は、通常のSTAB計算ロジック（1.5または1.0）に戻す
     if (!isAdaptabilityApplied) {
-         // ⭐ ここでも currentType (スキン適用後) を渡すように修正
-         const { affinity, stab } = calculateEffectiveness(attackerName, defenderName, moveName, currentType);
+         const { stab } = calculateEffectiveness(attackerName, defenderName, moveName, currentType);
          document.getElementById('stab').value = stab.toFixed(1); 
     }
-                //へんげんじざい / リベロ
-    if (ability === "PROTEAN" || ability === "LIBERO") {
-        document.getElementById("stab").value = "1.5"; 
-    }
 
-    // すなのちから (Sand Force) の処理 (砂嵐時、地面・岩・鋼技の威力1.3倍)
+    // 変幻自在 / リベロ
+    if (ability === "PROTEAN" || ability === "LIBERO") document.getElementById("stab").value = "1.5"; 
+
+    // すなのちから (修正：moveType -> moveTypeUpper)
     if (ability === "SANDFORCE" && isSandstorm) {
-        if (moveType === "GROUND" || moveType === "ROCK" || moveType === "STEEL") {
+        if (["GROUND", "ROCK", "STEEL"].includes(moveTypeUpper)) {
             atkMod = Math.round(atkMod * 5325 / 4096);
         }
     }
 
-        // サンパワー
-    if (ability === "SOLARPOWER" && isSun && move?.Category === "Special") {
-            abilityAtkMult = "1.5";
-        }
-// ⭐ ひひいろのこどう (Orichalcum Pulse)
-    if (ability === "ORICHALCUMPULSE" && isSun && move?.Category === "Physical") {
-    // 4 / 3 の計算結果を abilityAtkMult に設定
-    abilityAtkMult = 5461/4096; 
-    
-    // 攻撃実数値が変わるため、攻撃側能力値の再計算をトリガー
-    const attackerName = document.getElementById('attacker-pokemon-name').value;
-    if (attackerName) updateStatsAndRecalculate('attacker', attackerName);
-}
+    // サンパワー / ひひいろのこどう / ハドロンエンジン
+    if (ability === "SOLARPOWER" && isSun && tempMove?.Category === "Special") abilityAtkMult = 1.5;
+    if (ability === "ORICHALCUMPULSE" && isSun && tempMove?.Category === "Physical") {
+        abilityAtkMult = 5461/4096; 
+        updateStatsAndRecalculate('attacker', attackerName);
+    }
+    if (ability === "HADRONENGINE" && isElectricTerrain && tempMove?.Category === "Special") {
+        abilityAtkMult = 5461/4096; 
+        updateStatsAndRecalculate('attacker', attackerName);
+    }
 
-// ⭐ ハドロンエンジン
-if (ability === "HADRONENGINE" && isElectricTerrain && move?.Category === "Special") {
-    // 4 / 3 の計算結果を abilityAtkMult に設定
-    abilityAtkMult = 5461/4096; 
-    
-    // 攻撃実数値が変わるため、攻撃側能力値の再計算をトリガー
-    const attackerName = document.getElementById('attacker-pokemon-name').value;
-    if (attackerName) updateStatsAndRecalculate('attacker', attackerName);
-}
-
-    // テクニシャン (Technician) の処理を追記 (威力60以下)
+    // テクニシャン
     if (ability === "TECHNICIAN") {
         const power = parseInt(document.getElementById('power').value) || 0;
-        if (power > 0 && power <= 60) {
-            atkMod = Math.round(atkMod * 6144 / 4096);
-        }
+        if (power > 0 && power <= 60) atkMod = Math.round(atkMod * 6144 / 4096);
     }
 
-        // ピンチ補正特性
-    if (["OVERGROW"].includes(ability)) {
-        if (move?.Type === "GRASS") {
-            abilityAtkMult = "1.5";
-        }
-    }
-    if (["BLAZE"].includes(ability)) {
-        if (move?.Type === "FIRE") {
-            abilityAtkMult = "1.5";
-        }
-    }
-    if (["TORRENT"].includes(ability)) {
-        if (move?.Type === "WATER") {
-            abilityAtkMult = "1.5";
-        }
-    }
-    if (["SWARM"].includes(ability)) {
-        if (move?.Type === "BUG") {
-            abilityAtkMult = "1.5";
-        }
-    }
-    //タイプ強化
-    if (["WATERBUBBLE"].includes(ability)) {
-        if (move?.Type === "WATER") {
-            abilityAtkMult = "2.0";
-        }
-    }
-    if (["ROCKYPAYLOAD"].includes(ability)) {
-        if (move?.Type === "ROCK") {
-            abilityAtkMult = "1.5";
-        }
-    }
-    if (["TRANSISTOR"].includes(ability)) {
-        if (move?.Type === "ELECTRIC") {
-            abilityAtkMult = "1.3";
-        }
-    }
-    if (["DRAGONSMAW"].includes(ability)) {
-        if (move?.Type === "DRAGON") {
-            abilityAtkMult = "1.5";
-        }
-    }
-    if (["STEELWORKER"].includes(ability)) {
-        if (move?.Type === "STEEL") {
-            abilityAtkMult = "1.5";
-        }
-    }
+    // ピンチ補正・タイプ強化
+    if (ability === "OVERGROW" && moveTypeUpper === "GRASS") abilityAtkMult = 1.5;
+    if (ability === "BLAZE" && moveTypeUpper === "FIRE") abilityAtkMult = 1.5;
+    if (ability === "TORRENT" && moveTypeUpper === "WATER") abilityAtkMult = 1.5;
+    if (ability === "SWARM" && moveTypeUpper === "BUG") abilityAtkMult = 1.5;
+    if (ability === "WATERBUBBLE" && moveTypeUpper === "WATER") abilityAtkMult = 2.0;
+    if (ability === "ROCKYPAYLOAD" && moveTypeUpper === "ROCK") abilityAtkMult = 1.5;
+    if (ability === "TRANSISTOR" && moveTypeUpper === "ELECTRIC") abilityAtkMult = 1.3;
+    if (ability === "DRAGONSMAW" && moveTypeUpper === "DRAGON") abilityAtkMult = 1.5;
+    if (ability === "STEELWORKER" && moveTypeUpper === "STEEL") abilityAtkMult = 1.5;
 
-    // スナイパー（急所時のみ）
-    if (ability === "SNIPER") {
-        // 急所補正 1.5 → 2.25
-        // 乱数計算部分で参照される critical_m を上書き
-        SNIPER_MODE = true;
-    } else {
-        SNIPER_MODE = false;
-    }
+    // スナイパー
+    SNIPER_MODE = (ability === "SNIPER");
 
-    // --- 4. オーラの判定 (自分 or 相手が持っている) ---
-    const isDarkAuraActive = (ability === "DARKAURA" || defAbility === "DARKAURA") && moveType === "DARK";
-    const isFairyAuraActive = (ability === "FAIRYAURA" || defAbility === "FAIRYAURA") && moveType === "FAIRY";
-
-    if (isDarkAuraActive || isFairyAuraActive) {
-        atkMod = Math.round(atkMod * 5448 / 4096);
-    }
+    // オーラ判定 (修正：moveType -> moveTypeUpper)
+    const isDarkAuraActive = (ability === "DARKAURA" || defAbility === "DARKAURA") && moveTypeUpper === "DARK";
+    const isFairyAuraActive = (ability === "FAIRYAURA" || defAbility === "FAIRYAURA") && moveTypeUpper === "FAIRY";
+    if (isDarkAuraActive || isFairyAuraActive) atkMod = Math.round(atkMod * 5448 / 4096);
 
     document.getElementById("ability_m_atk").value = atkMod;
 
     calculateDamage();
-};
+}
 
 
 document.getElementById("defender-ability").addEventListener("change", () => {
