@@ -996,8 +996,37 @@ document.addEventListener('click', function(event) {
     詳細計算
 </button>
         <button type="button" onclick="openQuickTableModal()" class="btn-table">技早見</button>
-    <button type="button" onclick="openQuickTableModal3('attacker')" class="btn-table">調整早見攻撃</button>
-    <button type="button" onclick="openQuickTableModal3('defender')" class="btn-table">調整早見防御</button>
+    <button type="button" onclick="openQuickTableModal3('attacker')" class="btn-table">攻撃早見</button>
+    <button type="button" onclick="openQuickTableModal3('defender')" class="btn-table">防御早見</button>
+    <button type="button" onclick="showHPGuessModal()" class="btn-table">定数予測</button>
+
+<div id="hp-guess-modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.7); overflow-y: auto; -webkit-overflow-scrolling: touch;">
+    
+    <div style="background:#fff; margin:20px auto; padding:20px; width:90%; max-width:500px; border-radius:10px; position:relative; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        
+        <span onclick="closeHPGuessModal()" style="position:absolute; right:15px; top:10px; cursor:pointer; font-size:24px; font-weight:bold; color:#666;">&times;</span>
+        <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">🛡️ HP調整別 ％予測表</h3>
+        
+        <p style="font-size:11px; color:#666;">※選択した定数ダメージを受けた後の「表示％」を表示します。</p>
+
+        <div id="constant-damage-checks" style="display:grid; grid-template-columns:1fr 1fr; font-size:12px; gap:8px; background:#f8f9fa; padding:12px; border-radius:8px; border:1px solid #ddd;">
+            <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="50" style="margin-right:5px;"> 固定50(投げ)</label>
+            <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/2" style="margin-right:5px;"> 1/2(怒り等)</label>
+            <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/4" style="margin-right:5px;"> 1/4(身代わり)</label>
+            <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/6" style="margin-right:5px;"> 1/6(ゴツメ)</label>
+            <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/8" style="margin-right:5px;"> 1/8(ステロ)</label>
+            <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/10" style="margin-right:5px;"> 1/10(珠)</label>
+            <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/16" style="margin-right:5px;"> 1/16(砂)</label>
+            <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/32" style="margin-right:5px;"> 1/32</label>
+        </div>
+
+        <button type="button" onclick="calculateHPGuess()" style="width:100%; margin:15px 0; padding:12px; background:#28a745; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">予測表を更新</button>
+        
+        <div id="hp-guess-result" style="margin-top:10px;"></div>
+        
+        <button type="button" onclick="closeHPGuessModal()" style="width:100%; margin-top:10px; padding:8px; background:#eee; border:1px solid #ccc; border-radius:4px; cursor:pointer;">閉じる</button>
+    </div>
+</div>
     </div>
     <!-- <button type="button" onclick="openQuickTableModal2()" class="btn-table">調整早見</button> -->
     <div id="top-sticky-summary" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; background: rgba(255, 255, 255, 0.98); border-bottom: 2px solid #e74c3c; padding: 6px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
@@ -1444,7 +1473,7 @@ document.addEventListener('click', function(event) {
 
 <div class="input-inline-group">
     <label for="environment_m_select_field">フィールド</label>
-    <select id="environment_m_select" name="environment_m_select">
+    <select id="environment_m_select_field" name="environment_m_select_field">
         <option value="None">補正なし (1.0)</option>
             <option value="ElectricTerrain">⚡ エレキ (電1.3)</option>
             <option value="GrassyTerrain">🌱 グラス (草1.3)</option>
@@ -1515,6 +1544,8 @@ document.addEventListener('click', function(event) {
     </form>
 
 </form> 
+
+
 
     <div class="main-wrapper" style="display: flex; gap: 20px; align-items: flex-start;">
     <div id="result-sticky-footer" style="flex: 1; min-width: 0;">
@@ -2450,6 +2481,8 @@ function updateAbilitiesAndCalculate() {
 
     // 天候情報の取得
     let currentEnv = document.getElementById('environment_m_select').value;
+    let currentEnvField = document.getElementById('environment_m_select_field').value;
+
     if (ability === "MEGASOL" || ability === "DROUGHT") {
         currentEnv = "Sun";
         document.getElementById('environment_m_select').value = "Sun";
@@ -2461,7 +2494,7 @@ function updateAbilitiesAndCalculate() {
     
     const isSun = currentEnv === "Sun";
     const isSandstorm = currentEnv === "Sandstorm";
-    const isElectricTerrain = currentEnv === "ElectricTerrain";
+    const isElectricTerrain = currentEnvField === "ElectricTerrain";
 
     // 変数初期化
     abilityAtkMult = 1.0;
@@ -3249,35 +3282,39 @@ document.querySelectorAll('.ev-button').forEach(button => {
         // B. ダメージ計算ロジック
         // ===============================================
 
-        function getEnvironmentMultiplier(moveType, environment) {
-            if (!moveType) return 1.0;
-            
-            const moveTypeUpper = moveType.toUpperCase();
-            
-            // --- 天候補正 (威力補正 M) ---
-            if (environment === 'Rain') {
-                if (moveTypeUpper === 'WATER') return 1.5;
-                if (moveTypeUpper === 'FIRE') return 0.5;
-            } else if (environment === 'Sun') {
-                if (moveTypeUpper === 'FIRE') return 1.5;
-                if (moveTypeUpper === 'WATER') return 0.5;
-            } 
-            
-            // --- フィールド補正 (威力補正 M) ---
-            const terrainBoost = 1.3; 
-            
-            if (environment === 'ElectricTerrain' && moveTypeUpper === 'ELECTRIC') {
-                return terrainBoost;
-            } else if (environment === 'GrassyTerrain' && moveTypeUpper === 'GRASS') {
-                return terrainBoost;
-            } else if (environment === 'PsychicTerrain' && moveTypeUpper === 'PSYCHIC') {
-                return terrainBoost;
-            } else if (environment === 'MistyTerrain' && moveTypeUpper === 'DRAGON') { 
-                return 0.5; 
-            }
+        function getEnvironmentMultiplier(moveType) {
+    if (!moveType) return 1.0;
+    
+    // 両方のセレクトボックスから値を取得
+    const weather = document.getElementById('environment_m_select').value;
+    const field = document.getElementById('environment_m_select_field').value;
+    const moveTypeUpper = moveType.toUpperCase();
+    
+    let multiplier = 1.0;
 
-            return 1.0; 
-        }
+    // --- 天候補正 (weather) ---
+    if (weather === 'Rain') {
+        if (moveTypeUpper === 'WATER') multiplier *= 1.5;
+        if (moveTypeUpper === 'FIRE') multiplier *= 0.5;
+    } else if (weather === 'Sun') {
+        if (moveTypeUpper === 'FIRE') multiplier *= 1.5;
+        if (moveTypeUpper === 'WATER') multiplier *= 0.5;
+    }
+
+    // --- フィールド補正 (field) ---
+    const terrainBoost = 1.3;
+    if (field === 'ElectricTerrain' && moveTypeUpper === 'ELECTRIC') {
+        multiplier *= terrainBoost;
+    } else if (field === 'GrassyTerrain' && moveTypeUpper === 'GRASS') {
+        multiplier *= terrainBoost;
+    } else if (field === 'PsychicTerrain' && moveTypeUpper === 'PSYCHIC') {
+        multiplier *= terrainBoost;
+    } else if (field === 'MistyTerrain' && moveTypeUpper === 'DRAGON') {
+        multiplier *= 0.5;
+    }
+
+    return multiplier;
+}
 
         function getRankMultiplier(rankValueStr, isCritical, isAttacker) {
             let rankValue = parseFloat(rankValueStr);
@@ -3984,7 +4021,12 @@ if (itemDefKey === "obon") {
                         
                         // 万が一0%や100%付近で計算が不安定な場合のフォールバック
                         if (displayProb <= 0 && accMax >= effectiveTargetHP) {
-                            displayProb = ((accMax - effectiveTargetHP) / (accMax - accMin)) * 100;
+                            // 確率計算部分
+                        const neededDamage = effectiveTargetHP - (normalSetMin * (sets - 1));
+                        const okCount = damageDistributionForFirstSet.filter(d => d >= neededDamage).length;
+
+                        // 分母を「合成された全パターン数」にする
+                        displayProb = (okCount / damageDistributionForFirstSet.length) * 100;
                         }
                         
                         koText = `<span style="color:#f39c12; font-weight:bold;">乱数 ${sets} 発 (${displayProb.toFixed(2)}%)</span>`;
@@ -4093,7 +4135,9 @@ if (topBar) {
 
         let notes = `<br><br>`;
 
-        currentLastDamages = [...damageDistributionForFirstSet]; 
+        currentLastDamages = [...damageDistributionForFirstSet];
+
+        lastCalculatedEffectiveHP = effectiveTargetHP;
 
         resultDiv.innerHTML = outputHTML + notes;
 
@@ -4189,10 +4233,10 @@ function updatePercentAndRecalc(val) {
     }
 }
 /**
- * 現在の16通りの分布を履歴に追加
+ * 現在の15通りの分布を履歴に追加
  */
 function addCurrentResultToHistory() {
-    if (typeof currentLastDamages === 'undefined' || currentLastDamages.length !== 16) {
+    if (typeof currentLastDamages === 'undefined' || currentLastDamages.length !== 15) {
         alert("ダメージデータがありません。先に「計算」ボタンを押してください。");
         return;
     }
@@ -4200,7 +4244,7 @@ function addCurrentResultToHistory() {
     const moveName = document.getElementById('move-name').value || "不明な技";
     const hitCount = parseInt(document.getElementById('hit_count')?.value) || 1;
 
-    // 履歴には「最小・最大」ではなく「16通りの配列そのもの」を保存する
+    // 履歴には「最小・最大」ではなく「15通りの配列そのもの」を保存する
     damageHistory.push({
         name: moveName,
         hitCount: hitCount,
@@ -6044,6 +6088,110 @@ function generateDamageCellHtml(atkVal, dVal, hVal, normalizedMoveName) {
             ${koText}
         </div>
     </td>`;
+}
+</script>
+<script>
+/**
+ * モーダルを表示する
+ */
+function showHPGuessModal() {
+    const modal = document.getElementById('hp-guess-modal');
+    if (modal) {
+        modal.style.display = 'block';
+    } else {
+        console.error("エラー: hp-guess-modal が見つかりません。");
+    }
+}
+
+/**
+ * モーダルを閉じる
+ */
+function closeHPGuessModal() {
+    document.getElementById('hp-guess-modal').style.display = 'none';
+}
+
+/**
+ * 枠外クリックで閉じる処理
+ */
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('hp-guess-modal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+// calculateHPGuess 関数は以前のものをそのまま使用してください。
+
+/**
+ * 各HP調整において、定数ダメージ適用後の「表示%」を一覧表示する
+ */
+function calculateHPGuess() {
+    const resultDiv = document.getElementById('hp-guess-result');
+    
+    // 現在の防御側ポケモンの基本情報を取得
+    const currentHP = parseFloat(document.getElementById('hp').value) || 0;
+    const hpEv = parseInt(document.getElementById('hp_ev').value) || 0;
+    
+    if (currentHP === 0) {
+        alert("先にポケモンのHPを確認してください。");
+        return;
+    }
+
+    // 基本HP（努力値0の状態）
+    const rawBaseHP = Math.round(currentHP) - hpEv;
+
+    // チェックされた定数ダメージを取得
+    const checkboxes = document.querySelectorAll('#constant-damage-checks input:checked');
+    let constantVal = 0;
+    let fractionParts = [];
+    checkboxes.forEach(cb => {
+        if (cb.value.includes('/')) {
+            fractionParts.push(parseInt(cb.value.split('/')[1]));
+        } else {
+            constantVal += parseInt(cb.value);
+        }
+    });
+
+    let html = `<table class="quick-table" style="width:100%; border-collapse:collapse; text-align:center; font-size:13px;">
+                <thead>
+                    <tr style="background:#eee;">
+                        <th>努力値</th>
+                        <th>最大HP</th>
+                        <th>定数合計</th>
+                        <th>適用後残り</th>
+                        <th>表示％</th>
+                    </tr>
+                </thead><tbody>`;
+
+    for (let ev = 0; ev <= 32; ev++) {
+        const maxHP = rawBaseHP + ev;
+        
+        // その個体における定数ダメージの合計を計算
+        let totalDamage = constantVal;
+        fractionParts.forEach(f => {
+            totalDamage += Math.floor(maxHP / f);
+        });
+
+        const remainingHP = Math.max(0, maxHP - totalDamage);
+        
+        // チャンピオンズ仕様：小数点以下切り捨ての％表示
+        // (残りHP * 100 / 最大HP) の小数点以下を切り捨てる
+        const displayPercent = Math.floor((remainingHP * 100) / maxHP);
+
+        // 現在設定されている努力値と同じ行をハイライト
+        const isCurrentEv = (ev === hpEv) ? "background:#fff3cd; font-weight:bold;" : "";
+
+        html += `<tr style="${isCurrentEv} border-bottom:1px solid #ddd;">
+            <td>${ev}</td>
+            <td>${maxHP}</td>
+            <td style="color:#d35400;">-${totalDamage}</td>
+            <td>${remainingHP}</td>
+            <td style="background:#f8f9fa;"><strong>${displayPercent}%</strong></td>
+        </tr>`;
+    }
+
+    html += `</tbody></table>`;
+    resultDiv.innerHTML = html;
 }
 </script>
 </body>
