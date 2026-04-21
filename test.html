@@ -804,6 +804,22 @@ details .input-inline-group {
         display: none !important;
     }
 }
+/* 選択されたボタンのスタイル */
+.remote-controls button.active {
+    background-color: #007bff; /* 青色 */
+    color: white;              /* 文字を白に */
+    border-color: #0056b3;
+}
+
+/* ついでにボタンの見た目を整える（任意） */
+.remote-controls button {
+    padding: 8px 12px;
+    margin: 2px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: all 0.2s; /* 変化を滑らかに */
+}
 </style>
 </head>
 <script>
@@ -1459,7 +1475,26 @@ document.addEventListener('click', function(event) {
         <div id="tab-env" class="tab-panel">
             <div class="card">
                 <h3>🌍 天候、フィールド、その他設定</h3>
-    <div class="input-inline-group">
+    <div class="remote-controls">
+    <div class="control-group">
+        <h3>天候</h3>
+        <button type="button" onclick="changeSelect('environment_m_select', 'Rain', this)">☔</button>
+        <button type="button" onclick="changeSelect('environment_m_select', 'Sun', this)">☀️</button>
+        <button type="button" onclick="changeSelect('environment_m_select', 'Sandstorm', this)">🌪️</button>
+        <button type="button" onclick="changeSelect('environment_m_select', 'Snow', this)">❄️</button>
+        <button type="button" class="active" onclick="changeSelect('environment_m_select', 'None', this)">なし</button>
+    </div>
+
+    <div class="control-group">
+        <h3>フィールド</h3>
+        <button type="button" onclick="changeSelect('environment_m_select_field', 'ElectricTerrain', this)">⚡</button>
+        <button type="button" onclick="changeSelect('environment_m_select_field', 'GrassyTerrain', this)">🌱</button>
+        <button type="button" onclick="changeSelect('environment_m_select_field', 'MistyTerrain', this)">🌫️</button>
+        <button type="button" onclick="changeSelect('environment_m_select_field', 'PsychicTerrain', this)">🧠</button>
+        <button type="button" class="active" onclick="changeSelect('environment_m_select_field', 'None', this)">なし</button>
+    </div>
+</div>
+    <div class="input-inline-group" style="display: none;">
     <label for="environment_m_select_weather">天候</label>
     <select id="environment_m_select" name="environment_m_select">
         <option value="None">補正なし (1.0)</option>
@@ -1471,7 +1506,7 @@ document.addEventListener('click', function(event) {
     </select>
 </div>
 
-<div class="input-inline-group">
+<div class="input-inline-group" style="display: none;">
     <label for="environment_m_select_field">フィールド</label>
     <select id="environment_m_select_field" name="environment_m_select_field">
         <option value="None">補正なし (1.0)</option>
@@ -2069,6 +2104,26 @@ function resetDefenderStats() {
     }
     
     console.log("防御側を完全にリセットしました。");
+}
+
+function changeSelect(targetId, newValue, btnElement) {
+    // 1. セレクトボックスの値を変更
+    const selectElement = document.getElementById(targetId);
+    if (!selectElement) return;
+    
+    selectElement.value = newValue;
+    selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+
+    // 2. ボタンの色を制御
+    // クリックされたボタンの親要素(divなど)の中にあるボタンだけを対象にする
+    const parent = btnElement.parentElement;
+    const buttons = parent.querySelectorAll('button');
+    
+    // 一旦、同じグループのボタンから active クラスを外す
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    // クリックされたボタンに active クラスをつける
+    btnElement.classList.add('active');
 }
 /**
  * セレクトボックスの選択肢を1つ前、または後ろに動かす
@@ -6123,21 +6178,24 @@ window.addEventListener('click', function(event) {
 // calculateHPGuess 関数は以前のものをそのまま使用してください。
 
 /**
- * 各HP調整において、定数ダメージ適用後の「表示%」を一覧表示する
+ * 相手の表示%からHPを推測するための昇順一覧
+ * 表示%ごとにまとめ、やどりぎ実数値も併記
  */
 function calculateHPGuess() {
     const resultDiv = document.getElementById('hp-guess-result');
     
-    // 現在の防御側ポケモンの基本情報を取得
-    const currentHP = parseFloat(document.getElementById('hp').value) || 0;
-    const hpEv = parseInt(document.getElementById('hp_ev').value) || 0;
+    const hpInput = document.getElementById('hp');
+    const hpEvInput = document.getElementById('hp_ev');
+    if (!hpInput || !hpEvInput) return;
+
+    const currentHP = parseFloat(hpInput.value) || 0;
+    const hpEv = parseInt(hpEvInput.value) || 0;
     
     if (currentHP === 0) {
         alert("先にポケモンのHPを確認してください。");
         return;
     }
 
-    // 基本HP（努力値0の状態）
     const rawBaseHP = Math.round(currentHP) - hpEv;
 
     // チェックされた定数ダメージを取得
@@ -6152,43 +6210,62 @@ function calculateHPGuess() {
         }
     });
 
-    let html = `<table class="quick-table" style="width:100%; border-collapse:collapse; text-align:center; font-size:13px;">
-                <thead>
-                    <tr style="background:#eee;">
-                        <th>努力値</th>
-                        <th>最大HP</th>
-                        <th>定数合計</th>
-                        <th>適用後残り</th>
-                        <th>表示％</th>
-                    </tr>
-                </thead><tbody>`;
-
+    // 1. 全努力値(0-32)の結果を生成
+    let allData = [];
     for (let ev = 0; ev <= 32; ev++) {
         const maxHP = rawBaseHP + ev;
-        
-        // その個体における定数ダメージの合計を計算
         let totalDamage = constantVal;
         fractionParts.forEach(f => {
             totalDamage += Math.floor(maxHP / f);
         });
 
+        const leechSeed = Math.floor(maxHP / 8);
         const remainingHP = Math.max(0, maxHP - totalDamage);
-        
-        // チャンピオンズ仕様：小数点以下切り捨ての％表示
-        // (残りHP * 100 / 最大HP) の小数点以下を切り捨てる
         const displayPercent = Math.floor((remainingHP * 100) / maxHP);
 
-        // 現在設定されている努力値と同じ行をハイライト
-        const isCurrentEv = (ev === hpEv) ? "background:#fff3cd; font-weight:bold;" : "";
-
-        html += `<tr style="${isCurrentEv} border-bottom:1px solid #ddd;">
-            <td>${ev}</td>
-            <td>${maxHP}</td>
-            <td style="color:#d35400;">-${totalDamage}</td>
-            <td>${remainingHP}</td>
-            <td style="background:#f8f9fa;"><strong>${displayPercent}%</strong></td>
-        </tr>`;
+        allData.push({
+            ev, maxHP, totalDamage, leechSeed, remainingHP,
+            percent: displayPercent,
+            isCurrent: (ev === hpEv)
+        });
     }
+
+    // 2. 表示%で昇順ソート（%が同じなら努力値順）
+    allData.sort((a, b) => a.percent - b.percent || a.ev - b.ev);
+
+    // 3. テーブル構築
+    let html = `<table class="quick-table" style="width:100%; border-collapse:collapse; text-align:center; font-size:13px;">
+                <thead>
+                    <tr style="background:#eee; border-bottom:2px solid #ccc;">
+                        <th style="padding:8px;">表示％</th>
+                        <th style="padding:8px;">努力値</th>
+                        <th style="padding:8px;">最大HP</th>
+                        <th style="padding:8px; color:#d35400;">定数計</th>
+                        <th style="padding:8px; color:#27ae60;">やどりぎ</th>
+                        <th style="padding:8px;">適用後残り</th>
+                    </tr>
+                </thead><tbody>`;
+
+    let lastPercent = null;
+    allData.forEach((item) => {
+        const isCurrentStyle = item.isCurrent ? "background:#fff3cd; font-weight:bold;" : "";
+        // %の境界線に線を引く
+        const isNewGroup = (lastPercent !== null && lastPercent !== item.percent);
+        const borderStyle = isNewGroup ? "border-top: 2px solid #bbb;" : "border-top: 1px solid #eee;";
+
+        html += `<tr style="${isCurrentStyle} ${borderStyle}">
+            <td style="background:#f8f9fa;">
+                ${lastPercent === item.percent ? `<span style="color:#ccc;">〃</span>` : `<strong>${item.percent}%</strong>`}
+            </td>
+            <td>${item.ev}</td>
+            <td>${item.maxHP}</td>
+            <td style="color:#e67e22;">-${item.totalDamage}</td>
+            <td style="color:#2ecc71;">+${item.leechSeed}</td>
+            <td>${item.remainingHP}</td>
+        </tr>`;
+        
+        lastPercent = item.percent;
+    });
 
     html += `</tbody></table>`;
     resultDiv.innerHTML = html;
