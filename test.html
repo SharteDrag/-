@@ -4076,12 +4076,9 @@ if (itemDefKey === "obon") {
                         
                         // 万が一0%や100%付近で計算が不安定な場合のフォールバック
                         if (displayProb <= 0 && accMax >= effectiveTargetHP) {
-                            // 確率計算部分
-                        const neededDamage = effectiveTargetHP - (normalSetMin * (sets - 1));
-                        const okCount = damageDistributionForFirstSet.filter(d => d >= neededDamage).length;
-
-                        // 分母を「合成された全パターン数」にする
-                        displayProb = (okCount / damageDistributionForFirstSet.length) * 100;
+                            displayProb = ((accMax - effectiveTargetHP) / (accMax - accMin)) * 100;
+                        } else if (displayProb >= 100 && accMin < effectiveTargetHP) {
+                            displayProb = ((effectiveTargetHP - accMin) / (accMax - accMin)) * 100;
                         }
                         
                         koText = `<span style="color:#f39c12; font-weight:bold;">乱数 ${sets} 発 (${displayProb.toFixed(2)}%)</span>`;
@@ -5875,7 +5872,7 @@ function openQuickTableModal2() {
                 if (normalizedMoveName === "トリプルアクセル") hitArgs.power = (i + 1) * 20;
                 if (document.getElementById("attacker-ability")?.value === "PARENTALBOND" && i > 0) hitArgs.range_m = 0.25;
                 
-                const res = runDamageCalculation(false, hitArgs);
+                const res = runDamageCalculation(isCritical, hitArgs);
                 const hitDamages = res.hitDetails[0].damages;
                 let nextDp = new Map();
                 for (let [currentSum, count] of dp) {
@@ -6054,6 +6051,7 @@ function openQuickTableModal3(viewMode) {
 function generateDamageCellHtml(atkVal, dVal, hVal, normalizedMoveName) {
     // 1. 共通設定の再取得
     const hitCount = parseInt(document.getElementById('hit_count')?.value) || 1;
+    const isCritical = document.getElementById('critical_m_check')?.checked || false;
     const isPhysical = document.querySelector('input[name="move_type"]:checked').value === "Physical";
     
     const commonArgs = {
@@ -6086,7 +6084,7 @@ function generateDamageCellHtml(atkVal, dVal, hVal, normalizedMoveName) {
         if (normalizedMoveName === "トリプルアクセル") hitArgs.power = (i + 1) * 20;
         if (document.getElementById("attacker-ability")?.value === "PARENTALBOND" && i > 0) hitArgs.range_m = 0.25;
         
-        const res = runDamageCalculation(false, hitArgs);
+        const res = runDamageCalculation(isCritical, hitArgs);
         const hitDamages = res.hitDetails[0].damages;
         let nextDp = new Map();
         for (let [currentSum, count] of dp) {
