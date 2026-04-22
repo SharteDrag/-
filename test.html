@@ -4070,7 +4070,7 @@ let sets = 0;
 let found = false;
 let cumulativeDist = [...damageDistributionForFirstSet]; // 1セット目の分布からスタート
 
-while (sets < 10) {
+while (sets < 5) {
     sets++;
     const minD = Math.min(...cumulativeDist);
     const maxD = Math.max(...cumulativeDist);
@@ -4100,7 +4100,7 @@ while (sets < 10) {
     }
     cumulativeDist = nextDist;
 }
-            if (!found) koText = `<span>確定 11 発以上</span>`;
+            if (!found) koText = `<span>確定6発以上</span>`;
         }
         // --- 5. 結果の表示 (修正版) ---
 let outputHTML = '';
