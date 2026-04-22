@@ -4065,42 +4065,63 @@ const distNormalSet = Array(15).fill(0).map((_, idx) => {
         if (firstSetMinActual >= effectiveTargetHP) {
             koText = `<span style="color:#e74c3c; font-weight:bold;">確定1発</span>`;
         } else {
-            // --- 確定数（KO率）の判定ロジック 修正版 ---
-let sets = 0;
-let found = false;
-let cumulativeDist = [...damageDistributionForFirstSet]; // 1セット目の分布からスタート
+            let sets = 0;
+            let found = false;
 
-while (sets < 5) {
-    sets++;
-    const minD = Math.min(...cumulativeDist);
-    const maxD = Math.max(...cumulativeDist);
+            // 15通りの配列を、[ダメージ: 出現回数] の頻度表(Map)に変換（高速化の鍵）
+            function arrayToMap(arr) {
+                let m = new Map();
+                for (let x of arr) m.set(x, (m.get(x) || 0) + 1);
+                return m;
+            }
 
-    if (maxD >= effectiveTargetHP) {
-        if (minD >= effectiveTargetHP) {
-            koText = `<span style="color:#e74c3c; font-weight:bold;">確定 ${sets} 発</span>`;
-        } else {
-            // 正確な確率計算：累積分布のうちHPを超えているパターンの割合
-            const koCount = cumulativeDist.filter(d => d >= effectiveTargetHP).length;
-            displayProb = (koCount / cumulativeDist.length) * 100;
-            koText = `<span style="color:#f39c12; font-weight:bold;">乱数 ${sets} 発 (${displayProb.toFixed(2)}%)</span>`;
-        }
-        found = true;
-        break;
-    }
+            let distMap = arrayToMap(damageDistributionForFirstSet);
+            const normalSetMap = arrayToMap(distNormalSet);
 
-    // 次のターンの分布を合成（15通り × 現在のパターン数）
-    let nextDist = [];
-    for (let dCurr of cumulativeDist) {
-        for (let dNext of distNormalSet) {
-            let sum = dCurr + dNext;
-            // 計算量爆発防止のため、HPを大幅に超える数値は丸めても良い
-            if (sum > effectiveTargetHP * 1.2) sum = effectiveTargetHP * 1.2;
-            nextDist.push(sum);
-        }
-    }
-    cumulativeDist = nextDist;
-}
-            if (!found) koText = `<span>確定6発以上</span>`;
+            // 最大5発まで計算（6発以降は計算せずフリーズを防止）
+            while (sets < 5) {
+                sets++;
+                const damages = Array.from(distMap.keys());
+                const minD = Math.min(...damages);
+                const maxD = Math.max(...damages);
+
+                if (maxD >= effectiveTargetHP) {
+                    if (minD >= effectiveTargetHP) {
+                        koText = `<span style="color:#e74c3c; font-weight:bold;">確定 ${sets} 発</span>`;
+                    } else {
+                        // Mapを使って全組み合わせから正確な確率を算出
+                        let totalCombinations = 0;
+                        let koCombinations = 0;
+                        for (let [dmg, count] of distMap) {
+                            totalCombinations += count;
+                            if (dmg >= effectiveTargetHP) koCombinations += count;
+                        }
+                        displayProb = (koCombinations / totalCombinations) * 100;
+                        koText = `<span style="color:#f39c12; font-weight:bold;">乱数 ${sets} 発 (${displayProb.toFixed(2)}%)</span>`;
+                    }
+                    found = true;
+                    break;
+                }
+
+                // 5発目の判定が終わったなら次は6発目になるので、ループを抜ける
+                if (sets >= 5) break;
+
+                // 次のターンの分布を「頻度表ベース」で合成（計算量を激減させる）
+                let nextMap = new Map();
+                for (let [dCurr, cCurr] of distMap) {
+                    for (let [dNext, cNext] of normalSetMap) {
+                        let sum = dCurr + dNext;
+                        // HPを大幅に超える数値は計算用に丸めてメモリ節約
+                        if (sum > effectiveTargetHP * 1.2) sum = Math.floor(effectiveTargetHP * 1.2);
+                        
+                        let totalCount = cCurr * cNext;
+                        nextMap.set(sum, (nextMap.get(sum) || 0) + totalCount);
+                    }
+                }
+                distMap = nextMap;
+            }
+
+            if (!found) koText = `<span>確定 6 発以上</span>`;
         }
         // --- 5. 結果の表示 (修正版) ---
 let outputHTML = '';
