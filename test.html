@@ -4332,13 +4332,14 @@ function addCurrentResultToHistory() {
  * 2つの分布を全パターン合成（畳み込み）する
  */
 function convolve(distA, distB) {
-    let result = [];
-    for (let a of distA) {
-        for (let b of distB) {
-            result.push(a + b);
+    let nextMap = new Map();
+    for (let [dmgA, countA] of distA) {
+        for (let [dmgB, countB] of distB) {
+            let sum = dmgA + dmgB;
+            nextMap.set(sum, (nextMap.get(sum) || 0) + (countA * countB));
         }
     }
-    return result;
+    return nextMap;
 }
 
 /**
