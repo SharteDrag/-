@@ -3496,7 +3496,7 @@ document.querySelectorAll('.ev-button').forEach(button => {
         dp = nextDp;
     }
 
-    const totalCombinations = BigInt(damages.length) ** BigInt(hits);
+    const totalCombinations = BigInt(15) ** BigInt(hitCount);
     const koCombinations = dp[targetHP] || 0n;
 
     return Number((koCombinations * 10000n) / totalCombinations) / 100;
@@ -4035,20 +4035,27 @@ if (itemDefKey === "obon") {
         let damageDistributionForFirstSet = [];
         const isMultiscaleTarget = (document.getElementById('defender-ability')?.value === "MULTISCALE" || document.getElementById('defender-ability')?.value === "SHADOWSHIELD");
 
-        // 全ヒットの同じインデックス（乱数位置）を足し合わせる
-        damageDistributionForFirstSet = Array(15).fill(0).map((_, idx) => {
-            let sum = 0;
-            for (let j = 0; j < hitCount; j++) {
-                if (j === 0 && isMultiscaleTarget) {
-                    // 1発目かつマルチスケイル対象なら、特性適用済みの standardResult を使用
-                    sum += standardResult.hitDetails[0].damages[idx];
-                } else {
-                    // それ以外は威力変動を考慮した normalHitsDamages を使用
-                    sum += normalHitsDamages[j][idx];
-                }
-            }
-            return sum;
-        });
+        // 全ヒットの同じインデックスを足し合わせる
+damageDistributionForFirstSet = Array(15).fill(0).map((_, idx) => {
+    let sum = 0;
+    for (let j = 0; j < hitCount; j++) {
+        if (j === 0 && isMultiscaleTarget) {
+            sum += standardResult.hitDetails[0].damages[idx];
+        } else {
+            sum += normalHitsDamages[j][idx];
+        }
+    }
+    return sum;
+});
+
+// 通常時（2セット目以降）の15通りの分布も配列化しておく
+const distNormalSet = Array(15).fill(0).map((_, idx) => {
+    let sum = 0;
+    for (let j = 0; j < hitCount; j++) {
+        sum += normalHitsDamages[j][idx];
+    }
+    return sum;
+});
 
         // --- 確定数（KO率）の判定ロジック ---
         // 1セット目(マルチスケイル考慮)の最小・最大を再定義
@@ -4058,35 +4065,41 @@ if (itemDefKey === "obon") {
         if (firstSetMinActual >= effectiveTargetHP) {
             koText = `<span style="color:#e74c3c; font-weight:bold;">確定1発</span>`;
         } else {
-            let sets = 0;
-            let found = false;
-            while (sets < 10) {
-                sets++;
-                // 累積：1セット目(特性考慮) + (sets-1)回分の通常セット
-                let accMin = firstSetMinActual + (normalSetMin * (sets - 1));
-                let accMax = firstSetMaxActual + (normalSetMax * (sets - 1));
+            // --- 確定数（KO率）の判定ロジック 修正版 ---
+let sets = 0;
+let found = false;
+let cumulativeDist = [...damageDistributionForFirstSet]; // 1セット目の分布からスタート
 
-                if (accMax >= effectiveTargetHP) {
-                    if (accMin >= effectiveTargetHP) {
-                        koText = `<span>確定 ${sets} 発</span>`;
-                    } else {
-                        // 確率計算: 1セット目の分布をベースに、sets 回分として計算
-                        // (damageDistributionForFirstSet 自体がすでに hitCount 分の合計)
-                        displayProb = getKOProbability(effectiveTargetHP - (normalSetMin * (sets - 1)), damageDistributionForFirstSet, 1);
-                        
-                        // 万が一0%や100%付近で計算が不安定な場合のフォールバック
-                        if (displayProb <= 0 && accMax >= effectiveTargetHP) {
-                            displayProb = ((accMax - effectiveTargetHP) / (accMax - accMin)) * 100;
-                        } else if (displayProb >= 100 && accMin < effectiveTargetHP) {
-                            displayProb = ((effectiveTargetHP - accMin) / (accMax - accMin)) * 100;
-                        }
-                        
-                        koText = `<span style="color:#f39c12; font-weight:bold;">乱数 ${sets} 発 (${displayProb.toFixed(2)}%)</span>`;
-                    }
-                    found = true;
-                    break;
-                }
-            }
+while (sets < 10) {
+    sets++;
+    const minD = Math.min(...cumulativeDist);
+    const maxD = Math.max(...cumulativeDist);
+
+    if (maxD >= effectiveTargetHP) {
+        if (minD >= effectiveTargetHP) {
+            koText = `<span style="color:#e74c3c; font-weight:bold;">確定 ${sets} 発</span>`;
+        } else {
+            // 正確な確率計算：累積分布のうちHPを超えているパターンの割合
+            const koCount = cumulativeDist.filter(d => d >= effectiveTargetHP).length;
+            displayProb = (koCount / cumulativeDist.length) * 100;
+            koText = `<span style="color:#f39c12; font-weight:bold;">乱数 ${sets} 発 (${displayProb.toFixed(2)}%)</span>`;
+        }
+        found = true;
+        break;
+    }
+
+    // 次のターンの分布を合成（15通り × 現在のパターン数）
+    let nextDist = [];
+    for (let dCurr of cumulativeDist) {
+        for (let dNext of distNormalSet) {
+            let sum = dCurr + dNext;
+            // 計算量爆発防止のため、HPを大幅に超える数値は丸めても良い
+            if (sum > effectiveTargetHP * 1.2) sum = effectiveTargetHP * 1.2;
+            nextDist.push(sum);
+        }
+    }
+    cumulativeDist = nextDist;
+}
             if (!found) koText = `<span>確定 11 発以上</span>`;
         }
         // --- 5. 結果の表示 (修正版) ---
@@ -5894,7 +5907,7 @@ function openQuickTableModal2() {
             if (itemDefKey === "obon") effectiveHP += Math.floor(hVal * 0.25);
 
             // KO確率計算
-            const totalCombinations = BigInt(15) ** BigInt(hitCount);
+            const totalCombinations = BigInt(15) ** BigInt(hits);
             let koCount = 0n;
             for (let [dmg, count] of dp) { if (dmg >= effectiveHP) koCount += count; }
             const koProb = Number(koCount * 10000n / totalCombinations) / 100;
