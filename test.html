@@ -1646,7 +1646,7 @@ document.addEventListener('click', function(event) {
         const ceil = Math.ceil;
         const Q12_BASE = 4096;
         const LEVEL = 50;
-        const MIN_RANDOM = 86;
+        const MIN_RANDOM = 85;
         const MAX_RANDOM = 100;
         const RANDOM_RANGE_SIZE = MAX_RANDOM - MIN_RANDOM + 1;
         const MAX_KO_PROBABILITY_CALC = 6;
@@ -3496,7 +3496,7 @@ document.querySelectorAll('.ev-button').forEach(button => {
         dp = nextDp;
     }
 
-    const totalCombinations = BigInt(15) ** BigInt(hitCount);
+    const totalCombinations = BigInt(16) ** BigInt(hitCount);
     const koCombinations = dp[targetHP] || 0n;
 
     return Number((koCombinations * 10000n) / totalCombinations) / 100;
@@ -4036,7 +4036,7 @@ if (itemDefKey === "obon") {
         const isMultiscaleTarget = (document.getElementById('defender-ability')?.value === "MULTISCALE" || document.getElementById('defender-ability')?.value === "SHADOWSHIELD");
 
         // 全ヒットの同じインデックスを足し合わせる
-damageDistributionForFirstSet = Array(15).fill(0).map((_, idx) => {
+damageDistributionForFirstSet = Array(16).fill(0).map((_, idx) => {
     let sum = 0;
     for (let j = 0; j < hitCount; j++) {
         if (j === 0 && isMultiscaleTarget) {
@@ -4048,8 +4048,8 @@ damageDistributionForFirstSet = Array(15).fill(0).map((_, idx) => {
     return sum;
 });
 
-// 通常時（2セット目以降）の15通りの分布も配列化しておく
-const distNormalSet = Array(15).fill(0).map((_, idx) => {
+// 通常時（2セット目以降）の16通りの分布も配列化しておく
+const distNormalSet = Array(16).fill(0).map((_, idx) => {
     let sum = 0;
     for (let j = 0; j < hitCount; j++) {
         sum += normalHitsDamages[j][idx];
@@ -5922,7 +5922,7 @@ function openQuickTableModal2() {
             if (itemDefKey === "obon") effectiveHP += Math.floor(hVal * 0.25);
 
             // KO確率計算
-            const totalCombinations = BigInt(15) ** BigInt(hits);
+            const totalCombinations = BigInt(16) ** BigInt(hits);
             let koCount = 0n;
             for (let [dmg, count] of dp) { if (dmg >= effectiveHP) koCount += count; }
             const koProb = Number(koCount * 10000n / totalCombinations) / 100;
@@ -6133,7 +6133,7 @@ function generateDamageCellHtml(atkVal, dVal, hVal, normalizedMoveName) {
     const itemDefKey = document.getElementById('item_m_def_select')?.value;
     if (itemDefKey === "obon") effectiveHP += Math.floor(hVal * 0.25);
 
-    const totalCombinations = BigInt(15) ** BigInt(hitCount);
+    const totalCombinations = BigInt(16) ** BigInt(hitCount);
     let koCount = 0n;
     for (let [dmg, count] of dp) { if (dmg >= effectiveHP) koCount += count; }
     const koProb = Number(koCount * 10000n / totalCombinations) / 100;
