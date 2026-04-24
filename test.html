@@ -1021,18 +1021,52 @@ document.addEventListener('click', function(event) {
     <div style="background:#fff; margin:20px auto; padding:20px; width:90%; max-width:500px; border-radius:10px; position:relative; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
         
         <span onclick="closeHPGuessModal()" style="position:absolute; right:15px; top:10px; cursor:pointer; font-size:24px; font-weight:bold; color:#666;">&times;</span>
-        <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">🛡️ HP調整別 ％予測表</h3>
+        <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">🛡️ 相手HP推測・％予測表</h3>
+<div id="recoil-section" style="background:#fff4f4; padding:15px; border-radius:8px; border:1px solid #fab1a0; margin-bottom:15px;">
+    <h4 style="margin:0 0 10px 0; font-size:14px; color:#c0392b;">⚔️ 相手の反動からHP実数を見破る</h4>
+    
+    <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <button type="button" onclick="calculateHPByRecoil()" style="flex: 2; padding:8px; background:#e17055; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">特定する</button>
         
-        <p style="font-size:11px; color:#666;">※選択した定数ダメージを受けた後の「表示％」を表示します。</p>
+        <button type="button" onclick="resetRecoilFields()" style="flex: 1; padding:8px; background:#636e72; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:12px;">リセット</button>
+    </div>
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+        <div>
+            <label style="font-size:11px;">受けたダメージ</label>
+            <input type="number" id="recoil_damage" placeholder="例: 150" style="width:100%; padding:5px;">
+        </div>
+        <div>
+            <label style="font-size:11px;">反動率</label>
+            <select id="recoil_ratio" style="width:100%; padding:5px;">
+                <option value="3">1/3 (ウェブタ等)</option>
+                <option value="4">1/4 (突進等)</option>
+                <option value="2">1/2 (諸刃等)</option>
+            </select>
+        </div>
+    </div>
+
+    <div style="margin-bottom:10px;">
+        <label style="font-size:11px;">相手のHPバーが減った量(%)</label>
+        <input type="number" id="lost_percent" placeholder="例: 9" style="width:120px; padding:5px;"> %
+    </div>
+
+    <div id="recoil-guess-result" style="font-size:12px; background:#fff; padding:8px; border-radius:4px; min-height:50px; border:1px solid #ddd;"></div>
+</div>
+
+        <p style="font-size:11px; color:#666;">※自分のHP調整から逆算する場合は以下を使用</p>
 
         <div id="constant-damage-checks" style="display:grid; grid-template-columns:1fr 1fr; font-size:12px; gap:8px; background:#f8f9fa; padding:12px; border-radius:8px; border:1px solid #ddd;">
+            <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/8" style="margin-right:5px;"> 1/8 (毒等)</label>
+    <label style="display:flex; align-items:center; cursor:pointer; color:#d35400;"><input type="checkbox" value="1/8" style="margin-right:5px;"> 1/8 (追加)</label>
+    
+    <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/16" style="margin-right:5px;"> 1/16 (砂等)</label>
+    <label style="display:flex; align-items:center; cursor:pointer; color:#2980b9;"><input type="checkbox" value="1/16" style="margin-right:5px;"> 1/16 (追加)</label>
             <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="50" style="margin-right:5px;"> 固定50(投げ)</label>
             <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/2" style="margin-right:5px;"> 1/2(怒り等)</label>
             <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/4" style="margin-right:5px;"> 1/4(身代わり)</label>
             <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/6" style="margin-right:5px;"> 1/6(ゴツメ)</label>
-            <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/8" style="margin-right:5px;"> 1/8(ステロ)</label>
             <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/10" style="margin-right:5px;"> 1/10(珠)</label>
-            <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/16" style="margin-right:5px;"> 1/16(砂)</label>
             <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/32" style="margin-right:5px;"> 1/32</label>
         </div>
 
@@ -6200,7 +6234,104 @@ window.addEventListener('click', function(event) {
         modal.style.display = 'none';
     }
 });
+/**
+ * 相手の最大HPを「与えたダメージ」と「反動％」から特定する
+ */
+function calculateHPByRecoil() {
+    const damageDealt = parseInt(document.getElementById('recoil_damage').value); // 与えたダメージ実数
+    const denominator = parseInt(document.getElementById('recoil_ratio').value); // 反動率 (3 or 4)
+    const lostPercent = parseInt(document.getElementById('lost_percent').value); // 相手の減少表示%
+    const resultDiv = document.getElementById('recoil-guess-result');
 
+    if (!damageDealt) {
+        resultDiv.innerHTML = "<span style='color:red;'>与えたダメージを入力してください</span>";
+        return;
+    }
+
+    // 1. 相手が受けた反動ダメージ実数を算出（端数切捨て）
+    const recoilRealDamage = Math.floor(damageDealt / denominator);
+    
+    // 2. 反動ダメから逆算される最大HPの範囲（反動が12なら、120〜129が候補）
+    const minMaxHP = recoilRealDamage * 10; // 珠なら10倍、1/3反動技ならどう扱うか
+    // ※反動技の場合、反動ダメージ(R) = floor(与ダメ(D) / 分母)
+    // 相手の最大HP(H)と減少%の関係は: floor(R * 100 / H) = 減少%
+    
+    let html = `<div style="margin-bottom:8px;">相手の受反動ダメ: <strong>${recoilRealDamage}</strong></div>`;
+    html += `<table style="width:100%; border-collapse:collapse; font-size:11px; text-align:center;">
+                <thead>
+                    <tr style="background:#eee; border-bottom:2px solid #ccc;">
+                        <th style="padding:5px;">想定最大HP</th>
+                        <th style="padding:5px; color:#d35400;">反動減少%</th>
+                        <th style="padding:5px; color:#27ae60;">残りHP目安</th>
+                    </tr>
+                </thead><tbody>`;
+
+    // 相手のHP種族値としてありそうな範囲 (130〜260程度) を走査
+    // または反動ダメから推測される妥当な範囲を表示
+    let foundMatch = false;
+    for (let h = 130; h <= 260; h++) {
+        const calcLoss = Math.floor(recoilRealDamage * 100 / h);
+        
+        // ユーザーが入力した減少%と一致する場合、または前後3件を表示
+        if (!lostPercent || Math.abs(calcLoss - lostPercent) <= 1) {
+            const isMatch = (lostPercent && calcLoss === lostPercent);
+            const rowStyle = isMatch ? "background:#fff3cd; font-weight:bold; border:1px solid #f39c12;" : "border-bottom:1px solid #eee;";
+            
+            html += `<tr style="${rowStyle}">
+                        <td style="padding:5px;">${h}</td>
+                        <td style="padding:5px; color:#e67e22;">${calcLoss}%</td>
+                        <td style="padding:5px; color:#2ecc71;">1% = ${ (h/100).toFixed(1) }</td>
+                    </tr>`;
+            if(isMatch) foundMatch = true;
+        }
+    }
+
+    html += `</tbody></table>`;
+    if (lostPercent && !foundMatch) {
+        html = `<p style="color:red; font-size:11px;">指定の減少%と一致するHPが見つかりませんでした。入力値を確認してください。</p>` + html;
+    }
+    
+    resultDiv.innerHTML = html;
+}
+/**
+ * 反動計算セクションの入力をリセットする
+ */
+function resetRecoilFields() {
+    // 入力値を空にする
+    document.getElementById('recoil_damage').value = "";
+    document.getElementById('lost_percent').value = "";
+    // 結果表示エリアもクリア
+    document.getElementById('recoil-guess-result').innerHTML = "";
+    // 比率はデフォルト(1/3)に戻す
+    document.getElementById('recoil_ratio').selectedIndex = 0;
+}
+
+/**
+ * モーダルを閉じて全ての入力をクリアする場合（必要なら）
+ */
+function closeAndResetModal() {
+    resetRecoilFields(); // 反動セクションをクリア
+    // 他のチェックボックス等もクリアしたい場合はここに追加
+    const checks = document.querySelectorAll('#constant-damage-checks input');
+    checks.forEach(cb => cb.checked = false);
+    document.getElementById('hp-guess-result').innerHTML = "";
+    
+    closeHPGuessModal(); // モーダルを閉じる
+}
+// --- 既存の関数 ---
+function showHPGuessModal() {
+    const modal = document.getElementById('hp-guess-modal');
+    if (modal) modal.style.display = 'block';
+}
+
+function closeHPGuessModal() {
+    document.getElementById('hp-guess-modal').style.display = 'none';
+}
+
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('hp-guess-modal');
+    if (event.target === modal) modal.style.display = 'none';
+});
 // calculateHPGuess 関数は以前のものをそのまま使用してください。
 
 /**
