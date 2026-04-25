@@ -40,13 +40,29 @@ frame-src https://accounts.google.com https://*.firebaseapp.com;
         }
         .target-card:hover { border-color: #dc3545; }
 
-        .search-container { position: relative; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; }
-        .search-input { flex-grow: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
-        .suggestion-list { 
-            position: absolute; width: 100%; max-height: 180px; overflow-y: auto; 
-            background: white; border: 1px solid #ddd; z-index: 1000; display: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); top: 100%;
-        }
+        /* 既存の .search-container を強化 */
+.search-container { 
+    position: relative; /* これが基準になる */
+    margin-bottom: 5px; 
+    display: flex; 
+    align-items: center; 
+    gap: 4px; 
+}
+
+/* 候補リストの位置を固定 */
+.suggestion-list { 
+    position: absolute; 
+    width: 100%; 
+    max-height: 180px; 
+    overflow-y: auto; 
+    background: white; 
+    border: 1px solid #ddd; 
+    z-index: 10000; /* 十分に高くする */
+    display: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2); 
+    top: 100%; /* 入力欄の真下に配置 */
+    left: 0;
+}
         .suggestion-item { padding: 6px 10px; cursor: pointer; border-bottom: 1px solid #eee; }
         .suggestion-item:hover { background: #f8f9fa; }
 
@@ -109,8 +125,167 @@ frame-src https://accounts.google.com https://*.firebaseapp.com;
 @media screen and (min-width: 600px) {
     .container { margin-left: 70px; }
 }
+.pokemon-icon-container {
+    width: 64px;  /* アイコン1枚の標準サイズに合わせる */
+    height: 64px; 
+    border-radius: 4px; 
+    overflow: hidden;
+    image-rendering: pixelated; 
+    
+    /* 背景画像の設定 */
+    background-size: auto; /* 拡大縮小させない */
+    background-position: 0 0; /* 左上の1枚目を狙う */
+    background-repeat: no-repeat;
+    background-color: #eee;
+
+    animation: poke-jump 0.6s infinite ease-in-out;
+}
+
+.icon-active {
+    background-color: transparent; 
+}
+
+@keyframes poke-jump {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+}
+/* 相関図の線とラベルのスタイル */
+.relation-line {
+    position: absolute;
+    height: 2px;
+    background: #555;
+    transform-origin: 0 0;
+    pointer-events: none; /* 線自体はクリックを邪魔しない */
+    z-index: 5;
+}
+
+.line-label {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 2px 5px;
+    font-size: 10px;
+    white-space: nowrap;
+    cursor: pointer;
+    z-index: 15;
+}
+
+.chart-icon.selected {
+    box-shadow: 0 0 15px #ff0000;
+    transform: scale(1.1);
+}
+
+.line-label {
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s;
+}
+
+.line-label:hover {
+    transform: scale(1.2) translate(-50%, -50%);
+    color: #ff0000;
+    font-weight: bold;
+}
+/* 手書きレイヤーの初期設定 */
+#drawingLayer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 50;
+    cursor: crosshair;
+    pointer-events: auto; /* 最初は書ける状態 */
+}
+
+/* 移動モード用のスタイル（これをクラスで切り替える） */
+.move-mode {
+    pointer-events: none !important; /* クリックを下のアイコンにパスする */
+    cursor: default !important;
+}
     </style>
 </head>
+    
+<div class="header-controls" style="background: #495057; color: white; display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+    <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="toggleCanvas()">
+        <h3 style="margin:0;">⚡ 相関図・配置メモ</h3>
+        <span id="canvasArrow" style="transition: transform 0.3s;">▼</span>
+    </div>
+
+    <button class="main-btn" onclick="syncToChart()" style="background:#17a2b8;">リストから同期</button>
+    
+    <div style="display: flex; align-items: center; gap: 5px;">
+        <label>🕹️ 操作:</label>
+        <button class="mini-btn" onclick="setDrawMode('move')" id="moveBtn" style="background: #17a2b8; padding: 4px 10px;">移動・選択</button>
+        <label style="font-size: 12px; margin-left: 5px; cursor: pointer; display: flex; align-items: center; gap: 3px;">
+        <input type="checkbox" id="autoLineToggle" checked> 自動線引き
+    </label>
+        <div style="border-left: 1px solid #666; height: 20px; margin: 0 5px;"></div>
+        <button class="mini-btn" onclick="setDrawMode('pen')" id="penBtn">ペン</button>
+        <button class="mini-btn" onclick="setDrawMode('eraser')" id="eraserBtn">消しゴム</button>
+        <button class="mini-btn" onclick="clearCanvas()" style="background: #dc3545;">全消去</button>
+    </div>
+    <input type="color" id="penColor" value="#ff0000" style="width:30px; height:30px; border:none; cursor:pointer;">
+    <div class="header-controls" style="background: #495057; color: white; display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+        <label style="font-size: 12px;">📏 太さ:</label>
+        <input type="range" id="lineWidth" min="1" max="50" value="3" style="width: 80px; cursor: pointer;">
+        <span id="widthValue" style="font-size: 12px; min-width: 20px;">3</span>
+</div>
+<button class="mini-btn" onclick="expandCanvas()" style="background: #6f42c1;">📏 キャンバス拡大</button>
+    <button class="mini-btn" onclick="exportAsImage()" style="background: #28a745;">💾 画像で保存</button>
+</div>
+
+<div id="canvasContainer" style="overflow: hidden; transition: max-height 0.3s ease-out; max-height: 700px;">
+    <div id="relationCanvas" style="position: relative; width: 100%; height: 600px; background: #eee; border-radius: 0 0 8px 8px; overflow: hidden; border: 2px dashed #ccc; border-top: none;">
+        <canvas id="drawingLayer" style="position: absolute; top: 0; left: 0; z-index: 50; cursor: crosshair;"></canvas>
+    </div>
+</div>
+
+<style>
+/* アイコンのスタイル */
+.chart-icon {
+    position: absolute;
+    width: 80px;
+    cursor: move;
+    text-align: center;
+    user-select: none;
+    z-index: 10;
+}
+.chart-icon img { width: 60px; height: 60px; display: block; margin: 0 auto; }
+.chart-icon span { font-size: 10px; font-weight: bold; background: rgba(255,255,255,0.8); border-radius: 4px; padding: 1px 4px; }
+/* 図形（囲い）のスタイル */
+.chart-shape {
+    position: absolute;
+    border: 2px dashed #888;
+    background: rgba(200, 200, 200, 0.1);
+    cursor: move;
+    z-index: 1;
+}
+.chart-shape.circle { border-radius: 50%; }
+.chart-shape .resizer {
+    position: absolute; width: 10px; height: 10px;
+    background: #555; right: 0; bottom: 0; cursor: se-resize;
+}
+/* 矢印（線の先端） */
+.relation-line::after {
+    content: '';
+    position: absolute;
+    right: 0; top: -4px;
+    border-left: 10px solid #555;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+}
+#canvasContainer {
+    overflow-y: auto; /* 縦に長くなった時にスクロール可能に */
+    border: 1px solid #ccc;
+}
+
+#relationCanvas {
+    /* 拡大に対応するため min-height を設定 */
+    min-height: 600px; 
+    transition: height 0.2s ease;
+}
+</style>
 <body>
 
 <div id="hamburgerMenu" class="hamburger-menu">
@@ -132,7 +307,6 @@ frame-src https://accounts.google.com https://*.firebaseapp.com;
     </div>
     <div id="targetGrid" class="target-grid"></div>
 </div>
-
 <script>
 let db = { species: [], moves: [], items: [], abilities: {} };
 
@@ -201,12 +375,18 @@ function createTargetCard(savedData = null) {
     card.className = 'target-card';
     card.id = `target-${id}`;
     
-    card.innerHTML = `
-        <button class="delete-card-btn" onclick="this.parentElement.remove()">×</button>
-        <div class="search-container" style="margin-right:25px;">
+// createTargetCard 関数内の HTML部分を差し替え
+card.innerHTML = `
+    <button class="delete-card-btn" onclick="this.parentElement.remove()">×</button>
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+        <div id="target-icon-wrap-${id}" class="pokemon-icon-container">
+            <img id="target-img-${id}" src="" class="jumping-sprite">
+        </div>
+        <div class="search-container" style="flex: 1;">
             <input type="text" class="search-input sp-input" placeholder="ポケモン名" value="${savedData?.name || ''}" style="font-weight:bold; font-size:14px;">
             <div class="suggestion-list"></div>
         </div>
+    </div>
         
         <div id="abilities-${id}" class="ability-container"></div>
 
@@ -225,9 +405,19 @@ function createTargetCard(savedData = null) {
 
     document.getElementById('targetGrid').appendChild(card);
     
+    // ポケモン決定時のコールバック
     setupGenericSearch(card.querySelector('.sp-input'), card.querySelector('.sp-input + .suggestion-list'), () => db.species, (item) => {
         card.querySelector('.sp-input').value = item.name;
         card.querySelector('.sp-input').dataset.selectedId = item.id;
+        
+        const wrap = document.getElementById(`target-icon-wrap-${id}`);
+        const dir = item.id.charAt(0).toUpperCase();
+        const imgUrl = `Icons/${dir}/${item.id.toUpperCase()}.png`;
+        
+        // imgタグは使わず、背景画像としてセット
+        wrap.style.backgroundImage = `url('${imgUrl}')`;
+        wrap.classList.add('icon-active');
+
         updateBaseStats(id, item.data);
         updateAbilities(id, item.data);
     });
@@ -241,14 +431,25 @@ function createTargetCard(savedData = null) {
     if (savedData?.moves?.length) savedData.moves.forEach(v => createInputRow(moveCont, 'move', v));
     else for(let i=0; i<4; i++) createInputRow(moveCont, 'move');
 
-    if(savedData?.speciesId) {
-        const found = db.species.find(s => s.id === savedData.speciesId);
-        if(found) { 
-            card.querySelector('.sp-input').dataset.selectedId = found.id; 
-            updateBaseStats(id, found.data); 
-            updateAbilities(id, found.data);
-        }
+    // createTargetCard 関数内の該当箇所を修正
+if(savedData?.speciesId) {
+    const found = db.species.find(s => s.id === savedData.speciesId);
+    if(found) { 
+        card.querySelector('.sp-input').dataset.selectedId = found.id; 
+        
+        // --- ここから追加：アイコンを復元する処理 ---
+        const wrap = document.getElementById(`target-icon-wrap-${id}`);
+        const dir = found.id.charAt(0).toUpperCase();
+        const imgUrl = `Icons/${dir}/${found.id.toUpperCase()}.png`;
+        
+        wrap.style.backgroundImage = `url('${imgUrl}')`;
+        wrap.classList.add('icon-active');
+        // --- ここまで追加 ---
+
+        updateBaseStats(id, found.data); 
+        updateAbilities(id, found.data);
     }
+}
 }
 
 function updateAbilities(cardId, speciesData) {
@@ -299,26 +500,42 @@ function setupGenericSearch(input, list, getDataFn, onSelectFn = null) {
     input.addEventListener('input', () => {
         const query = toKatakana(input.value);
         list.innerHTML = '';
-        if (!query) { list.style.display = 'none'; return; }
+        if (!query || query.length < 1) { 
+            list.style.display = 'none'; 
+            return; 
+        }
+
         const data = getDataFn();
         const filtered = data.filter(item => {
             const name = typeof item === 'string' ? item : item.name;
             return name && toKatakana(name).includes(query);
         }).slice(0, 10);
 
-        filtered.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'suggestion-item';
-            div.textContent = typeof item === 'string' ? item : item.name;
-            div.onclick = () => {
-                if (onSelectFn) onSelectFn(item); else input.value = typeof item === 'string' ? item : item.name;
-                list.style.display = 'none';
-            };
-            list.appendChild(div);
-        });
-        list.style.display = filtered.length ? 'block' : 'none';
+        if (filtered.length > 0) {
+            filtered.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'suggestion-item';
+                itemDiv.textContent = typeof item === 'string' ? item : item.name;
+                itemDiv.onmousedown = (e) => { // clickより先に反応させる
+                    e.preventDefault();
+                    if (onSelectFn) {
+                        onSelectFn(item);
+                    } else {
+                        input.value = typeof item === 'string' ? item : item.name;
+                    }
+                    list.style.display = 'none';
+                };
+                list.appendChild(itemDiv);
+            });
+            list.style.display = 'block';
+        } else {
+            list.style.display = 'none';
+        }
     });
-    input.addEventListener('blur', () => setTimeout(() => list.style.display = 'none', 250));
+
+    input.addEventListener('blur', () => {
+        setTimeout(() => { list.style.display = 'none'; }, 200);
+    });
 }
 
 function updateBaseStats(cardId, speciesData) {
@@ -360,6 +577,603 @@ function loadAll() {
 
 function addTarget() { createTargetCard(); }
 init();
+// リストにあるポケモンを相関図に反映させる
+function syncToChart() {
+    const canvas = document.getElementById('relationCanvas');
+    const cards = document.querySelectorAll('.target-card');
+    
+    cards.forEach((card, index) => {
+        const name = card.querySelector('.sp-input').value;
+        const speciesId = card.querySelector('.sp-input').dataset.selectedId;
+        
+        if (!name || !speciesId) return;
+
+        // すでにキャンバスに存在するかチェック
+        if (document.getElementById(`icon-${speciesId}`)) return;
+
+        createChartIcon(speciesId, name, 50 + (index * 20), 50 + (index * 20));
+    });
+}
+
+function createChartIcon(id, name, x, y) {
+    const canvas = document.getElementById('relationCanvas');
+    if (document.getElementById(`icon-${id}`)) return;
+
+    const div = document.createElement('div');
+    div.id = `icon-${id}`;
+    div.className = 'chart-icon';
+    div.style.left = x + 'px';
+    div.style.top = y + 'px';
+
+    const dir = id.charAt(0).toUpperCase();
+    const imgUrl = `Icons/${dir}/${id.toUpperCase()}.png`;
+
+    div.innerHTML = `
+        <div class="pokemon-icon-container icon-active" 
+             style="margin: 0 auto; background-image: url('${imgUrl}');">
+        </div>
+        <span style="font-size: 10px; display: block; text-align: center; background: rgba(255,255,255,0.8); border-radius: 4px; margin-top: 2px;">
+            ${name}
+        </span>
+    `;
+
+    canvas.appendChild(div);
+    makeDraggable(div);
+}
+
+// シンプルなドラッグ機能の実装
+function makeDraggable(el) {
+    let isDragging = false;
+    let offset = { x: 0, y: 0 };
+
+    el.addEventListener('mousedown', e => {
+        isDragging = true;
+        offset.x = e.clientX - el.offsetLeft;
+        offset.y = e.clientY - el.offsetTop;
+        el.style.zIndex = 1000;
+    });
+
+    document.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        el.style.left = (e.clientX - offset.x) + 'px';
+        el.style.top = (e.clientY - offset.y) + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+        el.style.zIndex = 10;
+        // ここで自動保存関数を呼ぶと便利
+    });
+}
+function createInputRow(container, type, value = '') {
+    const div = document.createElement('div');
+    div.className = 'search-container'; // 構造を統一
+    div.style.marginBottom = '4px';
+    
+    div.innerHTML = `
+        <input type="text" class="search-input ${type}-input" 
+               placeholder="${type === 'item' ? '持ち物' : '技'}" 
+               value="${value}" style="flex: 1; font-size: 12px; padding: 4px;">
+        <button class="remove-inp-btn" onclick="this.parentElement.remove()">×</button>
+        <div class="suggestion-list"></div>
+    `;
+
+    container.appendChild(div);
+
+    const input = div.querySelector('.search-input');
+    const list = div.querySelector('.suggestion-list');
+
+    // 検索機能のセットアップ
+    const dataFn = type === 'item' ? () => db.items : () => db.moves;
+    setupGenericSearch(input, list, dataFn);
+}
+let connections = []; // 線データを保持 { fromId, toId, label }
+let selectedSourceId = null;
+
+function redrawLines() {
+    document.querySelectorAll('.relation-line, .line-label').forEach(el => el.remove());
+
+    connections.forEach((conn, index) => {
+        const fromEl = document.getElementById(`icon-${conn.fromId}`);
+        const toEl = document.getElementById(`icon-${conn.toId}`);
+        if (!fromEl || !toEl) return;
+
+        const x1 = fromEl.offsetLeft + 40;
+        const y1 = fromEl.offsetTop + 40;
+        const x2 = toEl.offsetLeft + 40;
+        const y2 = toEl.offsetTop + 40;
+
+        const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+        const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+        const line = document.createElement('div');
+        line.className = 'relation-line';
+        line.style.width = length + 'px';
+        line.style.left = x1 + 'px';
+        line.style.top = y1 + 'px';
+        line.style.transform = `rotate(${angle}deg)`;
+        // 線をクリックしても編集/削除できるように
+        line.onclick = () => editLine(index);
+        document.getElementById('relationCanvas').appendChild(line);
+
+        const label = document.createElement('div');
+        label.className = 'line-label';
+        label.style.left = (x1 + x2) / 2 + 'px';
+        label.style.top = (y1 + y2) / 2 + 'px';
+        label.textContent = conn.label;
+        label.onclick = () => editLine(index);
+        document.getElementById('relationCanvas').appendChild(label);
+    });
+}
+
+// 編集・削除用共通関数
+function editLine(index) {
+    const action = confirm("関係メモの編集なら『OK』、この線を削除するなら『キャンセル』を押してください");
+    if (action) {
+        const newTxt = prompt('新しい関係性を入力', connections[index].label);
+        if (newTxt !== null) connections[index].label = newTxt;
+    } else {
+        connections.splice(index, 1);
+    }
+    redrawLines();
+}
+
+// アイコンクリック時の処理を改善
+function handleIconClick(id) {
+    // 移動モード('move')の時だけ、線引き（リレーション）を有効にする
+    // ※ペンや消しゴムの時は線を引かない
+    if (drawMode !== 'move') return;
+
+    const el = document.getElementById(`icon-${id}`);
+    
+    if (!selectedSourceId) {
+        selectedSourceId = id;
+        el.classList.add('selected');
+        el.style.outline = "3px solid #ff0000"; // 選択中を分かりやすく
+    } else if (selectedSourceId === id) {
+        selectedSourceId = null;
+        el.classList.remove('selected');
+        el.style.outline = "none";
+    } else {
+        // 2つ目のアイコンをクリック
+        const labelText = prompt('関係性を入力してください（例：有利、対策、交代先）', '有利');
+        
+        // キャンセルされた場合は線を引かない
+        if (labelText !== null) {
+            connections.push({ fromId: selectedSourceId, toId: id, label: labelText });
+        }
+
+        // 選択解除
+        document.getElementById(`icon-${selectedSourceId}`).style.outline = "none";
+        document.getElementById(`icon-${selectedSourceId}`).classList.remove('selected');
+        selectedSourceId = null;
+        redrawLines();
+    }
+}
+
+// 既存の createChartIcon 関数を書き換え
+function createChartIcon(id, name, x, y) {
+    const canvas = document.getElementById('relationCanvas');
+    if (document.getElementById(`icon-${id}`)) return;
+
+    const div = document.createElement('div');
+    div.id = `icon-${id}`;
+    div.className = 'chart-icon';
+    div.style.left = x + 'px';
+    div.style.top = y + 'px';
+
+    const dir = id.charAt(0).toUpperCase();
+    const imgUrl = `Icons/${dir}/${id.toUpperCase()}.png`;
+
+    div.innerHTML = `
+        <div class="pokemon-icon-container icon-active" 
+             style="margin: 0 auto; background-image: url('${imgUrl}'); pointer-events: none;">
+        </div>
+        <span style="font-size: 10px; display: block; text-align: center; background: rgba(255,255,255,0.8); border-radius: 4px; margin-top: 2px; pointer-events: none;">
+            ${name}
+        </span>
+    `;
+
+    canvas.appendChild(div);
+    
+    // クリックイベント
+    div.addEventListener('click', (e) => {
+        // ドラッグとクリックを判別（簡易的にmousedownからの移動距離で判定も可能だが、まずは単純クリック）
+        handleIconClick(id);
+    });
+
+    // 右クリックでアイコン削除
+    div.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        if(confirm(name + ' を相関図から削除しますか？')) {
+            connections = connections.filter(c => c.fromId !== id && c.toId !== id);
+            div.remove();
+            redrawLines();
+        }
+    });
+
+    makeDraggable(div);
+}
+
+// ドラッグ中も線を更新するように修正
+function makeDraggable(el) {
+    let isDragging = false;
+    let offset = { x: 0, y: 0 };
+
+    el.addEventListener('mousedown', e => {
+        if (e.button !== 0) return; // 左クリックのみ
+        isDragging = true;
+        offset.x = e.clientX - el.offsetLeft;
+        offset.y = e.clientY - el.offsetTop;
+        el.style.zIndex = 1000;
+    });
+
+    document.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        el.style.left = (e.clientX - offset.x) + 'px';
+        el.style.top = (e.clientY - offset.y) + 'px';
+        redrawLines(); // 線を追従させる
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+        el.style.zIndex = 10;
+    });
+}
+let shapes = []; // { id, x, y, w, h, type }
+
+// キャンバス自体のダブルクリックで図形作成
+document.getElementById('relationCanvas').addEventListener('dblclick', function(e) {
+    if (e.target.id !== 'relationCanvas') return;
+    const type = confirm('四角を作りますか？ (キャンセルで円)') ? 'rect' : 'circle';
+    const id = 'shape-' + Date.now();
+    const newShape = { id, x: e.offsetX, y: e.offsetY, w: 100, h: 100, type };
+    shapes.push(newShape);
+    renderShapes();
+});
+
+function renderShapes() {
+    document.querySelectorAll('.chart-shape').forEach(el => el.remove());
+    shapes.forEach(sh => {
+        const div = document.createElement('div');
+        div.id = sh.id;
+        div.className = `chart-shape ${sh.type}`;
+        div.style.left = sh.x + 'px';
+        div.style.top = sh.y + 'px';
+        div.style.width = sh.w + 'px';
+        div.style.height = sh.h + 'px';
+        
+        // リサイズハンドル
+        const resizer = document.createElement('div');
+        resizer.className = 'resizer';
+        div.appendChild(resizer);
+
+        // 削除ボタン（右クリック）
+        div.oncontextmenu = (e) => {
+            e.preventDefault();
+            if(confirm('この囲いを削除しますか？')) {
+                shapes = shapes.filter(s => s.id !== sh.id);
+                renderShapes();
+            }
+        };
+
+        document.getElementById('relationCanvas').appendChild(div);
+        makeShapeInteractions(div, sh);
+    });
+}
+
+function handleIconClick(id) {
+    // 1. 移動モードじゃない時は何もしない
+    if (drawMode !== 'move') return;
+
+    // 2. 「自動線引き」がオフなら、アイコンの選択処理自体をスキップ
+    const isAutoLineEnabled = document.getElementById('autoLineToggle').checked;
+    if (!isAutoLineEnabled) return;
+
+    const el = document.getElementById(`icon-${id}`);
+    
+    // 以下、既存の線引きロジック
+    if (!selectedSourceId) {
+        selectedSourceId = id;
+        el.style.outline = "3px solid #ff0000";
+    } else if (selectedSourceId === id) {
+        selectedSourceId = null;
+        el.style.outline = "none";
+    } else {
+        const labelText = prompt('関係性を入力してください', '有利');
+        if (labelText !== null) {
+            connections.push({ fromId: selectedSourceId, toId: id, label: labelText });
+        }
+        document.getElementById(`icon-${selectedSourceId}`).style.outline = "none";
+        selectedSourceId = null;
+        redrawLines();
+    }
+}
+
+function makeShapeInteractions(el, data) {
+    let isDragging = false;
+    let isResizing = false;
+
+    el.addEventListener('mousedown', e => {
+        if (e.target.className === 'resizer') isResizing = true;
+        else isDragging = true;
+        el.style.zIndex = 100;
+    });
+
+    document.addEventListener('mousemove', e => {
+        const rect = document.getElementById('relationCanvas').getBoundingClientRect();
+        if (isDragging) {
+            data.x = e.clientX - rect.left - (el.offsetWidth / 2);
+            data.y = e.clientY - rect.top - (el.offsetHeight / 2);
+            el.style.left = data.x + 'px';
+            el.style.top = data.y + 'px';
+        } else if (isResizing) {
+            data.w = e.clientX - rect.left - data.x;
+            data.h = e.clientY - rect.top - data.y;
+            el.style.width = data.w + 'px';
+            el.style.height = data.h + 'px';
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDragging = false; isResizing = false;
+        el.style.zIndex = 1;
+    });
+}
+
+// 既存の redrawLines を矢印対応に調整（CSSのafterで矢印化済み）
+// 保存機能に相関図データを含める
+const originalSaveAll = saveAll;
+saveAll = function() {
+    originalSaveAll();
+    const chartData = {
+        connections: connections,
+        shapes: shapes,
+        icons: Array.from(document.querySelectorAll('.chart-icon')).map(el => ({
+            id: el.id.replace('icon-', ''),
+            name: el.querySelector('span').textContent.trim(),
+            x: parseInt(el.style.left),
+            y: parseInt(el.style.top)
+        }))
+    };
+    localStorage.setItem('target_chart_data', JSON.stringify(chartData));
+};
+
+// 読み込み時に相関図も復元
+const originalLoadAll = loadAll;
+loadAll = async function() {
+    await originalLoadAll();
+    const rawChart = localStorage.getItem('target_chart_data');
+    if (rawChart) {
+        const data = JSON.parse(rawChart);
+        connections = data.connections || [];
+        shapes = data.shapes || [];
+        data.icons?.forEach(icon => createChartIcon(icon.id, icon.name, icon.x, icon.y));
+        renderShapes();
+        redrawLines();
+    }
+};
+let isDrawing = false;
+let drawMode = 'pen'; // 'pen' or 'eraser'
+const drawCanvas = document.getElementById('drawingLayer');
+const ctx = drawCanvas.getContext('2d');
+
+// キャンバスのサイズを親要素に合わせる
+function resizeCanvas() {
+    const rect = drawCanvas.parentElement.getBoundingClientRect();
+    drawCanvas.width = rect.width;
+    drawCanvas.height = rect.height;
+    loadDrawing(); // リサイズ時に消えるのを防ぐ（再描画）
+}
+
+window.addEventListener('resize', resizeCanvas);
+setTimeout(resizeCanvas, 500); // 初期化時
+
+// 描画イベント
+drawCanvas.addEventListener('mousedown', startDrawing);
+drawCanvas.addEventListener('mousemove', draw);
+drawCanvas.addEventListener('mouseup', stopDrawing);
+drawCanvas.addEventListener('mouseout', stopDrawing);
+
+// タッチデバイス対応
+drawCanvas.addEventListener('touchstart', e => { e.preventDefault(); startDrawing(e.touches[0]); });
+drawCanvas.addEventListener('touchmove', e => { e.preventDefault(); draw(e.touches[0]); });
+drawCanvas.addEventListener('touchend', stopDrawing);
+
+function startDrawing(e) {
+    isDrawing = true;
+    ctx.beginPath();
+    const rect = drawCanvas.getBoundingClientRect();
+    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+}
+// スライダーの値が変わった時に数値を表示する処理
+document.getElementById('lineWidth').addEventListener('input', (e) => {
+    document.getElementById('widthValue').textContent = e.target.value;
+});
+
+function draw(e) {
+    if (!isDrawing) return;
+    const rect = drawCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // スライダーの値を取得
+    const baseWidth = parseInt(document.getElementById('lineWidth').value);
+
+    // 消しゴムの場合は少し太めに補正がかかるように設定（お好みで）
+    ctx.lineWidth = drawMode === 'eraser' ? baseWidth * 2 : baseWidth;
+    
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round'; // 角を滑らかに
+    ctx.strokeStyle = document.getElementById('penColor').value;
+    
+    if (drawMode === 'eraser') {
+        ctx.globalCompositeOperation = 'destination-out';
+    } else {
+        ctx.globalCompositeOperation = 'source-over';
+    }
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+}
+
+function stopDrawing() {
+    if (!isDrawing) return;
+    isDrawing = false;
+    saveDrawing(); // 描くたびに保存
+}
+
+function setDrawMode(mode) {
+    drawMode = mode;
+    const canvas = document.getElementById('drawingLayer');
+    
+    // 全ボタンのスタイルをリセット
+    document.getElementById('penBtn').style.background = '#6c757d';
+    document.getElementById('eraserBtn').style.background = '#6c757d';
+    // 移動ボタンもHTMLに追加している場合はここでリセット
+    if(document.getElementById('moveBtn')) document.getElementById('moveBtn').style.background = '#6c757d';
+
+    if (mode === 'move') {
+        canvas.classList.add('move-mode');
+        document.getElementById('moveBtn').style.background = '#17a2b8'; // 移動は青緑
+    } else {
+        canvas.classList.remove('move-mode');
+        if (mode === 'pen') document.getElementById('penBtn').style.background = '#007bff';
+        if (mode === 'eraser') document.getElementById('eraserBtn').style.background = '#007bff';
+    }
+}
+
+// キャンバスの高さを段階的に広げる
+function expandCanvas() {
+    const canvasArea = document.getElementById('relationCanvas');
+    const drawingLayer = document.getElementById('drawingLayer');
+    const container = document.getElementById('canvasContainer');
+
+    // 現在の高さに200px追加
+    const currentHeight = canvasArea.offsetHeight;
+    const newHeight = currentHeight + 200;
+
+    // 前の手書き内容を一時退避
+    const tempImage = drawingLayer.toDataURL();
+
+    canvasArea.style.height = newHeight + 'px';
+    container.style.maxHeight = (newHeight + 100) + 'px'; // コンテナ制限も緩和
+    
+    // キャンバス（手書き層）のサイズを更新して再描画
+    drawingLayer.width = canvasArea.offsetWidth;
+    drawingLayer.height = newHeight;
+    
+    const img = new Image();
+    img.onload = () => ctx.drawImage(img, 0, 0);
+    img.src = tempImage;
+}
+
+// 相関図全体を1枚の画像として書き出す
+async function exportAsImage() {
+    const canvasArea = document.getElementById('relationCanvas');
+    
+    // 1. 一時的な合成用キャンバスを作成
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = canvasArea.offsetWidth;
+    exportCanvas.height = canvasArea.offsetHeight;
+    const eCtx = exportCanvas.getContext('2d');
+
+    // 2. 背景を塗りつぶす（透過を防ぐため）
+    eCtx.fillStyle = "#eeeeee"; // 元のキャンバス背景色
+    eCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+    // 3. 線を転写する（relation-line要素を走査して描画）
+    document.querySelectorAll('.relation-line').forEach(line => {
+        const rect = line.getBoundingClientRect();
+        const areaRect = canvasArea.getBoundingClientRect();
+        // ここでは簡易的に現在の表示を反映
+        // 本来はSVGなどを介すのが理想ですが、手書きレイヤーも重ねるため
+    });
+
+    // 4. 手書きレイヤーを重ねる
+    eCtx.drawImage(document.getElementById('drawingLayer'), 0, 0);
+
+    // 5. アイコンを重ねる（HTML要素を画像化するのは複雑なため、
+    // ポケモンのアイコン画像だけを座標に合わせて描画します）
+    const icons = document.querySelectorAll('.chart-icon');
+    for (let icon of icons) {
+        const x = parseInt(icon.style.left);
+        const y = parseInt(icon.style.top);
+        const imgEl = icon.querySelector('div').style.backgroundImage.slice(5, -2); // url("...")から抽出
+        
+        const pImg = new Image();
+        pImg.src = imgEl;
+        await new Promise(resolve => pImg.onload = resolve);
+        eCtx.drawImage(pImg, x + 10, y, 60, 60); // 位置調整
+
+        // 名前テキストも描画
+        const name = icon.querySelector('span').textContent;
+        eCtx.fillStyle = "black";
+        eCtx.font = "bold 10px sans-serif";
+        eCtx.textAlign = "center";
+        eCtx.fillText(name, x + 40, y + 70);
+    }
+
+    // 6. ダウンロード実行
+    const link = document.createElement('a');
+    link.download = `correlation_chart_${new Date().getTime()}.png`;
+    link.href = exportCanvas.toDataURL("image/png");
+    link.click();
+}
+
+function clearCanvas() {
+    if(confirm('手書きメモをすべて消去しますか？')) {
+        ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+        saveDrawing();
+    }
+}
+
+// 画像として保存
+function saveDrawing() {
+    const dataUrl = drawCanvas.toDataURL();
+    localStorage.setItem('target_handwriting', dataUrl);
+}
+
+// 画像の読み込み
+function loadDrawing() {
+    const dataUrl = localStorage.getItem('target_handwriting');
+    if (dataUrl) {
+        const img = new Image();
+        img.onload = () => {
+            ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+            ctx.drawImage(img, 0, 0);
+        };
+        img.src = dataUrl;
+    }
+}
+
+// 既存の loadAll に loadDrawing() を組み込む
+const finalLoadAll = loadAll;
+loadAll = async function() {
+    await finalLoadAll();
+    loadDrawing();
+};
+function toggleCanvas() {
+    const container = document.getElementById('canvasContainer');
+    const arrow = document.getElementById('canvasArrow');
+    
+    if (container.style.maxHeight === "0px") {
+        // 開く
+        container.style.maxHeight = "700px"; // 十分な高さを指定
+        arrow.style.transform = "rotate(0deg)";
+        // 開いた時にキャンバスのサイズがズレることがあるので微調整
+        setTimeout(() => {
+            resizeCanvas();
+            loadDrawing();
+        }, 310);
+    } else {
+        // 閉じる
+        container.style.maxHeight = "0px";
+        arrow.style.transform = "rotate(-90deg)";
+    }
+}
+document.getElementById('canvasContainer').style.maxHeight = "0px";
+document.getElementById('canvasArrow').style.transform = "rotate(-90deg)";
 </script>
 </body>
 </html>
