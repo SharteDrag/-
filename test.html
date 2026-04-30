@@ -2737,6 +2737,13 @@ function updateAbilitiesAndCalculate() {
         }
     }
 
+    // でんきにかえる
+    if (ability === "ELECTROMORPHOSIS") {
+        if (["ELECTRIC"].includes(moveTypeUpper)) {
+            atkMod = Math.round(atkMod * 8192 / 4096);
+        }
+    }
+
     // サンパワー / ひひいろのこどう / ハドロンエンジン
     if (ability === "SOLARPOWER" && isSun && tempMove?.Category === "Special") abilityAtkMult = 1.5;
     if (ability === "ORICHALCUMPULSE" && isSun && tempMove?.Category === "Physical") {
