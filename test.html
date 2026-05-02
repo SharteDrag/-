@@ -4076,11 +4076,20 @@ if (itemDefKey === "obon") {
         let damageDistributionForFirstSet = [];
         const isMultiscaleTarget = (document.getElementById('defender-ability')?.value === "MULTISCALE" || document.getElementById('defender-ability')?.value === "SHADOWSHIELD");
 
-        // 全ヒットの同じインデックスを足し合わせる
+        // --- 修正版：親子愛を考慮した分布合成 ---
+
+// 攻撃側の特性を取得
+const atkAbility = document.getElementById("attacker-ability")?.value;
+
+// 1セット目（マルチスケイル考慮）の16通りの分布
 damageDistributionForFirstSet = Array(16).fill(0).map((_, idx) => {
     let sum = 0;
     for (let j = 0; j < hitCount; j++) {
-        if (j === 0 && isMultiscaleTarget) {
+        // 親子愛の場合、2発目は1発目と同じ乱数位置(idx)を参照し、0.25倍する
+        if (atkAbility === "PARENTALBOND" && j > 0) {
+            // 2発目は「1発目のダメージ × 0.25」を固定で足す（乱数は同期するため）
+            sum += Math.floor(standardResult.hitDetails[0].damages[idx] * 0.25);
+        } else if (j === 0 && isMultiscaleTarget) {
             sum += standardResult.hitDetails[0].damages[idx];
         } else {
             sum += normalHitsDamages[j][idx];
@@ -4089,11 +4098,16 @@ damageDistributionForFirstSet = Array(16).fill(0).map((_, idx) => {
     return sum;
 });
 
-// 通常時（2セット目以降）の16通りの分布も配列化しておく
+// 通常時（2セット目以降）の16通りの分布
 const distNormalSet = Array(16).fill(0).map((_, idx) => {
     let sum = 0;
     for (let j = 0; j < hitCount; j++) {
-        sum += normalHitsDamages[j][idx];
+        if (atkAbility === "PARENTALBOND" && j > 0) {
+            // 親子愛の2発目は1発目と乱数が同期する
+            sum += Math.floor(normalHitsDamages[0][idx] * 0.25);
+        } else {
+            sum += normalHitsDamages[j][idx];
+        }
     }
     return sum;
 });
@@ -4101,7 +4115,7 @@ const distNormalSet = Array(16).fill(0).map((_, idx) => {
         // --- 確定数（KO率）の判定ロジック ---
         // 1セット目(マルチスケイル考慮)の最小・最大を再定義
         const firstSetMinActual = damageDistributionForFirstSet[0];
-        const firstSetMaxActual = damageDistributionForFirstSet[14];
+        const firstSetMaxActual = damageDistributionForFirstSet[15];
 
         if (firstSetMinActual >= effectiveTargetHP) {
             koText = `<span style="color:#e74c3c; font-weight:bold;">確定1発</span>`;
