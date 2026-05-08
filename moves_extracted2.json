@@ -1824,7 +1824,7 @@
         "Type":  "FIRE",
         "Category":  "Physical",
         "Power":  "120",
-        "Flags":  "Contact,CanProtect,CanMirrorMove,ThawsUser",
+        "Flags":  "Contact,CanProtect,CanMirrorMove,ThawsUser,Recoil",
         "FunctionCode":  "RecoilThirdOfDamageDealtBurnTarget"
     },
     {
