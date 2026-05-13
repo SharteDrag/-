@@ -3004,8 +3004,7 @@ function initAppDisplay(moveDataLoaded) {
     }
 }
         
-        // 第4引数を attackerAbilityID ではなく overrideType に変更
-function calculateEffectiveness(attackerName, defenderName, moveName, overrideType = null) {
+        function calculateEffectiveness(attackerName, defenderName, moveName, overrideType = null) {
     const ability = document.getElementById("attacker-ability").value;
     const normalizedAttackerName = hiraganaToKatakana(attackerName);
     const normalizedDefenderName = hiraganaToKatakana(defenderName);
@@ -3015,7 +3014,7 @@ function calculateEffectiveness(attackerName, defenderName, moveName, overrideTy
     const defenderKey = NAME_TO_KEY_MAP[normalizedDefenderName];
     const moveData = MOVEDATA_MAP[normalizedMoveName];
 
-    // ⭐ 引数 overrideType があればそれを優先、なければ技データから取得
+    // 引数 overrideType があれば優先、なければ技データから取得
     const moveType = overrideType || (moveData ? moveData.Type : null);
     const isFreezeDry = (normalizedMoveName === "フリーズドライ");
 
@@ -3023,10 +3022,9 @@ function calculateEffectiveness(attackerName, defenderName, moveName, overrideTy
 
     const moveTypeUpper = moveType.toUpperCase();
 
-    // --- ① タイプ一致補正 (STAB) の計算 ---
+    // --- ① タイプ一致補正 (STAB) ---
     let stab = 1.0;
     if (attackerKey) {
-        // POKEDATA_MAP は配列を返す場合があるため最初の要素を取得
         const pKey = Array.isArray(attackerKey) ? attackerKey[0] : attackerKey;
         const attackerTypes = POKEDATA_MAP[pKey].Types.filter(t => t).map(t => t.toUpperCase());
         
@@ -3040,21 +3038,33 @@ function calculateEffectiveness(attackerName, defenderName, moveName, overrideTy
         }
     }
     
-    // --- ② 相性倍率 (Affinity) の計算 ---
+    // --- ② 相性倍率 (Affinity) ---
     let affinity = 1.0;
     if (defenderKey) {
         const dKey = Array.isArray(defenderKey) ? defenderKey[0] : defenderKey;
         const defenderTypes = POKEDATA_MAP[dKey].Types.filter(t => t);
         
+        // きもったま・しんがんの判定
+        const isScrappyOrMindsEye = (ability === "SCRAPPY" || ability === "MINDSEYE");
+
         for (const defType of defenderTypes) {
             const defTypeUpper = defType.toUpperCase();
             const typeEffectiveness = TYPE_EFFECTIVENESS[moveTypeUpper];
+            
             let multiplier = typeEffectiveness && typeEffectiveness.hasOwnProperty(defTypeUpper) 
                                 ? typeEffectiveness[defTypeUpper] 
                                 : 1.0;
 
+            // 特殊処理：フリーズドライ（水に抜群）
             if (isFreezeDry && defTypeUpper === "WATER") {
                 multiplier = 2.0;
+            }
+
+            // 特殊処理：きもったま・しんがん（ノーマル・格闘がゴーストに1倍）
+            if (isScrappyOrMindsEye && defTypeUpper === "GHOST") {
+                if (moveTypeUpper === "NORMAL" || moveTypeUpper === "FIGHTING") {
+                    multiplier = 1.0;
+                }
             }
 
             affinity *= multiplier;
