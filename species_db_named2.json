@@ -24751,10 +24751,10 @@
     "SpDef": 95,
     "Weight": 38.0,
     "Abilities": [
-      "STATIC"
+      "ELECTRICSURGE"
     ],
     "HiddenAbilities": [
-      "LIGHTNINGROD"
+      "ELECTRICSURGE"
     ],
     "Name": "メガライチュウX"
   },
@@ -24770,10 +24770,10 @@
     "SpDef": 80,
     "Weight": 26.0,
     "Abilities": [
-      "STATIC"
+      "NOGUARD"
     ],
     "HiddenAbilities": [
-      "LIGHTNINGROD"
+      "NOGUARD"
     ],
     "Name": "メガライチュウY"
   },
