@@ -2674,11 +2674,14 @@ function updateAbilitiesAndCalculate() {
     if (ability === "IRONFIST" && tempMove?.Flags?.includes("Punching")) atkMod = Math.round(atkMod * 4915 / 4096);
     if (ability === "PUNKROCK" && tempMove?.Flags?.includes("Sound")) atkMod = Math.round(atkMod * 5325 / 4096);
 
-    // ちからもち / はがねのせいしん
+    // ちからもち / はがねのせいしん/ほのおのたてがみ
     if ((ability === "HUGEPOWER" || ability === "PUREPOWER") && tempMove?.Category === "Physical") {
         atkMod = Math.round(atkMod * 8192 / 4096);
     }
     if (ability === "STEELYSPIRIT" && moveTypeUpper === "STEEL") {
+        atkMod = Math.round(atkMod * 6144 / 4096);
+    }
+    if (ability === "FIREMANE" && moveTypeUpper === "FIRE") {
         atkMod = Math.round(atkMod * 6144 / 4096);
     }
 
