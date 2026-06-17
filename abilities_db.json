@@ -1599,5 +1599,15 @@
     "name": "とびだすハバネロ",
     "description": "攻撃技でダメージを受けたとき、攻撃してきた相手をやけど状態にする。",
     "flags": []
+  },
+    "EELEVATE": {
+    "name": "うなぎのぼり",
+    "description": "浮遊+ビーストブースト",
+    "flags": []
+  },
+    "FIREMANE": {
+    "name": "ほのおのたてがみ",
+    "description": "炎技1.5",
+    "flags": []
   }
 }

@@ -17178,7 +17178,7 @@
     "SpDef": 60,
     "Weight": 62.0,
     "Abilities": [
-      "BATTLEARMOR"
+      "DEFIANT"
     ],
     "HiddenAbilities": [
       "DEFIANT"
@@ -24432,11 +24432,10 @@
     "SpDef": 99,
     "Weight": 230.5,
     "Abilities": [
-      "POISONPOINT",
-      "SWARM"
+      "SHELLARMOR"
     ],
     "HiddenAbilities": [
-      "SPEEDBOOST"
+      "SHELLARMOR"
     ],
     "Name": "メガペンドラー"
   },
@@ -24453,8 +24452,7 @@
     "SpDef": 135,
     "Weight": 31.0,
     "Abilities": [
-      "SHEDSKIN",
-      "MOXIE"
+      "INTIMIDATE"
     ],
     "HiddenAbilities": [
       "INTIMIDATE"
@@ -24473,7 +24471,7 @@
     "SpDef": 90,
     "Weight": 180.0,
     "Abilities": [
-      "LEVITATE"
+      "EELEVATE"
     ],
     "HiddenAbilities": [],
     "Name": "メガシビルドン"
@@ -24571,11 +24569,10 @@
     "SpDef": 86,
     "Weight": 93.3,
     "Abilities": [
-      "RIVALRY",
-      "UNNERVE"
+      "FIREMANE"
     ],
     "HiddenAbilities": [
-      "MOXIE"
+      "FIREMANE"
     ],
     "Name": "メガカエンジシ"
   },
@@ -24611,11 +24608,10 @@
     "SpDef": 120,
     "Weight": 69.8,
     "Abilities": [
-      "CONTRARY",
-      "SUCTIONCUPS"
+      "CONTRARY"
     ],
     "HiddenAbilities": [
-      "INFILTRATOR"
+      "CONTRARY"
     ],
     "Name": "メガカラマネロ"
   },
@@ -24632,11 +24628,10 @@
     "SpDef": 106,
     "Weight": 100.0,
     "Abilities": [
-      "TOUGHCLAWS",
-      "SNIPER"
+      "TOUGHCLAWS"
     ],
     "HiddenAbilities": [
-      "PICKPOCKET"
+      "TOUGHCLAWS"
     ],
     "Name": "メガガメノデス"
   },
@@ -24653,11 +24648,10 @@
     "SpDef": 163,
     "Weight": 100.3,
     "Abilities": [
-      "POISONPOINT",
-      "POISONTOUCH"
+      "REGENERATOR"
     ],
     "HiddenAbilities": [
-      "ADAPTABILITY"
+      "REGENERATOR"
     ],
     "Name": "メガドラミドロ"
   },
@@ -24828,10 +24822,10 @@
     "SpDef": 90,
     "Weight": 50.0,
     "Abilities": [
-      "INTIMIDATE"
+      "CONTRARY"
     ],
     "HiddenAbilities": [
-      "RECKLESS"
+      "CONTRARY"
     ],
     "Name": "メガムクホーク"
   },
