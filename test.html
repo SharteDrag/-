@@ -3101,8 +3101,8 @@ function initAppDisplay(moveDataLoaded) {
             
             const { affinity, stab } = calculateEffectiveness(attackerName, defenderName, moveName);
             
-            document.getElementById('affinity').value = affinity.toFixed(2); 
-            document.getElementById('stab').value = stab.toFixed(1); 
+            //document.getElementById('affinity').value = affinity.toFixed(2); 
+            //document.getElementById('stab').value = stab.toFixed(1); 
             
             getStatKeys(); 
             calculateDamage();
@@ -5231,6 +5231,20 @@ moveNameInput.addEventListener('input', (e) => {
     handleMoveUpdate(e.target);
     // 入力中のリアルタイム更新（必要に応じて）
     triggerAbilitySync(); // ⭐追加
+});
+
+// 「相性」を手動で書き換えたらダメージを再計算
+document.getElementById('affinity').addEventListener('input', () => {
+    if (typeof calculateDamage === 'function') {
+        calculateDamage();
+    }
+});
+
+// 「一致」を手動で書き換えたらダメージを再計算
+document.getElementById('stab').addEventListener('input', () => {
+    if (typeof calculateDamage === 'function') {
+        calculateDamage();
+    }
 });
             
             attackerNameInput.addEventListener('input', (e) => handlePokemonUpdate('attacker', e.target));
