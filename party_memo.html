@@ -276,6 +276,7 @@ manifest-src 'self';
     <button onclick="saveParty()">保存</button>
     <button onclick="loadParty()">読込</button>
     <button onclick="deleteParty()">削除</button>
+    <button onclick="openNewWindow('test.html')" style="background: #17a2b8;">プチダメ計</button>
     <button onclick="exportPartyImage()" style="background: #28a745;">画像として保存</button>
     <button onclick="exportPartyCode()" style="background: #6f42c1;">URLをコピー</button>
 </div>
@@ -879,6 +880,27 @@ function createPartyUI() {
     }
 }
 
+function openNewWindow(url) {
+    // 画面幅が600px未満（スマホ想定）ならサイズ指定をしない
+    const isMobile = window.innerWidth < 600;
+
+    if (isMobile) {
+        // スマホは単純に新規タブで開く（ブラウザが全画面で綺麗に処理してくれます）
+        window.open(url, '_blank');
+    } else {
+        // PCは中央ポップアップ
+        const width = 800;
+        const height = 1000;
+        const left = (screen.width - width) / 2;
+        const top = (screen.height - height) / 2;
+
+        window.open(
+            url, 
+            '_blank', 
+            `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
+        );
+    }
+}
 
 function updateSpecies(idx, speciesData) {
     const card = document.getElementById(`pokemon-${idx}`);
