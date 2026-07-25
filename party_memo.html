@@ -171,7 +171,6 @@ manifest-src 'self';
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   // ハッシュ化関数
   async function hashPassword(password) {
@@ -206,55 +205,10 @@ manifest-src 'self';
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  // ★ Firestoreの初期化
-  const dbStore = getFirestore(app);
   const provider = new GoogleAuthProvider();
 
   const overlay = document.getElementById('auth-overlay');
   const content = document.getElementById('protected-content');
-
-  // ★ 2. グローバル関数として window にバインド（他のscriptから呼び出せるようにする）
-  window.savePartyToFirebase = async function(slot, partyData) {
-    const user = auth.currentUser;
-    if (!user) { alert("ログインが必要です"); return false; }
-    try {
-      await setDoc(doc(dbStore, "users", user.uid, "parties", String(slot)), partyData);
-      return true;
-    } catch (e) {
-      console.error("Firestore Save Error:", e);
-      alert("保存に失敗しました: " + e.message);
-      return false;
-    }
-  };
-
-  window.loadPartyFromFirebase = async function(slot) {
-    const user = auth.currentUser;
-    if (!user) { alert("ログインが必要です"); return null; }
-    try {
-      const docRef = doc(dbStore, "users", user.uid, "parties", String(slot));
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        return docSnap.data();
-      }
-      return null;
-    } catch (e) {
-      console.error("Firestore Load Error:", e);
-      alert("読み込みに失敗しました: " + e.message);
-      return null;
-    }
-  };
-
-  window.deletePartyFromFirebase = async function(slot) {
-    const user = auth.currentUser;
-    if (!user) return false;
-    try {
-      await deleteDoc(doc(dbStore, "users", user.uid, "parties", String(slot)));
-      return true;
-    } catch (e) {
-      console.error("Firestore Delete Error:", e);
-      return false;
-    }
-  };
 
   document.getElementById('btn-login').onclick = () => {
     signInWithPopup(auth, provider).catch(err => alert("エラー: " + err.message));
@@ -534,12 +488,20 @@ async function init() {
     }
 }
 
-// インポート用の中身を関数として独立させておくと便利です
+// 修正後
 function importPartyFromCode(code) {
     try {
         const decoded = code.replace(/-/g, '+').replace(/_/g, '/');
         const str = atob(decoded);
-        const charData = Uint8Array.from(str, c => c.charCodeAt(0));
+        
+        // Safariでも安定して動作する Uint8Array の生成方法に変更
+        const len = str.length;
+        const charData = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            charData[i] = str.charCodeAt(i);
+        }
+
+        // pakoの解凍（文字列への変換を安全に行う）
         const decompressed = pako.inflate(charData, { to: 'string' });
         const data = JSON.parse(decompressed);
 
@@ -550,21 +512,28 @@ function importPartyFromCode(code) {
             const card = document.getElementById(`pokemon-${i}`);
             if (!card) return;
             const spInp = card.querySelector('.sp-input');
-            spInp.value = m.nm;
-            spInp.dataset.selectedId = m.id;
+            spInp.value = m.nm || "";
+            spInp.dataset.selectedId = m.id || "";
             
             const speciesObj = db.species.find(s => s.id === m.id);
-            if (speciesObj) updateSpecies(i, speciesObj.data);
+if (speciesObj) {
+    updateSpecies(i, speciesObj.data);
+}
+// 持ち物IDの自動復元を追加
+const itemInput = card.querySelector('.item-input');
+itemInput.value = m.it || "";
+const foundItem = db.items.find(it => it.name === m.it);
+if (foundItem) itemInput.dataset.selectedId = foundItem.id;
 
-            card.querySelector('.item-input').value = m.it || "";
+            //card.querySelector('.item-input').value = m.it || "";
             card.querySelector('.ability-select').value = m.ab || "";
             card.querySelector('.nature-select').value = m.nt || "まじめ";
             card.querySelectorAll('.ev-input').forEach((el, j) => {
-                el.value = m.ev[j] || 0;
+                el.value = (m.ev && m.ev[j] !== undefined) ? m.ev[j] : 0;
                 validateEV(el, i);
             });
             card.querySelectorAll('.move-input').forEach((el, j) => {
-                el.value = m.mv[j] || "";
+                el.value = (m.mv && m.mv[j]) ? m.mv[j] : "";
                 const found = db.moves.find(mv => mv.name === el.value);
                 updateMoveColor(el, found ? found.type : "");
             });
@@ -575,84 +544,24 @@ function importPartyFromCode(code) {
         console.error("URLコード解析エラー:", e);
     }
 }
-
-// 保存処理
-async function saveParty() {
-    const slot = document.getElementById('saveSlot').value;
-    const partyName = document.getElementById('partyName').value || `パーティ${slot}`;
-    const partyMemo = document.getElementById('partyMemo').value;
-
-    const data = { name: partyName, partyMemo: partyMemo, members: [] };
-    for (let i = 0; i < 6; i++) {
-        const c = document.getElementById(`pokemon-${i}`);
-        data.members.push({
-            spName: c.querySelector('.sp-input').value,
-            spId: c.querySelector('.sp-input').dataset.selectedId,
-            itName: c.querySelector('.item-input').value,
-            itId: c.querySelector('.item-input').dataset.selectedId,
-            ab: c.querySelector('.ability-select').value,
-            nt: c.querySelector('.nature-select').value,
-            ev: [...c.querySelectorAll('.ev-input')].map(el => el.value),
-            mv: [...c.querySelectorAll('.move-input')].map(el => ({ name: el.value, id: el.dataset.selectedId })),
-            memo: c.querySelector('.memo-area').value
-        });
-    }
-
-    // Firebaseへ保存
-    const success = await window.savePartyToFirebase(slot, data);
-    if (success) {
-        // セレクトボックスの表示を更新
-        const select = document.getElementById('saveSlot');
-        const option = select.options[select.selectedIndex];
-        option.textContent = `${slot}: ${partyName}`;
-        alert("クラウドに保存完了しました！");
-    }
+// CanvasContextにroundRectがない場合のポリフィル
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+        if (typeof r === 'number') r = [r, r, r, r];
+        const [tl, tr, br, bl] = r;
+        this.moveTo(x + tl, y);
+        this.lineTo(x + w - tr, y);
+        this.quadraticCurveTo(x + w, y, x + w, y + tr);
+        this.lineTo(x + w, y + h - br);
+        this.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
+        this.lineTo(x + bl, y + h);
+        this.quadraticCurveTo(x, y + h, x, y + h - bl);
+        this.lineTo(x, y + tl);
+        this.quadraticCurveTo(x, y, x + tl, y);
+        this.closePath();
+        return this;
+    };
 }
-
-// 読込処理
-async function loadParty() {
-    const slot = document.getElementById('saveSlot').value;
-    const data = await window.loadPartyFromFirebase(slot);
-    
-    if (!data) return alert("データがありません");
-
-    document.getElementById('partyName').value = data.name || "";
-    document.getElementById('partyMemo').value = data.partyMemo || "";
-    data.members.forEach((m, i) => {
-        const c = document.getElementById(`pokemon-${i}`);
-        if (!c) return;
-        const spInp = c.querySelector('.sp-input');
-        spInp.value = m.spName || "";
-        spInp.dataset.selectedId = m.spId || "";
-        const speciesObj = db.species.find(s => s.id === m.spId);
-        if (speciesObj) updateSpecies(i, speciesObj.data);
-        c.querySelector('.item-input').value = m.itName || "";
-        c.querySelector('.item-input').dataset.selectedId = m.itId || "";
-        c.querySelector('.nature-select').value = m.nt || "まじめ";
-        c.querySelectorAll('.ev-input').forEach((el, j) => { el.value = m.ev[j] || 0; validateEV(el, i); });
-        c.querySelector('.ability-select').value = m.ab || "";
-        c.querySelectorAll('.move-input').forEach((el, j) => {
-            el.value = m.mv[j]?.name || "";
-            el.dataset.selectedId = m.mv[j]?.id || "";
-            const foundMove = db.moves.find(mv => mv.name === el.value);
-            updateMoveColor(el, foundMove ? foundMove.type : "");
-        });
-        c.querySelector('.memo-area').value = m.memo || "";
-    });
-}
-
-// 削除処理
-async function deleteParty() {
-    const slot = document.getElementById('saveSlot').value;
-    if (confirm(`スロット ${slot} のデータを削除しますか？`)) {
-        const success = await window.deletePartyFromFirebase(slot);
-        if (success) {
-            setupSaveSlots();
-            alert("削除しました");
-        }
-    }
-}
-
 async function exportPartyImage() {
     // 1. 生成を開始した瞬間の最新UI情報を取得
     const partyName = document.getElementById('partyName').value || "無題のパーティ";
@@ -1175,8 +1084,7 @@ document.addEventListener('click', function(event) {
         if (menu) menu.classList.remove('open');
     }
 });
-
-// 圧縮してURL形式で書き出す
+// 修正後
 function exportPartyCode() {
     const partyData = {
         n: document.getElementById('partyName').value,
@@ -1188,29 +1096,40 @@ function exportPartyCode() {
         const card = document.getElementById(`pokemon-${i}`);
         const spInp = card.querySelector('.sp-input');
         partyData.p.push({
-            id: spInp.dataset.selectedId,
-            nm: spInp.value,
-            it: card.querySelector('.item-input').value,
-            ab: card.querySelector('.ability-select').value,
-            nt: card.querySelector('.nature-select').value,
+            id: spInp.dataset.selectedId || "",
+            nm: spInp.value || "",
+            it: card.querySelector('.item-input').value || "",
+            ab: card.querySelector('.ability-select').value || "",
+            nt: card.querySelector('.nature-select').value || "まじめ",
             ev: Array.from(card.querySelectorAll('.ev-input')).map(el => parseInt(el.value || 0)),
-            mv: Array.from(card.querySelectorAll('.move-input')).map(el => el.value),
-            mo: card.querySelector('.memo-area').value
+            mv: Array.from(card.querySelectorAll('.move-input')).map(el => el.value || ""),
+            mo: card.querySelector('.memo-area').value || ""
         });
     }
 
     const jsonStr = JSON.stringify(partyData);
     const compressed = pako.deflate(jsonStr);
-    const base64 = btoa(String.fromCharCode.apply(null, compressed))
+    
+    // Safariでのスタック溢れを防止するためのループ処理によるBase64変換
+    let binary = '';
+    const len = compressed.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(compressed[i]);
+    }
+    const base64 = btoa(binary)
         .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
-    // ★URLを作成
     const shareUrl = window.location.origin + window.location.pathname + "?party=" + base64;
     
-    // クリップボードにURLをコピー
-    navigator.clipboard.writeText(shareUrl).then(() => {
-        alert("共有用URLをコピーしました！そのままSNSなどに貼り付けられます。\n(文字数: " + shareUrl.length + ")");
-    });
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            alert("共有用URLをコピーしました！\n(文字数: " + shareUrl.length + ")");
+        }).catch(() => {
+            prompt("以下のURLをコピーしてください:", shareUrl);
+        });
+    } else {
+        prompt("以下のURLをコピーしてください:", shareUrl);
+    }
 }
 
 function saveParty() {
