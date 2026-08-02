@@ -547,8 +547,13 @@ if (foundItem) itemInput.dataset.selectedId = foundItem.id;
 // CanvasContextにroundRectがない場合のポリフィル
 if (!CanvasRenderingContext2D.prototype.roundRect) {
     CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+        if (typeof r === 'undefined') r = 0;
         if (typeof r === 'number') r = [r, r, r, r];
-        const [tl, tr, br, bl] = r;
+        const tl = r[0] || 0;
+        const tr = r[1] || 0;
+        const br = r[2] || 0;
+        const bl = r[3] || 0;
+
         this.moveTo(x + tl, y);
         this.lineTo(x + w - tr, y);
         this.quadraticCurveTo(x + w, y, x + w, y + tr);
@@ -670,9 +675,15 @@ async function exportPartyImage() {
             // --- アイコン描画（サイズ指定 64px / 32px） ---
             const loadImage = (src) => new Promise(res => {
                 const img = new Image();
-                img.crossOrigin = "anonymous";
+                // 同一ドメインからの読み込みでSafariのCORSエラーを防ぐ
+                if (!src.startsWith('data:')) {
+                    img.crossOrigin = "anonymous";
+                }
                 img.onload = () => res(img);
-                img.onerror = () => res(null);
+                img.onerror = (e) => {
+                    console.warn("画像の読み込みに失敗:", src);
+                    res(null); // エラーが起きても止めずに続行
+                };
                 img.src = `${src}?t=${new Date().getTime()}`;
             });
 
@@ -709,11 +720,36 @@ async function exportPartyImage() {
         renderFullMemo(ctx, baseHeight, baseWidth, memoPadding, memoLines, memoFontSize, memoLineHeight);
     }
 
-    // 保存
-    const link = document.createElement('a');
-    link.download = `${partyName}_${new Date().getTime()}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+    // Safari (iOS) 対策を含めた保存・表示処理
+    const dataUrl = canvas.toDataURL('image/png');
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+
+    if (isSafari || isIOS) {
+        // Safari/iOSの場合は新しいタブで画像を開いて長押し保存させる
+        const newWindow = window.open('');
+        if (newWindow) {
+            newWindow.document.write(`
+                <html>
+                    <head><title>構築画像</title></head>
+                    <body style="margin:0; text-align:center; background:#f8f9fa; padding:20px;">
+                        <p style="font-size:16px; font-weight:bold; color:#333; margin-bottom:15px;">
+                            画像を長押し（または右クリック）して保存してください
+                        </p>
+                        <img src="${dataUrl}" style="max-width:100%; height:auto; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.15);" />
+                    </body>
+                </html>
+            `);
+        } else {
+            alert("ポップアップがブロックされました。ブラウザの設定でポップアップを許可してください。");
+        }
+    } else {
+        // PCやAndroid Chrome等の場合はそのままダウンロード
+        const link = document.createElement('a');
+        link.download = `${partyName}_${new Date().getTime()}.png`;
+        link.href = dataUrl;
+        link.click();
+    }
 }
 
 // 描画補助関数（コードをスッキリさせるため）
