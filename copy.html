@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="
+default-src 'self';
+script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com https://www.googletagmanager.com;
+style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+font-src 'self' https://fonts.gstatic.com;
+img-src 'self' data: https://www.gstatic.com https://www.google-analytics.com;
+connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com https://www.google-analytics.com;
+frame-src https://sharte-tool-management.firebaseapp.com;
+manifest-src 'self';
+">
+<link rel="manifest" href="manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      // 画面を開くたびに最新のsw.jsがあるかチェックしてキャッシュ更新を促す
+      reg.update();
+    });
+  }
+</script>
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GHCLZB8YK0"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-GHCLZB8YK0');
+</script>
+    <title>ポケモン パーティ構築メモ(シーテャkids)</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="シーテャkids">
+    <link rel="apple-touch-icon" href="Aicon.png">
+    <link rel="icon" href="icon.png" type="image/png">
+    <style>
+        /* ハンバーガーメニュー */
+        .hamburger-menu { position: fixed; top: 1px; left: 1px; z-index: 10000; }
+        .hamburger-btn {
+            width: 50px; height: 50px; background: #007bff; border: none; border-radius: 4px;
+            cursor: pointer; display: flex; flex-direction: column; justify-content: center;
+            align-items: center; gap: 6px; padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .hamburger-btn.active span:nth-child(1) { transform: rotate(45deg) translate(8px, 8px); }
+        .hamburger-btn.active span:nth-child(2) { opacity: 0; }
+        .hamburger-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(7px, -7px); }
+        /* --- ハンバーガーメニュー追加分 --- */
+.hamburger-btn span { width: 25px; height: 3px; background: white; display: block; border-radius: 2px; transition: all 0.3s ease; }
+
+.nav-menu {
+    position: fixed; top: 0; left: -250px; width: 250px; height: 100%;
+    background: white; transition: 0.3s; box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    display: flex; flex-direction: column; padding-top: 100px; z-index: 9999;
+}
+.nav-menu.open { left: 0; display: flex; } /* スライドして表示 */
+
+.nav-link {
+    padding: 18px 25px; text-decoration: none; color: #333; border-bottom: 1px solid #eee;
+    font-size: 1.1rem; font-weight: bold; transition: background 0.2s;
+}
+.nav-link:hover { background-color: #f0f7ff; color: #007bff; }
+
+/* 画面が広い時にメニューボタンとコンテンツが被らないように調整 */
+@media screen and (min-width: 600px) {
+    .container { padding-left: 80px; }
+}
+        
+        :root { --primary: #007bff; --bg: #f8f9fa; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; font-size: 14px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        /* コントロールエリア（スマホでボタンが崩れないよう修正） */
+        .party-controls { 
+            background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-wrap: wrap; align-items: center; gap: 10px; 
+        }
+        .party-controls h2 { width: 100%; margin: 0 0 5px 0; font-size: 18px; }
+
+        /* モバイルファースト：基本を2列にする */
+.party-grid { 
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); /* スマホで2列 */
+    gap: 10px; /* 隙間を少し狭くして画面に収まりやすくする */
+}
+
+/* 非常に画面が狭い（350px以下など）場合は1列に落とす（任意） */
+@media (max-width: 380px) {
+    .party-grid { grid-template-columns: 1fr; }
+}
+
+/* PCなどの広い画面では3列にする */
+@media (min-width: 900px) {
+    .party-grid { 
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 15px;
+    }
+}
+
+/* カード内の要素も2列時に崩れないよう調整 */
+.pokemon-card { 
+    padding: 10px; /* 余白を少し削る */
+}
+
+/* 入力欄が重ならないよう調整 */
+.stat-table th, .stat-table td {
+    padding: 4px 2px;
+    font-size: 12px;
+}
+.ev-input {
+    width: 40px !important; /* 少し細くする */
+}
+
+        .pokemon-card { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        input, select, textarea { font-size: 16px !important; }
+        .search-container { position: relative; width: 100%; }
+        .search-input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .suggestion-list { 
+            position: absolute; width: 100%; max-height: 200px; overflow-y: auto; 
+            background: white; border: 1px solid #ddd; z-index: 1000; display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .suggestion-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+
+        .stat-table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+        .stat-table th, .stat-table td { padding: 6px 4px; border-bottom: 1px solid #eee; text-align: center; }
+        .ev-input, .iv-input { width: 50px !important; height: 35px; text-align: center; border: 1px solid #ccc; border-radius: 3px; }
+        .total-display { font-weight: bold; min-width: 60px; display: inline-block; }
+        .ev-counter { font-size: 12px; color: #666; text-align: right; margin-bottom: 10px; }
+        .ev-over { color: red; font-weight: bold; }
+        .nature-up { color: #d9534f; }
+        .nature-down { color: #0275d8; }
+        
+        .memo-area { width: 100%; height: 80px; margin-top: 10px; padding: 8px; border: 1px solid #eee; border-radius: 4px; resize: none; box-sizing: border-box; background: #fffdf0; }
+        button { padding: 10px 15px; cursor: pointer; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; }
+
+        /* 技のタイプ別背景色 */
+        .type-normal { background-color: #A8A878 !important; color: white; }
+        .type-fire { background-color: #F08030 !important; color: white; }
+        .type-water { background-color: #6890F0 !important; color: white; }
+        .type-electric { background-color: #F8D030 !important; color: black; }
+        .type-grass { background-color: #78C850 !important; color: white; }
+        .type-ice { background-color: #98D8D8 !important; color: black; }
+        .type-fighting { background-color: #C03028 !important; color: white; }
+        .type-poison { background-color: #A040A0 !important; color: white; }
+        .type-ground { background-color: #E0C068 !important; color: white; }
+        .type-flying { background-color: #A890F0 !important; color: white; }
+        .type-psychic { background-color: #F85888 !important; color: white; }
+        .type-bug { background-color: #A8B820 !important; color: white; }
+        .type-rock { background-color: #B8A038 !important; color: white; }
+        .type-ghost { background-color: #705898 !important; color: white; }
+        .type-dragon { background-color: #7038F8 !important; color: white; }
+        .type-dark { background-color: #705848 !important; color: white; }
+        .type-steel { background-color: #B8B8D0 !important; color: black; }
+        .type-fairy { background-color: #EE99AC !important; color: white; }
+    </style>
+</head>
+<body>
+
+<div id="hamburgerMenu" class="hamburger-menu">
+    <div class="hamburger-btn" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+    </div>
+    <nav id="navMenu" class="nav-menu">
+        <a href="party_memo.html" class="nav-link">📋 構築メモ</a>
+        <a href="test.html" class="nav-link">⚡ ダメージ計算</a>
+        <a href="kasouteki.html" class="nav-link">🎯 仮想敵リスト</a>
+    </nav>
+</div>
+
+<div class="container">
+   <div class="party-controls">
+    <h2>　　　構築メモ(シーテャkids)</h2>
+    <input type="text" id="partyName" placeholder="パーティ名" style="flex: 1; min-width: 150px; padding:8px; border:1px solid #ccc; border-radius:4px;">
+    <select id="saveSlot" style="width: 110px;"></select>
+    <button onclick="saveParty()">保存</button>
+    <button onclick="loadParty()">読込</button>
+    <button onclick="deleteParty()">削除</button>
+    <button onclick="openNewWindow('test.html')" style="background: #17a2b8;">プチダメ計</button>
+    <button onclick="exportPartyImage()" style="background: #28a745;">画像として保存</button>
+    <button onclick="exportPartyCode()" style="background: #6f42c1;">URLをコピー</button>
+</div>
+    <div id="partyGrid" class="party-grid"></div>
+        <textarea id="partyMemo" placeholder="パーティ全体のメモ（苦手なポケモン、選出パターンなど）" 
+              style="width: 100%; height: 60px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; resize: vertical;"></textarea>
+</div>
+
+<script>
+const MAX_TOTAL_EV = 66;
+const MAX_SINGLE_EV = 32;
+
+const NATURES = {
+    "さみしがり": {up:1, down:2}, "いじっぱり": {up:1, down:3}, "やんちゃ": {up:1, down:4}, "ゆうかん": {up:1, down:5},
+    "ずぶとい": {up:2, down:1}, "わんぱく": {up:2, down:3}, "のうてんき": {up:2, down:4}, "のんき": {up:2, down:5},
+    "ひかえめ": {up:3, down:1}, "おっとり": {up:3, down:2}, "うっかりや": {up:3, down:4}, "れいせい": {up:3, down:5},
+    "おだやか": {up:4, down:1}, "おとなしい": {up:4, down:2}, "しんちょう": {up:4, down:3}, "なまいき": {up:4, down:5},
+    "おくびょう": {up:5, down:1}, "せっかち": {up:5, down:2}, "ようき": {up:5, down:3}, "むじゃき": {up:5, down:4},
+    "まじめ": {up:0, down:0}
+};
+
+// メガシンカ名から石を特定するための逆引き
+const MEGA_STONE_MAP = {
+    "メガリザードンX": "リザードナイトX",
+    "メガリザードンY": "リザードナイトY",
+    "メガフシギバナ": "フシギバナイト",
+    "メガカメックス": "カメックスナイト",
+    "メガスピアー": "スピアナイト",
+    "メガピジョット": "ピジョットナイト",
+    "メガライチュウX": "ライチュウナイトX",
+    "メガライチュウY": "ライチュウナイトY",
+    "メガピクシー": "ピクシナイト",
+    "メガフーディン": "フーディナイト",
+    "メガウツボット": "ウツボットナイト",
+    "メガヤドラン": "ヤドランナイト",
+    "メガゲンガー": "ゲンガナイト",
+    "メガガルーラ": "ガルーラナイト",
+    "メガスターミー": "スターミナイト",
+    "メガカイロス": "カイロスナイト",
+    "メガギャラドス": "ギャラドスナイト",
+    "メガプテラ": "プテラナイト",
+    "メガカイリュー": "カイリュナイト",
+    "メガミュウツーX": "ミュウツナイトX",
+    "メガミュウツーY": "ミュウツナイトY",
+    "メガメガニウム": "メガニウムナイト",
+    "メガオーダイル": "オーダイルナイト",
+    "メガデンリュウ": "デンリュウナイト",
+    "メガハガネール": "ハガネールナイト",
+    "メガハッサム": "ハッサムナイト",
+    "メガヘラクロス": "ヘラクロスナイト",
+    "メガエアームド": "エアームドナイト",
+    "メガヘルガー": "ヘルガナイト",
+    "メガバンギラス": "バンギラスナイト",
+    "メガジュカイン": "ジュカインナイト",
+    "メガバシャーモ": "バシャーモナイト",
+    "メガラグラージ": "ラグラージナイト",
+    "メガサーナイト": "サーナイトナイト",
+    "メガヤミラミ": "ヤミラミナイト",
+    "メガクチート": "クチートナイト",
+    "メガボスゴドラ": "ボスゴドラナイト",
+    "メガチャーレム": "チャーレムナイト",
+    "メガライボルト": "ライボルトナイト",
+    "メガサメハダー": "サメハダナイト",
+    "メガバクーダ": "バクーダナイト",
+    "メガチルタリス": "チルタリスナイト",
+    "メガジュペッタ": "ジュペッタナイト",
+    "メガチリーン": "チリーンナイト",
+    "メガアブソル": "アブソルナイト",
+    "メガアブソルZ": "アブソルナイトZ",
+    "メガオニゴーリ": "オニゴーリナイト",
+    "メガボーマンダ": "ボーマンダナイト",
+    "メガメタグロス": "メタグロナイト",
+    "メガラティアス": "ラティアスナイト",
+    "メガラティオス": "ラティオスナイト",
+    "メガムクホーク": "ムクホークナイト",
+    "メガミミロップ": "ミミロップナイト",
+    "メガガブリアス": "ガブリアスナイト",
+    "メガガブリアスZ": "ガブリアスナイトZ",
+    "メガルカリオ": "ルカリオナイト",
+    "メガルカリオZ": "ルカリオナイトZ",
+    "メガユキノオー": "ユキノオナイト",
+    "メガエルレイド": "エルレイドナイト",
+    "メガユキメノコ": "ユキメノコナイト",
+    "メガヒードラン": "ヒードラナイト",
+    "メガダークライ": "ダークライナイト",
+    "メガエンブオー": "エンブオナイト",
+    "メガドリュウズ": "ドリュウズナイト",
+    "メガタブンネ": "タブンネナイト",
+    "メガペンドラー": "ペンドラナイト",
+    "メガズルズキン": "ズルズキナイト",
+    "メガシビルドン": "シビルドナイト",
+    "メガシャンデラ": "シャンデラナイト",
+    "メガゴルーグ": "ゴルーグナイト",
+    "メガブリガロン": "ブリガロナイト",
+    "メガマフォクシー": "マフォクシナイト",
+    "メガゲッコウガ": "ゲッコウガナイト",
+    "メガカエンジシ": "カエンジシナイト",
+    "メガフラエッテ": "フラエッテナイト",
+    "メガニャオニクス": "ニャオニクスナイト",
+    "メガカラマネロ": "カラマネナイト",
+    "メガガメノデス": "ガメノデスナイト",
+    "メガドラミドロ": "ドラミドナイト",
+    "メガルチャブル": "ルチャブルナイト",
+    "メガジガルデ": "ジガルデナイト",
+    "メガディアンシー": "ディアンシナイト",
+    "メガケケンカニ": "ケケンカニナイト",
+    "メガグソクムシャ": "グソクムシャナイト",
+    "メガジジーロン": "ジジーロナイト",
+    "メガマギアナ": "マギアナイト",
+    "メガゼラオラ": "ゼラオラナイト",
+    "メガタイレーツ": "タイレーツナイト",
+    "メガスコヴィラン": "スコヴィラナイト",
+    "メガキラフロル": "キラフロルナイト",
+    "メガシャリタツ": "シャリタツナイト",
+    "メガセグレイブ": "セグレイブナイト",
+    "ゲンシグラードン": "べにいろのたま",
+    "ゲンシカイオーガ": "あいいろのたま",
+    "ディアルガ(オリジン)": "だいこんごうだま",
+    "パルキア(オリジン)": "だいしらたま",
+    "ギラティナ(オリジン)": "だいはっきんだま",
+    "ウルトラネクロズマ": "ウルトラネクロZ",
+    "ザシアン(王)": "くちたけん",
+    "ザマゼンタ(王)": "くちたたて",
+    "オーガポン(かまど)": "かまどのめん",
+    "オーガポン(いど)": "いどのめん",
+    "オーガポン(いしずえ)": "いしずえのめん",
+    "アルセウス(ほのお)": "ひのたまプレート",
+    "アルセウス(みず)": "しずくプレート",
+    "アルセウス(くさ)": "みどりのプレート",
+    "アルセウス(でんき)": "いかずちプレート",
+    "アルセウス(こおり)": "つららのプレート",
+    "アルセウス(かくとう)": "こぶしのプレート",
+    "アルセウス(どく)": "もうどくプレート",
+    "アルセウス(じめん)": "だいちのプレート",
+    "アルセウス(ひこう)": "あおぞらプレート",
+    "アルセウス(エスパー)": "ふしぎのプレート",
+    "アルセウス(むし)": "たまむしプレート",
+    "アルセウス(いわ)": "がんせきプレート",
+    "アルセウス(ゴースト)": "もののけプレート",
+    "アルセウス(ドラゴン)": "りゅうのプレート",
+    "アルセウス(あく)": "こわもてプレート",
+    "アルセウス(はがね)": "こうてつプレート",
+    "アルセウス(フェアリー)": "せいれいプレート",
+    "シルヴァディ(ほのお)": "ファイヤーメモリ",
+    "シルヴァディ(みず)": "ウオーターメモリ",
+    "シルヴァディ(くさ)": "グラスメモリ",
+    "シルヴァディ(でんき)": "エレクトロメモリ",
+    "シルヴァディ(こおり)": "アイスメモリ",
+    "シルヴァディ(かくとう)": "ファイトメモリ",
+    "シルヴァディ(どく)": "ポイズンメモリ",
+    "シルヴァディ(じめん)": "グラウンドメモリ",
+    "シルヴァディ(ひこう)": "フライングメモリ",
+    "シルヴァディ(エスパー)": "サイキックメモリ",
+    "シルヴァディ(むし)": "バグメモリ",
+    "シルヴァディ(いわ)": "ロックメモリ",
+    "シルヴァディ(ゴースト)": "ゴーストメモリ",
+    "シルヴァディ(ドラゴン)": "ドラゴンメモリ",
+    "シルヴァディ(あく)": "ダークメモリ",
+    "シルヴァディ(はがね)": " スチルメモリ",
+    "シルヴァディ(フェアリー)": "フェアリーメモリ"
+
+};
+
+let db = { species: [], items: [], moves: [], abilities: {} };
+let currentForms = [0, 0, 0, 0, 0, 0];
+
+function toggleMenu() {
+    document.querySelector('.hamburger-btn').classList.toggle('active');
+    document.getElementById('navMenu').classList.toggle('open');
+}
+
+async function init() {
+    try {
+        const fetchText = async (url) => {
+            const r = await fetch(url);
+            if (!r.ok) throw new Error(`${url} not found`);
+            let t = await r.text();
+            return JSON.parse(t.replace(/[\x00-\x1F\x7F]/g, "")); 
+        };
+
+        const [sp, mv, it, ab] = await Promise.all([
+            fetchText('species_db_named2.json'),
+            fetchText('moves_extracted2.json'),
+            fetchText('items.json'),
+            fetchText('abilities_db.json')
+        ]);
+
+        db.species = Object.keys(sp).map(k => ({ id: k, name: sp[k].Name, data: sp[k] }));
+        db.moves = mv.map(m => ({ id: m.ID, name: m.Name, type: m.Type }));
+        db.items = it.items.map(i => ({ id: i.id, name: i.name }));
+        db.abilities = ab || {};
+
+        setupSaveSlots();
+        createPartyUI(); // UI作成を最後にする
+    // ★ここを追加：URLにパーティデータがあるか確認
+        const urlParams = new URLSearchParams(window.location.search);
+        const partyCode = urlParams.get('party');
+        if (partyCode) {
+            // 少し遅らせて確実にUIが出来てから読み込む
+            setTimeout(() => {
+                importPartyFromCode(partyCode);
+            }, 500);
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+// 修正後
+function importPartyFromCode(code) {
+    try {
+        const decoded = code.replace(/-/g, '+').replace(/_/g, '/');
+        const str = atob(decoded);
+        
+        // Safariでも安定して動作する Uint8Array の生成方法に変更
+        const len = str.length;
+        const charData = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            charData[i] = str.charCodeAt(i);
+        }
+
+        // pakoの解凍（文字列への変換を安全に行う）
+        const decompressed = pako.inflate(charData, { to: 'string' });
+        const data = JSON.parse(decompressed);
+
+        // --- 以下、反映処理 ---
+        document.getElementById('partyName').value = data.n || "";
+        document.getElementById('partyMemo').value = data.m || "";
+        data.p.forEach((m, i) => {
+            const card = document.getElementById(`pokemon-${i}`);
+            if (!card) return;
+            const spInp = card.querySelector('.sp-input');
+            spInp.value = m.nm || "";
+            spInp.dataset.selectedId = m.id || "";
+            
+            const speciesObj = db.species.find(s => s.id === m.id);
+if (speciesObj) {
+    updateSpecies(i, speciesObj.data);
+}
+// 持ち物IDの自動復元を追加
+const itemInput = card.querySelector('.item-input');
+itemInput.value = m.it || "";
+const foundItem = db.items.find(it => it.name === m.it);
+if (foundItem) itemInput.dataset.selectedId = foundItem.id;
+
+            //card.querySelector('.item-input').value = m.it || "";
+            card.querySelector('.ability-select').value = m.ab || "";
+            card.querySelector('.nature-select').value = m.nt || "まじめ";
+            card.querySelectorAll('.ev-input').forEach((el, j) => {
+                el.value = (m.ev && m.ev[j] !== undefined) ? m.ev[j] : 0;
+                validateEV(el, i);
+            });
+            card.querySelectorAll('.move-input').forEach((el, j) => {
+                el.value = (m.mv && m.mv[j]) ? m.mv[j] : "";
+                const found = db.moves.find(mv => mv.name === el.value);
+                updateMoveColor(el, found ? found.type : "");
+            });
+            card.querySelector('.memo-area').value = m.mo || "";
+        });
+        console.log("URLからの読み込みに成功しました");
+    } catch (e) {
+        console.error("URLコード解析エラー:", e);
+    }
+}
+// CanvasContextにroundRectがない場合のポリフィル
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+        if (typeof r === 'number') r = [r, r, r, r];
+        const [tl, tr, br, bl] = r;
+        this.moveTo(x + tl, y);
+        this.lineTo(x + w - tr, y);
+        this.quadraticCurveTo(x + w, y, x + w, y + tr);
+        this.lineTo(x + w, y + h - br);
+        this.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
+        this.lineTo(x + bl, y + h);
+        this.quadraticCurveTo(x, y + h, x, y + h - bl);
+        this.lineTo(x, y + tl);
+        this.quadraticCurveTo(x, y, x + tl, y);
+        this.closePath();
+        return this;
+    };
+}
+async function exportPartyImage() {
+    // 1. 生成を開始した瞬間の最新UI情報を取得
+    const partyName = document.getElementById('partyName').value || "無題のパーティ";
+    const fullMemo = document.getElementById('partyMemo').value || "";
+    const cards = document.querySelectorAll('.pokemon-card');
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    const baseWidth = 1250;
+    const baseHeight = 900;
+    let extraHeight = 0;
+
+    // --- メモの高さ計算 ---
+    const memoFontSize = 20;
+    const memoLineHeight = 28;
+    const memoPadding = 40;
+    const memoMaxWidth = baseWidth - (memoPadding * 2);
+    let memoLines = [];
+
+    if (fullMemo) {
+        ctx.font = `${memoFontSize}px sans-serif`;
+        const rawLines = fullMemo.split('\n');
+        rawLines.forEach(line => {
+            let currentLine = "";
+            for (let char of line) {
+                let testLine = currentLine + char;
+                if (ctx.measureText(testLine).width > memoMaxWidth) {
+                    memoLines.push(currentLine);
+                    currentLine = char;
+                } else { currentLine = testLine; }
+            }
+            memoLines.push(currentLine);
+        });
+        extraHeight = (memoLines.length * memoLineHeight) + 100; 
+    }
+
+    canvas.width = baseWidth;
+    canvas.height = baseHeight + extraHeight;
+    
+    // 背景初期化
+    ctx.fillStyle = "#f8f9fa";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // タイトル
+    ctx.fillStyle = "#333";
+    ctx.font = "bold 32px sans-serif";
+    ctx.fillText(`構築メモ: ${partyName}`, 40, 60);
+
+    const typeColors = {
+        normal: '#A8A878', fire: '#F08030', water: '#6890F0', electric: '#F8D030',
+        grass: '#78C850', ice: '#98D8D8', fighting: '#C03028', poison: '#A040A0',
+        ground: '#E0C068', flying: '#A890F0', psychic: '#F85888', bug: '#A8B820',
+        rock: '#B8A038', ghost: '#705898', dragon: '#7038F8', dark: '#705848',
+        steel: '#B8B8D0', fairy: '#EE99AC'
+    };
+
+    const drawTasks = [];
+
+    for (let i = 0; i < 6; i++) {
+        const card = cards[i];
+        if (!card) continue;
+
+        const x = (i % 3) * 400 + 40;
+        const y = Math.floor(i / 3) * 380 + 100;
+
+        // UIデータのスナップショット取得
+        const pokemonName = card.querySelector('.sp-input').value || "???";
+        const spId = card.querySelector('.sp-input').dataset.selectedId;
+        const itemInput = card.querySelector('.item-input');
+        const itemName = itemInput.value || "なし";
+        const itemId = itemInput.dataset.selectedId;
+        const abValue = card.querySelector('.ability-select').value;
+        const abilityName = db.abilities[abValue]?.name || abValue || "---";
+        const natureName = card.querySelector('.nature-select').value;
+        const nature = NATURES[natureName] || {up:0, down:0};
+        const statsTotals = Array.from(card.querySelectorAll('.total-display')).map(el => el.textContent);
+        const statsEVs = Array.from(card.querySelectorAll('.ev-input')).map(el => el.value);
+        const movesData = Array.from(card.querySelectorAll('.move-input')).map(input => {
+            const found = db.moves.find(m => m.name === input.value);
+            return { name: input.value, type: found ? found.type : "" };
+        });
+        const personalMemo = card.querySelector('.memo-area').value || "";
+
+        const task = (async () => {
+            // 外枠
+            ctx.fillStyle = "#fff";
+            ctx.beginPath();
+            ctx.roundRect(x, y, 380, 360, 10);
+            ctx.fill();
+            ctx.strokeStyle = "#ddd";
+            ctx.stroke();
+
+            // 基本テキスト描画
+            ctx.fillStyle = "#000";
+            ctx.font = "bold 22px sans-serif";
+            ctx.fillText(pokemonName, x + 110, y + 40);
+            ctx.font = "14px sans-serif";
+            ctx.fillStyle = "#555";
+            ctx.fillText(`特性: ${abilityName}`, x + 110, y + 65);
+            ctx.fillText(`もちもの: ${itemName}`, x + 110, y + 90);
+
+            // ステータス・技・個別メモの描画（省略せず一括実行）
+            drawStatsAndMoves(ctx, x, y, labels = ['H','A','B','C','D','S'], nature, statsTotals, statsEVs, movesData, typeColors, personalMemo);
+
+            // --- アイコン描画（サイズ指定 64px / 32px） ---
+            const loadImage = (src) => new Promise(res => {
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = () => res(img);
+                img.onerror = () => res(null);
+                img.src = `${src}?t=${new Date().getTime()}`;
+            });
+
+            const pokemonIconSize = 64;
+            const itemIconSize = 32;
+            const px = x + 10;
+            const py = y + 10;
+
+            if (spId) {
+                const icon = await loadImage(`Icons/${spId.charAt(0).toUpperCase()}/${spId.toUpperCase()}.png`);
+                if (icon) {
+                    ctx.drawImage(icon, 0, 0, 64, 64, px, py, pokemonIconSize, pokemonIconSize);
+                }
+            }
+
+            if (itemId && itemId !== "none") {
+                const itemIcon = await loadImage(`Items/${itemId}.png`);
+                if (itemIcon) {
+                    // 元のコードの重なり計算: 右下に少しはみ出すオフセット
+                    const overlapOffset = 8;
+                    const ix = px + pokemonIconSize - itemIconSize + overlapOffset;
+                    const iy = py + pokemonIconSize - itemIconSize + overlapOffset;
+                    ctx.drawImage(itemIcon, ix, iy, itemIconSize, itemIconSize);
+                }
+            }
+        })();
+        drawTasks.push(task);
+    }
+
+    await Promise.all(drawTasks);
+
+    // パーティ全体メモ描画
+    if (memoLines.length > 0) {
+        renderFullMemo(ctx, baseHeight, baseWidth, memoPadding, memoLines, memoFontSize, memoLineHeight);
+    }
+
+    // 保存
+    const link = document.createElement('a');
+    link.download = `${partyName}_${new Date().getTime()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+}
+
+// 描画補助関数（コードをスッキリさせるため）
+function drawStatsAndMoves(ctx, x, y, labels, nature, statsTotals, statsEVs, movesData, typeColors, personalMemo) {
+    labels.forEach((label, j) => {
+        const rowY = y + 105 + (j * 26);
+        ctx.fillStyle = "#666";
+        ctx.font = "14px monospace";
+        ctx.fillText(label, x + 20, rowY);
+        let statColor = "#000";
+        if (j !== 0) {
+            if (nature.up === j) statColor = "#d9534f";
+            if (nature.down === j) statColor = "#0275d8";
+        }
+        ctx.fillStyle = statColor;
+        ctx.font = "bold 17px monospace";
+        ctx.fillText(statsTotals[j].padStart(3, ' '), x + 45, rowY);
+        if (parseInt(statsEVs[j]) > 0) {
+            ctx.fillStyle = "#28a745";
+            ctx.font = "11px sans-serif";
+            ctx.fillText(`(+${statsEVs[j]})`, x + 85, rowY);
+        }
+    });
+
+    movesData.forEach((mv, j) => {
+        const mY = y + 105 + (j * 38);
+        const mX = x + 165;
+        ctx.fillStyle = mv.type ? typeColors[mv.type.toLowerCase()] : "#eee";
+        ctx.beginPath();
+        ctx.roundRect(mX, mY, 195, 32, 4);
+        ctx.fill();
+        ctx.fillStyle = mv.type ? "#fff" : "#333";
+        ctx.font = "bold 14px sans-serif";
+        ctx.fillText(mv.name || "-", mX + 10, mY + 21);
+    });
+
+    if (personalMemo) {
+        ctx.fillStyle = "#444";
+        ctx.font = "12px sans-serif";
+        personalMemo.split('\n').slice(0, 4).forEach((line, idx) => {
+            ctx.fillText(line, x + 20, y + 285 + (idx * 16));
+        });
+    }
+}
+
+function renderFullMemo(ctx, baseHeight, baseWidth, memoPadding, memoLines, memoFontSize, memoLineHeight) {
+    const memoStartY = baseHeight;
+    ctx.fillStyle = "#6f42c1";
+    ctx.font = "bold 24px sans-serif";
+    ctx.fillText("備考欄・選出パターン等", memoPadding, memoStartY);
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.roundRect(memoPadding, memoStartY + 20, baseWidth - (memoPadding * 2), (memoLines.length * memoLineHeight) + 20, 8);
+    ctx.fill();
+    ctx.strokeStyle = "#6f42c1";
+    ctx.stroke();
+    ctx.fillStyle = "#333";
+    ctx.font = `${memoFontSize}px sans-serif`;
+    memoLines.forEach((line, idx) => {
+        ctx.fillText(line, memoPadding + 15, memoStartY + 55 + (idx * memoLineHeight));
+    });
+}
+
+function setupSaveSlots() {
+    const s = document.getElementById('saveSlot');
+    s.innerHTML = ''; // 初期化
+    for (let i = 1; i <= 50; i++) {
+        const o = document.createElement('option');
+        o.value = i;
+        
+        // localStorageから該当スロットのデータをチェック
+        const storageKey = `p_slot_66_v3_${i}`;
+        const raw = localStorage.getItem(storageKey);
+        let displayName = `スロット ${i}`;
+        
+        if (raw) {
+            try {
+                const data = JSON.parse(raw);
+                if (data.name) {
+                    displayName = `${i}: ${data.name}`;
+                }
+            } catch (e) {
+                console.error(`Error parsing slot ${i}`, e);
+            }
+        }
+        
+        o.textContent = displayName;
+        s.appendChild(o);
+    }
+}
+
+function toKatakana(str) {
+    return str.replace(/[ぁ-ん]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60));
+}
+
+function updateMoveColor(input, type) {
+    // 全てのタイプクラスを一度削除
+    input.className = 'search-input move-input';
+    if (type) {
+        input.classList.add(`type-${type.toLowerCase()}`);
+    }
+}
+
+function setupSearchableInput(container, dataList, onSelectCallback) {
+    const input = container.querySelector('.search-input');
+    const list = container.querySelector('.suggestion-list');
+
+    input.addEventListener('input', () => {
+        const query = toKatakana(input.value.toLowerCase());
+        list.innerHTML = '';
+        if (!query) { 
+            list.style.display = 'none'; 
+            if(input.classList.contains('move-input')) updateMoveColor(input, "");
+            return; 
+        }
+        const filtered = dataList.filter(item => toKatakana(item.name).includes(query)).slice(0, 20);
+        if (filtered.length > 0) {
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.textContent = item.name;
+                div.onclick = () => {
+                    input.value = item.name;
+                    input.dataset.selectedId = item.id;
+                    list.style.display = 'none';
+                    if (onSelectCallback) onSelectCallback(item);
+                    if (input.classList.contains('move-input')) updateMoveColor(input, item.type);
+                };
+                list.appendChild(div);
+            });
+            list.style.display = 'block';
+        } else { list.style.display = 'none'; }
+    });
+    input.addEventListener('blur', () => {
+        setTimeout(() => {
+            list.style.display = 'none';
+            // 手動入力時も色を反映させる
+            if (input.classList.contains('move-input')) {
+                const found = dataList.find(m => m.name === input.value);
+                updateMoveColor(input, found ? found.type : "");
+            }
+        }, 200);
+    });
+}
+
+function createPartyUI() {
+    const grid = document.getElementById('partyGrid');
+    grid.innerHTML = '';
+    for (let i = 0; i < 6; i++) {
+        const card = document.createElement('div');
+        card.className = 'pokemon-card';
+        card.id = `pokemon-${i}`;
+        card.innerHTML = `
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div class="search-container">
+                    <input type="text" class="search-input sp-input" placeholder="ポケモン名">
+                    <div class="suggestion-list"></div>
+                </div>
+                <div class="search-container">
+                    <input type="text" class="search-input item-input" placeholder="持ち物">
+                    <div class="suggestion-list"></div>
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:5px;">
+                <select class="ability-select"><option value="">特性</option></select>
+                <select class="nature-select" onchange="calcStats(${i})">
+                    <option value="まじめ">性格(無補正)</option>
+                    ${Object.keys(NATURES).filter(n => n !== "まじめ").map(n => `<option value="${n}">${n}</option>`).join('')}
+                </select>
+            </div>
+            <table class="stat-table">
+                <thead><tr><th>能力</th><th>種族</th><th>努力</th><th>実数</th></tr></thead>
+                ${['HP','攻撃','防御','特攻','特防','素早'].map((label, j) => `
+                    <tr class="stats-row">
+                        <td style="font-size:11px; color:#666;">${label}</td>
+                        <td class="base-val">0</td>
+                        <td><input type="number" class="ev-input" value="0" min="0" max="32" inputmode="numeric" oninput="validateEV(this, ${i})"></td>
+                        <td class="total-display">0</td>
+                    </tr>`).join('')}
+            </table>
+            <div class="ev-counter">努力値合計: <span class="ev-sum">0</span> / 66</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                ${[1,2,3,4].map(() => `
+                    <div class="search-container">
+                        <input type="text" class="search-input move-input" placeholder="技">
+                        <div class="suggestion-list"></div>
+                    </div>`).join('')}
+            </div>
+            <textarea class="memo-area" placeholder="調整メモ..."></textarea>
+        `;
+        grid.appendChild(card);
+
+        setupSearchableInput(card.querySelector('.sp-input').parentNode, db.species, (item) => updateSpecies(i, item.data));
+        setupSearchableInput(card.querySelector('.item-input').parentNode, db.items);
+        card.querySelectorAll('.move-input').forEach(mvInput => setupSearchableInput(mvInput.parentNode, db.moves));
+
+        card.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('focus', function() { this.select(); });
+        });
+    }
+}
+
+function openNewWindow(url) {
+    // 画面幅が600px未満（スマホ想定）ならサイズ指定をしない
+    const isMobile = window.innerWidth < 600;
+
+    if (isMobile) {
+        // スマホは単純に新規タブで開く（ブラウザが全画面で綺麗に処理してくれます）
+        window.open(url, '_blank');
+    } else {
+        // PCは中央ポップアップ
+        const width = 800;
+        const height = 1000;
+        const left = (screen.width - width) / 2;
+        const top = (screen.height - height) / 2;
+
+        window.open(
+            url, 
+            '_blank', 
+            `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
+        );
+    }
+}
+
+function updateSpecies(idx, speciesData) {
+    const card = document.getElementById(`pokemon-${idx}`);
+    if (!card || !speciesData) return;
+
+    const name = speciesData.Name;
+    const itemInput = card.querySelector('.item-input');
+    
+    // 1. 専用アイテムの自動設定
+    if (typeof MEGA_STONE_MAP !== 'undefined' && MEGA_STONE_MAP[name]) {
+        const stoneName = MEGA_STONE_MAP[name];
+        itemInput.value = stoneName;
+        const itemObj = db.items.find(i => i.name === stoneName);
+        if (itemObj) itemInput.dataset.selectedId = itemObj.id;
+    }
+
+    // 2. 例外マッピング定義
+    // ※ db.species内の正確な名前に書き換えてください（例: カッコが全角か半角かなど）
+    const MEGA_EXCEPTIONS = {
+        "メガフラエッテ": "フラエッテ(えいえん)",
+        "メガニャオニクス": "ニャオニクス(オス)",
+        "メガジガルデ": "ジガルデ(パーフェクト)"
+    };
+
+    // 3. メガシンカ判定
+    const isMega = (name.startsWith("メガ") && !["メガヤンマ", "メガニウム"].includes(name)) || 
+                   !!MEGA_EXCEPTIONS[name];
+    
+    const container = card.querySelector('.sp-input').parentNode;
+    const oldBtn = container.querySelector('.mega-toggle-btn');
+    if (oldBtn) oldBtn.remove();
+
+    if (isMega) {
+        const btn = document.createElement('button');
+        btn.className = 'mega-toggle-btn';
+        btn.textContent = "メガシンカ前";
+        btn.dataset.mode = "mega";
+        btn.style.cssText = "width:100%; padding:4px; font-size:11px; margin-top:5px; background:#6c757d; color:white; border:none; border-radius:4px; cursor:pointer;";
+        
+        btn.onclick = (e) => {
+            e.preventDefault();
+            const isShowingMega = btn.dataset.mode === "mega";
+            
+            if (isShowingMega) {
+                // 例外テーブルにあるか確認、なければ正規表現で置換
+                const baseName = MEGA_EXCEPTIONS[name] || name.replace("メガ", "").replace(/X$|Y$|Z$/, "");
+                
+                // デバッグ用：名前が一致しているかコンソールで確認できるようにします
+                console.log("Searching for base species:", baseName);
+
+                const baseSpecies = db.species.find(s => s.name === baseName);
+                
+                if (baseSpecies) {
+                    applyStats(idx, baseSpecies.data);
+                    btn.dataset.mode = "normal";
+                    btn.textContent = "メガシンカ後へ";
+                } else {
+                    console.error("Base species not found in db.species:", baseName);
+                    // 見つからない場合、カッコの種類を変えて再試行するなどの処理が必要かもしれません
+                }
+            } else {
+                applyStats(idx, speciesData);
+                btn.dataset.mode = "mega";
+                btn.textContent = "メガシンカ前へ";
+            }
+        };
+        container.appendChild(btn);
+    }
+
+    applyStats(idx, speciesData);
+}
+
+function applyStats(idx, data) {
+    const card = document.getElementById(`pokemon-${idx}`);
+    const bases = [data.HP, data.Atk, data.Def, data.SpAtk, data.SpDef, data.Speed];
+    
+    card.querySelectorAll('.base-val').forEach((td, i) => {
+        td.textContent = bases[i] || 0;
+    });
+    
+    const abSelect = card.querySelector('.ability-select');
+    const abs = [...(data.Abilities || []), ...(data.HiddenAbilities || [])];
+    abSelect.innerHTML = abs.map(a => `<option value="${a}">${db.abilities[a]?.name || a}</option>`).join('');
+    
+    calcStats(idx);
+}
+
+function validateEV(input, idx) {
+    let val = parseInt(input.value);
+    if (val > MAX_SINGLE_EV) input.value = MAX_SINGLE_EV;
+    if (val < 0 || isNaN(val)) val = 0;
+    const card = document.getElementById(`pokemon-${idx}`);
+    const evs = [...card.querySelectorAll('.ev-input')];
+    let sum = evs.reduce((acc, cur) => acc + (parseInt(cur.value) || 0), 0);
+    const sumDisplay = card.querySelector('.ev-sum');
+    sumDisplay.textContent = sum;
+    sumDisplay.classList.toggle('ev-over', sum > MAX_TOTAL_EV);
+    calcStats(idx);
+}
+
+function calcStats(idx) {
+    const card = document.getElementById(`pokemon-${idx}`);
+    const nature = NATURES[card.querySelector('.nature-select').value] || NATURES["まじめ"];
+    const rows = card.querySelectorAll('.stats-row');
+
+    rows.forEach((row, i) => {
+        const base = parseInt(row.querySelector('.base-val').textContent) || 0;
+        const iv = 31;
+        const ev = parseInt(row.querySelector('.ev-input').value) || 0;
+        let val = 0;
+        if (i === 0) {
+            val = (base === 1) ? 1 : Math.floor((base * 2 + iv) * 50 / 100) + 60 + ev;
+        } else {
+            let core = Math.floor((base * 2 + iv) * 50 / 100) + 5;
+            val = Math.floor(core + ev); 
+            if (nature.up === i) val = Math.floor(val * 1.1);
+            if (nature.down === i) val = Math.floor(val * 0.9);
+        }
+        const display = row.querySelector('.total-display');
+        display.textContent = val;
+        display.className = 'total-display';
+        if (i !== 0) {
+            if (nature.up === i) display.classList.add('nature-up');
+            if (nature.down === i) display.classList.add('nature-down');
+        }
+    });
+}
+
+// メニュー開閉制御
+function toggleMenu() {
+    const btn = document.querySelector('.hamburger-btn');
+    const menu = document.getElementById('navMenu');
+    btn.classList.toggle('active');
+    menu.classList.toggle('open');
+}
+
+// メニューの外側をクリックした時に閉じる
+document.addEventListener('click', function(event) {
+    const hamburger = document.getElementById('hamburgerMenu');
+    const btn = document.querySelector('.hamburger-btn');
+    const menu = document.getElementById('navMenu');
+
+    if (hamburger && !hamburger.contains(event.target)) {
+        if (btn) btn.classList.remove('active');
+        if (menu) menu.classList.remove('open');
+    }
+});
+// 修正後
+function exportPartyCode() {
+    const partyData = {
+        n: document.getElementById('partyName').value,
+        m: document.getElementById('partyMemo').value,
+        p: []
+    };
+
+    for (let i = 0; i < 6; i++) {
+        const card = document.getElementById(`pokemon-${i}`);
+        const spInp = card.querySelector('.sp-input');
+        partyData.p.push({
+            id: spInp.dataset.selectedId || "",
+            nm: spInp.value || "",
+            it: card.querySelector('.item-input').value || "",
+            ab: card.querySelector('.ability-select').value || "",
+            nt: card.querySelector('.nature-select').value || "まじめ",
+            ev: Array.from(card.querySelectorAll('.ev-input')).map(el => parseInt(el.value || 0)),
+            mv: Array.from(card.querySelectorAll('.move-input')).map(el => el.value || ""),
+            mo: card.querySelector('.memo-area').value || ""
+        });
+    }
+
+    const jsonStr = JSON.stringify(partyData);
+    const compressed = pako.deflate(jsonStr);
+    
+    // Safariでのスタック溢れを防止するためのループ処理によるBase64変換
+    let binary = '';
+    const len = compressed.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(compressed[i]);
+    }
+    const base64 = btoa(binary)
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+    const shareUrl = window.location.origin + window.location.pathname + "?party=" + base64;
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            alert("共有用URLをコピーしました！\n(文字数: " + shareUrl.length + ")");
+        }).catch(() => {
+            prompt("以下のURLをコピーしてください:", shareUrl);
+        });
+    } else {
+        prompt("以下のURLをコピーしてください:", shareUrl);
+    }
+}
+
+function saveParty() {
+    const slot = document.getElementById('saveSlot').value;
+    const partyName = document.getElementById('partyName').value || `パーティ${slot}`;
+    const partyMemo = document.getElementById('partyMemo').value;
+    const storageKey = `p_slot_66_v3_${slot}`;
+    const existingData = localStorage.getItem(storageKey);
+    if (existingData && !confirm(`スロット ${slot} を上書きしますか？`)) return;
+
+    const data = { name: partyName, partyMemo: partyMemo, members: [] };
+    for (let i = 0; i < 6; i++) {
+        const c = document.getElementById(`pokemon-${i}`);
+        data.members.push({
+            spName: c.querySelector('.sp-input').value,
+            spId: c.querySelector('.sp-input').dataset.selectedId,
+            itName: c.querySelector('.item-input').value,
+            itId: c.querySelector('.item-input').dataset.selectedId,
+            ab: c.querySelector('.ability-select').value,
+            nt: c.querySelector('.nature-select').value,
+            ev: [...c.querySelectorAll('.ev-input')].map(el => el.value),
+            mv: [...c.querySelectorAll('.move-input')].map(el => ({ name: el.value, id: el.dataset.selectedId })),
+            memo: c.querySelector('.memo-area').value
+        });
+    }
+    localStorage.setItem(storageKey, JSON.stringify(data));
+    
+    // セレクトボックスの表示を更新
+    const select = document.getElementById('saveSlot');
+    const option = select.options[select.selectedIndex];
+    option.textContent = `${slot}: ${partyName}`;
+    alert("保存完了");
+}
+
+function deleteParty() {
+    const slot = document.getElementById('saveSlot').value;
+    const storageKey = `p_slot_66_v3_${slot}`;
+    if (!localStorage.getItem(storageKey)) return;
+    
+    if (confirm(`スロット ${slot} のデータを削除しますか？`)) {
+        localStorage.removeItem(storageKey);
+        setupSaveSlots(); // リストを再構成
+        alert("削除しました");
+    }
+}
+
+function loadParty() {
+    const slot = document.getElementById('saveSlot').value;
+    const raw = localStorage.getItem(`p_slot_66_v3_${slot}`);
+    if (!raw) return alert("データがありません");
+    const data = JSON.parse(raw);
+    document.getElementById('partyName').value = data.name;
+    document.getElementById('partyMemo').value = data.partyMemo || "";
+    data.members.forEach((m, i) => {
+        const c = document.getElementById(`pokemon-${i}`);
+        const spInp = c.querySelector('.sp-input');
+        spInp.value = m.spName;
+        spInp.dataset.selectedId = m.spId;
+        const speciesObj = db.species.find(s => s.id === m.spId);
+        if (speciesObj) updateSpecies(i, speciesObj.data);
+        c.querySelector('.item-input').value = m.itName || "";
+        c.querySelector('.item-input').dataset.selectedId = m.itId || "";
+        c.querySelector('.nature-select').value = m.nt;
+        c.querySelectorAll('.ev-input').forEach((el, j) => { el.value = m.ev[j]; validateEV(el, i); });
+        c.querySelector('.ability-select').value = m.ab;
+        c.querySelectorAll('.move-input').forEach((el, j) => {
+            el.value = m.mv[j].name;
+            el.dataset.selectedId = m.mv[j].id;
+            const foundMove = db.moves.find(mv => mv.name === el.value);
+            updateMoveColor(el, foundMove ? foundMove.type : "");
+        });
+        c.querySelector('.memo-area').value = m.memo || "";
+    });
+}
+
+init();
+</script>
+</body>
+</html>
