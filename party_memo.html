@@ -720,15 +720,33 @@ async function exportPartyImage() {
         renderFullMemo(ctx, baseHeight, baseWidth, memoPadding, memoLines, memoFontSize, memoLineHeight);
     }
 
-    // Safari (iOS) 対策を含めた保存・表示処理
-    const dataUrl = canvas.toDataURL('image/png');
+    // ★【修正ポイント1】非同期処理に入る前に、同期的に空のウィンドウを即座に開いておく
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    let newWindow = null;
 
     if (isSafari || isIOS) {
-        // Safari/iOSの場合は新しいタブで画像を開いて長押し保存させる
-        const newWindow = window.open('');
+        // クリック直後なので絶対にブロックされない！
+        newWindow = window.open('about:blank', '_blank');
         if (newWindow) {
+            newWindow.document.write('<p style="font-family:sans-serif; text-align:center; padding-top:50px;">画像を生成中...</p>');
+        }
+    }
+
+    // 画像の読み込みなどを待つ
+    await Promise.all(drawTasks);
+
+    // パーティ全体メモ描画
+    if (memoLines.length > 0) {
+        renderFullMemo(ctx, baseHeight, baseWidth, memoPadding, memoLines, memoFontSize, memoLineHeight);
+    }
+
+    const dataUrl = canvas.toDataURL('image/png');
+
+    // ★【修正ポイント2】あらかじめ開いておいたタブの中身を画像に差し替える
+    if (isSafari || isIOS) {
+        if (newWindow) {
+            newWindow.document.open();
             newWindow.document.write(`
                 <html>
                     <head><title>構築画像</title></head>
@@ -740,6 +758,7 @@ async function exportPartyImage() {
                     </body>
                 </html>
             `);
+            newWindow.document.close();
         } else {
             alert("ポップアップがブロックされました。ブラウザの設定でポップアップを許可してください。");
         }
