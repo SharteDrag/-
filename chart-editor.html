@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dance Minigame Chart Editor</title>
+<style>
+:root{--bg:#11151b;--panel:#1b222c;--panel2:#232d39;--line:#3c4a59;--text:#edf2f7;--muted:#9eabb8;--accent:#63d3c4;--accent2:#f5b45f;--danger:#f27777;--lane1:#5bb7ff;--lane2:#ff9d6c}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#10161e 0%,#19232c 55%,#10201f 100%);color:var(--text);font:14px "Yu Gothic",Meiryo,sans-serif;min-height:100vh}header{padding:20px 24px 14px;border-bottom:1px solid var(--line);display:flex;align-items:end;justify-content:space-between;gap:20px}h1{font-size:22px;letter-spacing:.04em;margin:0}h1 span{color:var(--accent);font-size:12px;margin-left:10px}.layout{display:grid;grid-template-columns:290px minmax(520px,1fr);gap:16px;padding:16px;max-width:1500px;margin:auto}.panel{background:rgba(27,34,44,.94);border:1px solid var(--line);border-radius:7px;padding:15px}.controls{display:grid;gap:13px}.field{display:grid;gap:6px}.field label{color:var(--muted);font-size:12px}.row{display:flex;gap:8px;align-items:center}.row>*{min-width:0}input,select,button,textarea{font:inherit;color:var(--text);background:#121820;border:1px solid var(--line);border-radius:4px;padding:8px}input:focus,select:focus,textarea:focus{outline:2px solid rgba(99,211,196,.35);border-color:var(--accent)}input[type=number]{width:100%}button{cursor:pointer;transition:.15s background,.15s border-color}button:hover{background:#2c3946;border-color:#718292}button.primary{background:#176e68;border-color:#63d3c4}button.danger{color:#ffc0c0}.hint{font-size:12px;color:var(--muted);line-height:1.5}h2{font-size:14px;margin:0 0 13px;color:var(--accent)}.transport{display:flex;gap:8px}.transport button{flex:1}.status{display:flex;justify-content:space-between;color:var(--muted);font-variant-numeric:tabular-nums}.timeline-panel{min-width:0}.wave-wrap{position:relative;background:#0c1117;border:1px solid var(--line);height:160px;border-radius:5px;overflow:hidden}.wave-wrap canvas{width:100%;height:100%;display:block}.marker{position:absolute;top:0;bottom:0;width:2px;background:var(--accent2);pointer-events:none;left:0}.chart-scroll{overflow-x:auto;margin-top:12px;border:1px solid var(--line);border-radius:5px;background:#10161d}.chart{position:relative;min-width:760px;height:238px}.grid{position:absolute;inset:0 0 30px 70px;background-image:linear-gradient(to right,rgba(255,255,255,.12) 1px,transparent 1px),linear-gradient(to bottom,transparent 59px,rgba(255,255,255,.14) 60px,transparent 61px);background-size:var(--step) 100%,100% 60px}.lane-label{position:absolute;left:0;width:70px;text-align:center;font-weight:bold}.lane-label.one{top:48px;color:var(--lane1)}.lane-label.two{top:108px;color:var(--lane2)}.lane-label.axis{bottom:5px;color:var(--muted);font-size:11px}.note{position:absolute;width:18px;height:36px;top:42px;border-radius:4px;background:var(--lane1);box-shadow:0 0 0 1px rgba(255,255,255,.4);cursor:pointer}.note.lane2{top:102px;background:var(--lane2)}.note.selected{outline:3px solid white;z-index:2}.note::after{content:attr(data-dir);display:block;text-align:center;color:#10202b;font-weight:bold;line-height:36px}.playhead{position:absolute;top:0;bottom:30px;width:2px;background:var(--accent2);z-index:3;pointer-events:none}.output{margin-top:15px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.output textarea{width:100%;height:145px;resize:vertical;font:12px Consolas,monospace;line-height:1.45}.output .full{grid-column:1/-1}.button-row{display:flex;gap:8px;flex-wrap:wrap}.button-row button{flex:1}.drop{border:1px dashed #647687;padding:15px;text-align:center;color:var(--muted);border-radius:5px}.drop.loaded{border-color:var(--accent);color:var(--text)}@media(max-width:800px){header{padding:16px}.layout{grid-template-columns:1fr;padding:10px}.output{grid-template-columns:1fr}.output .full{grid-column:auto}}
+input[type=range]{width:100%;padding:0;accent-color:var(--accent)}.seek-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.wave-wrap canvas{cursor:ew-resize}
+</style>
+</head>
+<body>
+<header><h1>Dance Minigame <span>CHART EDITOR</span></h1><div class="status"><span id="time">00:00.000</span><span id="noteCount">0 notes</span></div></header>
+<main class="layout">
+<section class="panel controls">
+<h2>PROJECT</h2>
+<div class="field"><label for="title">譜面名</label><input id="title" value="New Dance Chart"></div>
+<div class="field"><label for="bpm">BPM</label><input id="bpm" type="number" min="1" max="400" step="0.1" value="120"></div>
+<div class="field"><label for="offset">オフセット (秒)</label><input id="offset" type="number" step="0.001" value="0"></div>
+<div class="field"><label for="division">グリッド</label><select id="division"><option value="1">1拍</option><option value="2">1/2拍</option><option value="4">1/4拍</option></select></div>
+<div id="drop" class="drop">音声ファイルを選択<br><input id="audioFile" type="file" accept="audio/*"></div>
+<div class="transport"><button id="play" class="primary">▶ 再生</button><button id="stop">■ 停止</button></div>
+<div class="seek-row"><input id="seek" type="range" min="0" max="0" step="0.001" value="0" aria-label="音声位置"><span id="seekTime">00:00.000</span></div>
+<div class="field"><label class="row"><input id="noteSound" type="checkbox" checked> ノーツ通過音</label></div>
+<div class="field"><label>選択ノーツ</label><div class="row"><select id="direction"><option value="up">↑ UP</option><option value="down">↓ DOWN</option><option value="left">← LEFT</option><option value="right">→ RIGHT</option></select><select id="lane"><option value="1">レーン 1</option><option value="2">レーン 2</option></select></div></div>
+<div class="button-row"><button id="clearLane" class="danger">レーンを消去</button><button id="clearAll" class="danger">全消去</button></div>
+<p class="hint">タイムラインのレーンをクリックしてノーツを設置。時刻表示は実機の判定時刻です（step 0 は offset + 1拍）。既存ノーツをクリックすると選択、右クリックまたは Delete で削除できます。</p>
+</section>
+<section class="panel timeline-panel">
+<h2>WAVEFORM / TIMELINE</h2>
+<div class="wave-wrap"><canvas id="wave"></canvas><div id="waveMarker" class="marker"></div></div>
+<div class="chart-scroll"><div id="chart" class="chart"><div class="grid"></div><div class="lane-label one">LANE 1</div><div class="lane-label two">LANE 2</div><div class="lane-label axis">0:00</div><div id="playhead" class="playhead"></div></div></div>
+<div class="output">
+<div><h2>JSON</h2><textarea id="jsonOutput" spellcheck="false" readonly></textarea></div>
+<div><h2>Ruby snippet</h2><textarea id="rubyOutput" spellcheck="false" readonly></textarea></div>
+<div class="full button-row"><button id="exportJson" class="primary">JSONを保存</button><button id="copyRuby">Rubyをコピー</button><button id="loadJson">JSONを読み込み</button><input id="jsonFile" type="file" accept="application/json" hidden></div>
+</div>
+</section>
+</main>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const state = { notes: [], duration: 0, audioUrl: null, selected: null, playing: false, lastAudioTime: 0 };
+  const audio = new Audio();
+  let soundContext;
+  const wave = $('wave'), ctx = wave.getContext('2d');
+  const chart = $('chart'), grid = chart.querySelector('.grid');
+  const arrows = {up:'↑', down:'↓', left:'←', right:'→'};
+
+  function stepSeconds(){ return 60 / Math.max(1, Number($('bpm').value) || 120) / Number($('division').value); }
+  function stepWidth(){ return Math.max(24, 60 / Number($('division').value)); }
+  function formatTime(seconds){ seconds = Math.max(0, seconds || 0); return `${String(Math.floor(seconds / 60)).padStart(2,'0')}:${(seconds % 60).toFixed(3).padStart(6,'0')}`; }
+  function noteAt(step, lane){ return state.notes.findIndex(n => n.step === step && n.lane === lane); }
+  function renderChart(){
+    const width = Math.max(760, 70 + Math.ceil((state.duration || 60) / stepSeconds()) * stepWidth() + 30);
+    chart.style.width = `${width}px`; grid.style.setProperty('--step', `${stepWidth()}px`);
+    chart.querySelectorAll('.note').forEach(n => n.remove());
+    state.notes.forEach((note, index) => {
+      const el = document.createElement('div'); el.className = `note${note.lane === 2 ? ' lane2' : ''}${state.selected === index ? ' selected' : ''}`;
+      el.style.left = `${70 + note.step * stepWidth() - 9}px`; el.dataset.dir = arrows[note.direction]; el.title = `${note.direction}, lane ${note.lane}, ${formatTime(noteTime(note.step))}`;
+      el.onclick = event => { event.stopPropagation(); state.selected = index; $('direction').value = note.direction; $('lane').value = note.lane; renderChart(); updateOutputs(); };
+      el.oncontextmenu = event => { event.preventDefault(); state.notes.splice(index, 1); state.selected = null; renderChart(); updateOutputs(); };
+      chart.appendChild(el);
+    });
+    $('noteCount').textContent = `${state.notes.length} notes`;
+  }
+  function addFromPointer(event){
+    if(event.target.closest('.note')) return;
+    const rect = chart.getBoundingClientRect(); const x = event.clientX - rect.left - 70;
+    if(x < 0) return;
+    const step = Math.max(0, Math.round(x / stepWidth()));
+    const lane = event.clientY - rect.top < 102 ? 1 : 2;
+    const index = noteAt(step, lane);
+    if(index >= 0){ state.notes.splice(index,1); state.selected = null; } else { state.notes.push({step, lane, direction: $('direction').value}); state.notes.sort((a,b) => a.step-b.step || a.lane-b.lane); }
+    renderChart(); updateOutputs();
+  }
+  function noteTime(step){ return (step + 1) * stepSeconds() + (Number($('offset').value) || 0); }
+  function updateOutputs(){
+    const data = {version:1, title:$('title').value, bpm:Number($('bpm').value), offset:Number($('offset').value), duration:state.duration, notes:state.notes};
+    $('jsonOutput').value = JSON.stringify(data, null, 2);
+    
+    const max = state.notes.reduce((m,n) => Math.max(m,n.step), -1); 
+    const left = Array(max+1).fill(':rest'), right = Array(max+1).fill(':rest');
+    state.notes.forEach(n => (n.lane === 1 ? left : right)[n.step] = `:${n.direction}`);
+    
+    // グリッド分割数を考慮したゲーム呼出用BPM
+    const div = Number($('division').value) || 1;
+    const gameBpm = data.bpm * div;
+
+    $('rubyOutput').value = `# Game Call: pbDanceGame(ID, ${gameBpm})\nname: ${JSON.stringify(data.title)},\n# Original BPM: ${data.bpm} (Division: 1/${div}), offset: ${data.offset}\nmoves: [${left.join(', ')}],\nmoves2: [${right.join(', ')}]`;
+  }
+  function playNoteSound(note){
+  if (!$('noteSound').checked) return;
+  soundContext ||= new AudioContext();
+  const now = soundContext.currentTime;
+  const oscillator = soundContext.createOscillator();
+  const gain = soundContext.createGain();
+  
+  // 各方向の基本ピッチ
+  const frequencies = {up: 660, down: 440, left: 550, right: 770};
+  const baseFreq = frequencies[note.direction] || 550;
+
+  // 波形を三角波（triangle）または正弦波（sine）にするとマイルドな打撃音になります
+  oscillator.type = 'triangle';
+
+  // 【アタック感の追加】一瞬だけ高い周波数から急降下させる ("タ"のアタック)
+  oscillator.frequency.setValueAtTime(baseFreq * 2.5, now);
+  oscillator.frequency.exponentialRampToValueAtTime(baseFreq, now + 0.012);
+
+  // 【音量エンベロープ】即座に立ち上がり、素早く減衰させる ("ン"の余韻)
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.linearRampToValueAtTime(0.3, now + 0.003); // 立ち上がり
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06); // 素早い減衰
+
+  oscillator.connect(gain).connect(soundContext.destination);
+  oscillator.start(now);
+  oscillator.stop(now + 0.065);
+}
+  function playNotesBetween(previousTime, currentTime){
+    const offset = Number($('offset').value) || 0;
+    if (currentTime < previousTime) previousTime = -Infinity;
+    state.notes.forEach(note => {
+      const hitTime = (note.step + 1) * stepSeconds() + offset;
+      if (hitTime > previousTime && hitTime <= currentTime) playNoteSound(note);
+    });
+  }
+  function drawWave(buffer){
+    const dpr = window.devicePixelRatio || 1, rect = wave.getBoundingClientRect(); wave.width = rect.width*dpr; wave.height = rect.height*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,rect.width,rect.height); ctx.strokeStyle='#63d3c4'; ctx.lineWidth=1; ctx.beginPath();
+    const data = buffer.getChannelData(0), step = Math.ceil(data.length / rect.width); for(let x=0;x<rect.width;x++){ let min=1,max=-1; for(let i=0;i<step;i++){const v=data[x*step+i]||0; min=Math.min(min,v); max=Math.max(max,v)} ctx.moveTo(x, rect.height/2 + min*rect.height*.42); ctx.lineTo(x, rect.height/2 + max*rect.height*.42); } ctx.stroke();
+  }
+  function setMarker(time){ const ratio = state.duration ? Math.min(1,time/state.duration) : 0; $('waveMarker').style.left = `${ratio*100}%`; $('playhead').style.left = `${70 + ratio * (chart.clientWidth-100)}px`; $('time').textContent = formatTime(time); $('seekTime').textContent = formatTime(time); $('seek').value = time; }
+  function seekAudio(time){
+    if (!audio.src || !Number.isFinite(time)) return;
+    const nextTime = Math.max(0, Math.min(state.duration || audio.duration || 0, time));
+    audio.currentTime = nextTime;
+    state.lastAudioTime = nextTime;
+    setMarker(nextTime);
+  }
+  $('chart').onclick = addFromPointer;
+  $('seek').oninput = event => seekAudio(Number(event.target.value));
+  $('wave').onclick = event => {
+    if (!state.duration) return;
+    const rect = wave.getBoundingClientRect();
+    seekAudio((event.clientX - rect.left) / rect.width * state.duration);
+  };
+  $('bpm').oninput = () => { renderChart(); updateOutputs(); };
+  $('division').onchange = () => { renderChart(); updateOutputs(); };
+  $('title').oninput = updateOutputs; $('offset').oninput = updateOutputs;
+  $('audioFile').onchange = event => { const file=event.target.files[0]; if(!file)return; if(state.audioUrl) URL.revokeObjectURL(state.audioUrl); state.audioUrl=URL.createObjectURL(file); audio.src=state.audioUrl; $('drop').classList.add('loaded'); $('drop').firstChild.textContent=file.name+' '; const reader=new FileReader(); reader.onload=async e=>{try{const buffer=await new AudioContext().decodeAudioData(e.target.result);state.duration=buffer.duration;$('seek').max=state.duration;drawWave(buffer);renderChart();updateOutputs();}catch(err){alert('音声の解析に失敗しました。')}}; reader.readAsArrayBuffer(file); };
+
+$('play').onclick = () => {
+  if (!audio.src) { alert('先に音声ファイルを選択してください。'); return; }
+  if (state.playing) {
+    audio.pause();
+  } else {
+    soundContext ||= new AudioContext();
+    soundContext.resume();
+    if (audio.currentTime === 0) state.lastAudioTime = -0.001;
+    audio.play();
+    state.playing = true;
+    $('play').textContent = '❚❚ 一時停止';
+  }
+};
+
+$('stop').onclick = () => {
+  audio.pause();
+  audio.currentTime = 0;
+  state.playing = false;
+  state.lastAudioTime = 0;
+  $('play').textContent = '▶ 再生';
+  setMarker(0);
+};
+
+audio.ontimeupdate = () => { playNotesBetween(state.lastAudioTime, audio.currentTime); state.lastAudioTime = audio.currentTime; setMarker(audio.currentTime); };
+audio.onended = () => { state.playing = false; $('play').textContent = '▶ 再生'; setMarker(0); };
+audio.onpause = () => { state.playing = false; $('play').textContent = '▶ 再生'; };
+  $('clearLane').onclick = () => { const lane=Number($('lane').value); state.notes=state.notes.filter(n=>n.lane!==lane);state.selected=null;renderChart();updateOutputs(); };
+  $('clearAll').onclick = () => { state.notes=[];state.selected=null;renderChart();updateOutputs(); };
+  document.onkeydown = event => { if(event.key==='Delete' && state.selected !== null){state.notes.splice(state.selected,1);state.selected=null;renderChart();updateOutputs();} };
+  $('exportJson').onclick = () => { const blob=new Blob([$('jsonOutput').value],{type:'application/json'}), a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=($('title').value||'chart')+'.json';a.click();URL.revokeObjectURL(a.href); };
+  $('copyRuby').onclick = async () => { await navigator.clipboard.writeText($('rubyOutput').value); $('copyRuby').textContent='コピーしました'; setTimeout(()=>$('copyRuby').textContent='Rubyをコピー',1200); };
+  $('loadJson').onclick = () => $('jsonFile').click();
+  $('jsonFile').onchange = event => { const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const d=JSON.parse(reader.result);$('title').value=d.title||'Loaded Chart';$('bpm').value=d.bpm||120;$('offset').value=d.offset||0;state.duration=d.duration||0;$('seek').max=state.duration;state.notes=Array.isArray(d.notes)?d.notes.filter(n=>Number.isInteger(n.step)&&[1,2].includes(n.lane)&&arrows[n.direction]):[];renderChart();updateOutputs();setMarker(0);}catch(err){alert('JSONの読み込みに失敗しました。')}};reader.readAsText(file);};
+  renderChart(); updateOutputs(); setMarker(0);
+})();
+</script>
+</body>
+</html>
