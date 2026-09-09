@@ -2849,6 +2849,11 @@ document.getElementById("defender-ability").addEventListener("change", () => {
         }
     }
 
+        // はどうのぼうご
+    if (["AURAGUARD"].includes(ability) && move?.Flags?.includes("Contact")) {
+        document.getElementById("ability_m_def").value = "0.5";
+    }
+
         //くさのけがわ
 if (ability === "GRASSPELT" && isGrassyTerrain && move?.Category === "Physical") {
     // 4 / 3 の計算結果を abilityAtkMult に設定

@@ -24801,11 +24801,10 @@
     "SpDef": 60,
     "Weight": 49.0,
     "Abilities": [
-      "PRESSURE",
-      "SUPERLUCK"
+      "SHARPNESS"
     ],
     "HiddenAbilities": [
-      "JUSTIFIED"
+      "SHARPNESS"
     ],
     "Name": "メガアブソルZ"
   },
@@ -24841,10 +24840,10 @@
     "SpDef": 85,
     "Weight": 218.3,
     "Abilities": [
-      "SANDVEIL"
+      "LEVITATE"
     ],
     "HiddenAbilities": [
-      "ROUGHSKIN"
+      "LEVITATE"
     ],
     "Name": "メガガブリアスZ"
   },
@@ -24861,11 +24860,10 @@
     "SpDef": 70,
     "Weight": 49.4,
     "Abilities": [
-      "STEADFAST",
-      "INNERFOCUS"
+      "AURAGUARD"
     ],
     "HiddenAbilities": [
-      "JUSTIFIED"
+      "AURAGUARD"
     ],
     "Name": "メガルカリオZ"
   },
@@ -24978,9 +24976,11 @@
     "SpDef": 120,
     "Weight": 148.0,
     "Abilities": [
-      "EMERGENCYEXIT"
+      "TOUGHCLAWS"
     ],
-    "HiddenAbilities": [],
+    "HiddenAbilities": [
+      "TOUGHCLAWS"
+    ],
     "Name": "メガグソクムシャ"
   },
     "MAGEARNAFORM1": {
@@ -25094,7 +25094,7 @@
       "THERMALEXCHANGE"
     ],
     "HiddenAbilities": [
-      "ICEBODY"
+      "THERMALEXCHANGE"
     ],
     "Name": "メガセグレイブ"
   }

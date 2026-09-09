@@ -1335,7 +1335,7 @@
         "Name":  "スターアサルト",
         "Type":  "FIGHTING",
         "Category":  "Physical",
-        "Power":  "150",
+        "Power":  "170",
         "Flags":  "CanProtect,CanMirrorMove,CannotMetronome",
         "FunctionCode":  "AttackAndSkipNextTurn"
     },
@@ -3692,7 +3692,7 @@
         "Name":  "きりさく",
         "Type":  "NORMAL",
         "Category":  "Physical",
-        "Power":  "70",
+        "Power":  "80",
         "Flags":  "Contact,CanProtect,CanMirrorMove,HighCriticalHitRate,Slicing",
         "FunctionCode":  "None"
     },
@@ -6286,7 +6286,7 @@
         "Name":  "ねらいうち",
         "Type":  "WATER",
         "Category":  "Special",
-        "Power":  "80",
+        "Power":  "85",
         "Flags":  "CanProtect,CanMirrorMove,HighCriticalHitRate",
         "FunctionCode":  "CannotBeRedirected"
     },
@@ -6796,7 +6796,7 @@
         "Type":  "ELECTRIC",
         "Category":  "Physical",
         "Power":  "120",
-        "Flags":  "Contact,CanProtect,CanMirrorMove,CannotMetronome",
+        "Flags":  "Contact,CanProtect,CanMirrorMove,CannotMetronome,Punching",
         "FunctionCode":  "UserLosesElectricType"
     },
     {
