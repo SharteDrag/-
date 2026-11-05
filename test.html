@@ -225,7 +225,13 @@ html, body { overflow-x: hidden; }
     flex: 0 0 auto; min-width: 38px; height: 36px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--line);
     background: #fff; font-weight: 800; font-size: 14px; color: #444; display: flex; align-items: center; justify-content: center;
 }
-.ev-button[data-step] { font-size: 18px; }
+.ev-button[data-step] { font-size: 15px; }
+/* 努力値 ▲▼（実数値の▲▼と同じ見た目） */
+.ev-arrow { min-width: 44px; background: #fff; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.panel-atk .ev-arrow { border: 1.5px solid var(--atk); color: var(--atk); }
+.panel-def .ev-arrow { border: 1.5px solid var(--def); color: var(--def); }
+.ev-line { flex-wrap: nowrap; }
+.ev-line > .ev-button:not(.ev-arrow) { min-width: 36px; font-size: 13px; color: #666; }
 
 /* セグメント（性格・物理特殊・天候など） */
 .seg { display: inline-flex; background: rgba(0,0,0,.07); border-radius: 10px; padding: 3px; gap: 2px; width: 100%; }
@@ -605,17 +611,15 @@ document.addEventListener('click', function(event) {
                 <label for="base_attack" id="label_base_attack">攻撃</label>
                 <div class="row-inline">
                     <input type="number" id="base_attack" value="100" min="1" class="fixed-value" inputmode="numeric">
-                    <button type="button" class="step-btn" data-stepfor="base_attack" data-delta="1">▲</button>
-                    <button type="button" class="step-btn" data-stepfor="base_attack" data-delta="-1">▼</button>
                 </div>
             </div>
             <div class="row">
                 <span class="lbl">努力値</span>
                 <div class="ev-line">
-                    <button type="button" class="ev-button" data-stat="attacker" data-ev="0">0</button>
-                    <button type="button" class="ev-button" data-stat="attacker" data-step="-1">−</button>
                     <input type="number" id="attacker_ev" value="32" min="0" max="32" step="1" inputmode="numeric">
-                    <button type="button" class="ev-button" data-stat="attacker" data-step="1">＋</button>
+                    <button type="button" class="ev-button ev-arrow" data-stat="attacker" data-step="1">▲</button>
+                    <button type="button" class="ev-button ev-arrow" data-stat="attacker" data-step="-1">▼</button>
+                    <button type="button" class="ev-button" data-stat="attacker" data-ev="0">0</button>
                     <button type="button" class="ev-button" data-stat="attacker" data-ev="32">32</button>
                 </div>
             </div>
@@ -843,17 +847,15 @@ document.addEventListener('click', function(event) {
                 <label for="hp">HP</label>
                 <div class="row-inline">
                     <input type="number" id="hp" value="150" min="1" oninput="updateHPByPercent(true)" inputmode="numeric">
-                    <button type="button" class="step-btn" data-stepfor="hp" data-delta="1">▲</button>
-                    <button type="button" class="step-btn" data-stepfor="hp" data-delta="-1">▼</button>
                 </div>
             </div>
             <div class="row">
                 <span class="lbl">努力値</span>
                 <div class="ev-line">
-                    <button type="button" class="ev-button" data-stat="hp" data-ev="0">0</button>
-                    <button type="button" class="ev-button" data-stat="hp" data-step="-1">−</button>
                     <input type="number" id="hp_ev" value="32" min="0" max="32" step="1" inputmode="numeric">
-                    <button type="button" class="ev-button" data-stat="hp" data-step="1">＋</button>
+                    <button type="button" class="ev-button ev-arrow" data-stat="hp" data-step="1">▲</button>
+                    <button type="button" class="ev-button ev-arrow" data-stat="hp" data-step="-1">▼</button>
+                    <button type="button" class="ev-button" data-stat="hp" data-ev="0">0</button>
                     <button type="button" class="ev-button" data-stat="hp" data-ev="32">32</button>
                 </div>
             </div>
@@ -878,17 +880,15 @@ document.addEventListener('click', function(event) {
                 <label for="base_defense" id="label_base_defense">防御</label>
                 <div class="row-inline">
                     <input type="number" id="base_defense" value="100" min="1" class="fixed-value" inputmode="numeric">
-                    <button type="button" class="step-btn" data-stepfor="base_defense" data-delta="1">▲</button>
-                    <button type="button" class="step-btn" data-stepfor="base_defense" data-delta="-1">▼</button>
                 </div>
             </div>
             <div class="row">
                 <span class="lbl">努力値</span>
                 <div class="ev-line">
-                    <button type="button" class="ev-button" data-stat="defender" data-ev="0">0</button>
-                    <button type="button" class="ev-button" data-stat="defender" data-step="-1">−</button>
                     <input type="number" id="defender_ev" value="32" min="0" max="32" step="1" inputmode="numeric">
-                    <button type="button" class="ev-button" data-stat="defender" data-step="1">＋</button>
+                    <button type="button" class="ev-button ev-arrow" data-stat="defender" data-step="1">▲</button>
+                    <button type="button" class="ev-button ev-arrow" data-stat="defender" data-step="-1">▼</button>
+                    <button type="button" class="ev-button" data-stat="defender" data-ev="0">0</button>
                     <button type="button" class="ev-button" data-stat="defender" data-ev="32">32</button>
                 </div>
             </div>

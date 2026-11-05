@@ -148,7 +148,8 @@ h2, h3, h4 { margin: 0; }
 .stat-table td.base-cell { width: 50px; }
 .stat-table td.base-cell .base-val { display: inline-block; min-width: 38px; padding: 1px 6px; border-radius: 6px; background: var(--chip); font-size: 14px; }
 .ev-cell { display: flex; align-items: center; justify-content: center; gap: 3px; }
-.ev-cell button { width: 32px; height: 32px; flex: 0 0 32px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font-weight: 800; font-size: 16px; color: #444; padding: 0; }
+.ev-cell button { width: 40px; height: 34px; flex: 0 0 40px; border-radius: 8px; border: 1.5px solid var(--def); background: #fff; font-size: 15px; line-height: 1; color: var(--def); padding: 0; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+.ev-cell button:active { filter: brightness(.9); }
 .ev-input { width: 50px !important; flex: 0 0 50px; height: 32px !important; padding: 2px !important; }
 .total-display { font-size: 17px; font-weight: 800; min-width: 44px; display: inline-block; }
 .nature-up { color: #d9534f; }
@@ -264,7 +265,7 @@ h2, h3, h4 { margin: 0; }
 }
 @media (max-width: 380px) {
     .row { grid-template-columns: 54px minmax(0, 1fr); }
-    .ev-cell button { width: 28px; flex-basis: 28px; }
+    .ev-cell button { width: 34px; flex-basis: 34px; }
     .ev-input { width: 42px !important; flex-basis: 42px; }
 }
     </style>
@@ -1165,9 +1166,9 @@ function createPartyUI() {
                             <td>${label}</td>
                             <td class="base-cell"><span class="base-val">0</span></td>
                             <td><div class="ev-cell">
-                                <button type="button" onclick="stepEV(${i}, ${j}, -1)">−</button>
                                 <input type="number" class="ev-input" value="0" min="0" max="32" inputmode="numeric" oninput="validateEV(this, ${i})">
-                                <button type="button" onclick="stepEV(${i}, ${j}, 1)">＋</button>
+                                <button type="button" class="ev-step" data-card="${i}" data-stat="${j}" data-delta="1">▲</button>
+                                <button type="button" class="ev-step" data-card="${i}" data-stat="${j}" data-delta="-1">▼</button>
                             </div></td>
                             <td><span class="total-display">0</span></td>
                         </tr>`).join('')}
@@ -1639,6 +1640,26 @@ function stepEV(i, j, d) {
     input.value = Math.max(0, Math.min(MAX_SINGLE_EV, (parseInt(input.value) || 0) + d));
     validateEV(input, i);
 }
+// ▲▼ 長押しで連続増減（ダメ計と同じ：0.45秒後から0.08秒ごと）
+(function setupEVRepeat() {
+    let t1 = null, t2 = null;
+    const stop = () => { clearTimeout(t1); clearInterval(t2); t1 = t2 = null; };
+    document.getElementById('partyGrid').addEventListener('pointerdown', e => {
+        const b = e.target.closest('.ev-step');
+        if (!b || (e.pointerType === 'mouse' && e.button !== 0)) return;
+        e.preventDefault();
+        stop();
+        const i = +b.dataset.card, j = +b.dataset.stat, d = +b.dataset.delta;
+        stepEV(i, j, d);
+        t1 = setTimeout(() => { t2 = setInterval(() => stepEV(i, j, d), 80); }, 450);
+        try { b.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    ['pointerup', 'pointercancel', 'pointerleave', 'lostpointercapture'].forEach(ev =>
+        document.getElementById('partyGrid').addEventListener(ev, e => { if (e.target.closest && e.target.closest('.ev-step')) stop(); }, true));
+    window.addEventListener('blur', stop);
+    document.getElementById('partyGrid').addEventListener('contextmenu', e => { if (e.target.closest('.ev-step')) e.preventDefault(); });
+})();
+
 function clearCard(i) {
     const card = document.getElementById(`pokemon-${i}`);
     if (!card) return;
