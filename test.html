@@ -2,9 +2,9 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Content-Security-Policy" content="
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="
 default-src 'self';
 script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://www.googletagmanager.com;
 style-src 'self' 'unsafe-inline';
@@ -12,815 +12,334 @@ img-src 'self' data: https://*.googleusercontent.com https://www.google-analytic
 connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com https://www.google-analytics.com;
 frame-src https://accounts.google.com https://*.firebaseapp.com;
 ">
-    <!-- Google tag (gtag.js) -->
+    <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GHCLZB8YK0"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
-  gtag('config', 'G-GHCLZB8YK0');
+  gtag('config', 'G-GHCLZB8YK0');
 </script>
     <title>ポケモン ダメージ計算ツール (シーテャkids)</title>
     <link rel="icon" href="icon2.png" type="image/png">
     <style>
-        /* ハンバーガーメニュー */
-        .hamburger-menu { position: fixed; top: 20px; left: 20px; z-index: 10000; }
-        .hamburger-btn {
-            width: 50px; height: 50px; background: #007bff; border: none; border-radius: 4px;
-            cursor: pointer; display: flex; flex-direction: column; justify-content: center;
-            align-items: center; gap: 6px; padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-        .hamburger-btn.active span:nth-child(1) { transform: rotate(45deg) translate(8px, 8px); }
-        .hamburger-btn.active span:nth-child(2) { opacity: 0; }
-        .hamburger-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(7px, -7px); }
-        .hamburger-btn span { width: 25px; height: 3px; background: white; display: block; border-radius: 2px; transition: all 0.3s ease; }
-
-        .nav-menu {
-            position: fixed; top: 80px; left: 20px; background: white; border: 1px solid #ccc;
-            border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none;
-            flex-direction: column; min-width: 180px; z-index: 9999;
-        }
-        .nav-menu.open { display: flex; }
-        .nav-link { padding: 12px 16px; text-decoration: none; color: #333; border-bottom: 1px solid #eee; display: block; }
-        
-        :root { --primary: #007bff; --bg: #f8f9fa; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; font-size: 14px; }
-        .container { max-width: 1400px; margin: 0 auto; }
-
-        /* コントロールエリア（スマホでボタンが崩れないよう修正） */
-        .party-controls { 
-            background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-wrap: wrap; align-items: center; gap: 10px; 
-        }
-        .party-controls h2 { width: 100%; margin: 0 0 5px 0; font-size: 18px; }
-
-        /* モバイルファースト：基本を2列にする */
-.party-grid { 
-    display: grid; 
-    grid-template-columns: repeat(2, 1fr); /* スマホで2列 */
-    gap: 10px; /* 隙間を少し狭くして画面に収まりやすくする */
-}
-
-/* 非常に画面が狭い（350px以下など）場合は1列に落とす（任意） */
-@media (max-width: 380px) {
-    .party-grid { grid-template-columns: 1fr; }
-}
-
-/* PCなどの広い画面では3列にする */
-@media (min-width: 900px) {
-    .party-grid { 
-        grid-template-columns: repeat(3, 1fr); 
-        gap: 15px;
-    }
-}
-        /* 左上固定ボタンのスタイル */
-#fixed-button-container {
-    position: fixed;
-    top: 10px;
-    left: 90px;
-    z-index: 1000; /* 他の要素より上に表示 */
-    display: flex;
-    flex-direction: column; /* 縦に並べる場合。横なら row */
-    gap: 8px;
-}
-
-.btn-calc { background-color: #007bff; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 4px; }
-.btn-table { background-color: #28a745; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 4px; }
-
-/* モーダル（背景）のスタイル */
-.modal {
-    display: none; /* 初期状態は非表示 */
-    position: fixed;
-    z-index: 20000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.7); /* 背景を暗くする */
-}
-
-/* モーダルの中身（白い箱） */
-.modal-content {
-    background-color: #fff;
-    margin: 5% auto;
-    padding: 20px;
-    width: 60%;
-    max-width: 1000px;
-    max-height: 80vh;
-    overflow-y: auto; /* 縦長になったらスクロール */
-    position: relative;
-    border-radius: 8px;
-    z-index: 20001;
-}
-
-/* 閉じるボタン */
-.close-button {
-    display: none !important;
-}
-
-/* テーブル自体のスタイル調整（必要に応じて） */
-.quick-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-.quick-table th, .quick-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
-}
-
-/* ボタンコンテナのスタイルを上書き（以前の top/left 固定を解除） */
-#fixed-button-container {
-    position: static !important; /* 絶対位置指定を解除 */
-    display: flex;
-    flex-direction: row; /* 横並び */
-    justify-content: center;
-    gap: 8px;
-    padding: 10px;
-    background: #f8f9fa;
-    border-top: 1px solid #ddd;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-/* タブメニューのスタイル */
-.tab-menu {
-    display: flex;
-    width: 100%;
-    border-top: 1px solid #eee;
-}
-
-.tab-btn {
-    flex: 1;
-    padding: 12px 5px;
-    border: none;
-    background: none;
-    font-size: 0.85em;
-    font-weight: bold;
-    color: #777;
-}
-
-.tab-btn.active {
-    color: #007bff;
-    background: #eef6ff;
-    border-top: 3px solid #007bff; /* 上線でアクティブを強調 */
-}
-
-/* ボタンのサイズ調整（押しやすく） */
-.btn-calc, .btn-table {
-    flex: 1;
-    padding: 12px 5px !important;
-    font-size: 14px !important;
-    border-radius: 4px;
-    margin: 0 !important;
-}
-
-/* ナビゲーションメニュー全体 */
-.nav-menu {
-    padding: 60px 0 20px 0; /* ボタンと重ならないよう上部に余白 */
-    background: #ffffff;
-    display: flex;
-    flex-direction: column;
-}
-
-/* リンクひとつひとつのスタイル（ここが重要） */
-.nav-link {
-    display: block;          /* 横幅いっぱいに広げる */
-    padding: 18px 25px;     /* 上下を広げてタップしやすくする */
-    color: #333;
-    text-decoration: none;
-    font-size: 1.1rem;
-    font-weight: bold;
-    border-bottom: 1px solid #eee; /* 境界線を入れて区切りを明確に */
-    transition: background 0.2s;   /* 触れた時の反応を滑らかに */
-}
-
-/* 触れた時・アクティブ時の反応（フィードバック） */
-.nav-link:active, .nav-link:hover {
-    background-color: #f0f7ff; /* 押した時に色が変わると「押した感」が出る */
-    color: #007bff;
-}
-
-/* アイコンと文字の間に少しスペースを空ける */
-.nav-link::before {
-    margin-right: 8px;
-}
-.hamburger-menu {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 11000; /* 帯(10001)よりさらに手前に */
-}
-
-.nav-menu {
-    position: fixed;
-    top: 0;
-    left: -250px; /* 最初は画面外に隠す */
-    width: 250px;
-    height: 100%;
-    transition: 0.3s;
-    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-}
-
-/* メニューが開いた状態 */
-.nav-menu.open {
-    left: 0;
-}
-/* 読み込みセクションのレイアウト調整 */
-.import-container {
-    background: #f0f4f8;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    border: 1px solid #d1d9e0;
-}
-
-.import-controls {
-    display: grid;
-    grid-template-columns: 1fr auto; /* 左にセレクト、右にボタン */
-    gap: 10px;
-    align-items: center;
-}
-
-.import-buttons {
-    display: flex;
-    gap: 8px;
-}
-
-.import-buttons button {
-    width: 44px; /* タップしやすいサイズ */
-    height: 44px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* ポケモン選択セレクトを2列目に独立させるか、幅を調整 */
-#import-pokemon-idx {
-    margin-top: 10px;
-    width: 100%; /* スマホでは横幅いっぱい */
-}
-
-@media (min-width: 600px) {
-    .import-controls {
-        grid-template-columns: auto auto auto; /* PCでは1行に並べる */
-    }
-    #import-pokemon-idx {
-        margin-top: 0;
-        width: auto;
-    }
-}
-</style>
-    <style>
-        
-        /* --- ベースデザインの刷新 --- */
+/* =========================================================
+   ダメ計 UI (refresh) — 攻撃=赤 / 防御=青 / その他=緑
+   ========================================================= */
 :root {
-    --primary-color: #007bff;
-    --secondary-color: #6c757d;
-    --success-color: #28a745;
-    --bg-color: #f8f9fa;
-    --card-bg: #ffffff;
-    --border-radius: 8px;
+    --atk: #e8604c;  --atk-bg: #fde3df; --atk-soft: #fff4f2;
+    --def: #3d8bd9;  --def-bg: #dcebfa; --def-soft: #f2f8fe;
+    --env: #5f9a35;  --env-bg: #e3efd7; --env-soft: #f6faf2;
+    --ink: #222; --muted: #6b6b6b; --line: #d9d9d9;
+    --bg: #eef0f3; --card: #ffffff; --chip: #6e6e6e;
+    --ok: #2ecc71; --warn: #f1c40f; --danger: #e74c3c;
+    --header-h: 52px; --bar-h: 74px; --tabs-h: 58px;
+    --radius: 12px;
 }
-
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
 body {
-    font-family: 'Segoe UI', Meiryo, sans-serif;
-    background-color: var(--bg-color);
-    color: #333;
-    margin: 0;
-    padding: 20px;
-    line-height: 1.5;
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Segoe UI", Meiryo, sans-serif;
+    font-size: 15px; line-height: 1.45;
+    padding-top: var(--header-h);
+    padding-bottom: calc(var(--bar-h) + var(--tabs-h) + 16px + env(safe-area-inset-bottom));
 }
-
-/* 全体レイアウト：PCでは左右2カラム */
-.container {
-    display: grid;
-    grid-template-columns: 1fr 350px;
-    gap: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-/* スマホでは1カラム */
-@media screen and (max-width: 1000px) {
-    .container { grid-template-columns: 1fr; }
-    #result-sticky-wrapper { position: static !important; }
-}
-
-/* カードスタイル */
-.card {
-    background: var(--card-bg);
-    border-radius: var(--border-radius);
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    border: 1px solid #e0e0e0;
-}
-
-h2, h3, h4 { margin-top: 0; color: var(--primary-color); }
-h2 { font-size: 1.5rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; }
-
-/* 入力要素の整理 */
-.input-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-.input-item {
-    flex: 1;
-    min-width: 150px;
-}
-
-label {
-    display: block;
-    font-size: 0.85rem;
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #555;
-}
-
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; touch-action: manipulation; }
 input[type="number"], input[type="text"], select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 1rem;
-    box-sizing: border-box;
+    width: 100%; height: 42px; padding: 6px 10px;
+    border: 1px solid var(--line); border-radius: 8px; background: #fff;
+    font-size: 16px;   /* iOSズーム防止 */
 }
+input[type="number"] { text-align: center; -moz-appearance: textfield; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input:focus, select:focus { outline: 2px solid rgba(61,139,217,.35); border-color: var(--def); }
+h2, h3, h4 { margin: 0; }
 
-/* 努力値ボタン周辺をコンパクトに */
-.ev-group {
-    display: flex;
-    gap: 5px;
-    align-items: center;
+/* ---------- ヘッダー ---------- */
+.app-header {
+    position: fixed; top: 0; left: 0; right: 0; height: var(--header-h); z-index: 9000;
+    display: grid; grid-template-columns: 44px auto minmax(0, 1fr) auto; align-items: center; gap: 6px;
+    padding: 0 10px; background: rgba(255,255,255,.97); border-bottom: 1px solid var(--line);
 }
-.ev-button {
-    padding: 5px 8px;
-    font-size: 0.75rem;
-    background: var(--success-color);
-    border: none;
-    border-radius: 4px;
-    color: white;
-    cursor: pointer;
-}
-
-/* 結果表示エリアの固定化（PC用） */
-#result-sticky-wrapper {
-    position: sticky;
-    top: 20px;
-    align-self: start;
-}
-
-#result {
-    margin-top: 0;
-    border: 2px solid var(--primary-color);
-    background-color: #f0f7ff;
-    min-height: 200px;
-}
-
-/* チェックボックスセクションをグリッド化 */
-.checkbox-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 10px;
-    background: #f9f9f9;
-    padding: 15px;
-    border-radius: 4px;
-}
-
-.checkbox-group {
-    display: flex;
-    align-items: center;
-    font-size: 0.9rem;
-}
-
-.checkbox-group input {
-    margin-right: 8px;
-    width: 18px;
-    height: 18px;
-}
-
-.action-bar {
-    display: flex;
-    flex-wrap: nowrap; /* 勝手に折り返さない */
-    align-items: center;
-    justify-content: space-around;
-    gap: 5px;
-    padding: 5px;
-}
-
-/* 帯の中のボタンや入力欄が潰れないようにする */
-.action-bar > * {
-    flex-shrink: 1;
-    min-width: 0; /* これがないと中身が突き抜ける原因になる */
-}
-
-/* タブ切り替え部分：高さを抑える */
-.tab-menu {
-    display: flex;
-    width: 100%;
-    border-top: 1px solid #eee;
-}
-
-.tab-btn {
-    flex: 1;
-    padding: 12px 2px; /* 上下12px→8pxに縮小 */
-    border: none;
-    background: none;
-    font-size: 0.75em; /* 0.85em→0.75emに縮小 */
-    font-weight: bold;
-    color: #777;
-}
-
-/* ボタン自体のサイズ：さらにコンパクトに */
-.btn-calc, .btn-table {
-    flex: 1;
-    padding: 8px 5px !important; /* 上下12px→8pxに縮小 */
-    font-size: 13px !important; /* 14px→13pxに縮小 */
-    border-radius: 4px;
-}
-
-/* コンテンツの下余白を、帯が小さくなった分だけ減らす */
-body {
-    padding-bottom: 100px !important; /* 130~150px→100pxに短縮 */
-}
-</style>
-<style>
-/* 外枠のコンテナ */
-.import-controls {
-    display: flex;
-    flex-wrap: wrap;    /* 入りきらない時に改行を許可 */
-    align-items: center;
-    gap: 8px;           /* 要素間の隙間 */
-}
-
-/* スロット選択（セレクトボックス） */
-#import-slot {
-    flex: 1;            /* スマホで横幅を柔軟に広げる */
-    min-width: 100px;   /* 極端に小さくなりすぎないように */
-    max-width: 150px;   /* パソコンで広がりすぎないように */
-    height: 36px;
-    border-radius: 4px;
-}
-
-/* ボタンをまとめているエリア */
-.import-buttons {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;    /* ボタン同士も入り切らなければ改行 */
-}
-
-/* 各ボタンのサイズ調整 */
-.import-buttons button {
-    width: 40px;        /* ボタンの横幅を統一して押しやすく */
-    height: 36px;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: none;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-/* スマホ用の個別調整（画面幅が600px以下の場合） */
-@media (max-width: 600px) {
-    .import-controls {
-        gap: 10px;
-    }
-    
-    #import-slot {
-        max-width: 100%; /* スマホではセレクトボックスを少し目立たせる */
-        flex-basis: 100%; /* セレクトボックスだけで1行占有させる（ボタンを下の行へ） */
-    }
-
-    .import-buttons {
-        width: 100%;
-        justify-content: space-between; /* ボタンを横いっぱいに綺麗に並べる */
-    }
-    
-    .import-buttons button {
-        flex: 1;        /* ボタンを均等な大きさに広げる */
-        height: 44px;   /* 指で押しやすいように少し高く */
-    }
-}
-</style>
-<style>
-    /* 下部メニューが重ならないようにbodyの下余白を調整 */
-body {
-    padding-bottom: 120px !important;
-}
-
-
-/* 一旦、既存の #bottom-navigation と body の padding 設定をすべて消してから、
-   以下のコードを <style> の一番最後に追加してください */
-
-/* ナビゲーションの共通ベース（!importantで強制） */
-#bottom-navigation {
-    position: fixed !important;
-    left: 0 !important;
-    width: 100% !important;
-    background: #ffffff !important;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2) !important;
-    z-index: 10000 !important; /* 他の要素より確実に上に */
-    display: flex !important;
-    flex-direction: column !important;
-    box-sizing: border-box !important;
-}
-
-/* --------------------------------------------------
-   1. 【縦長判定】幅よりも高さがある時（PC縦長・スマホ縦）
-   -------------------------------------------------- */
-@media screen and (max-aspect-ratio: 13/10) {
-    #bottom-navigation {
-        top: auto !important;
-        bottom: 0 !important; /* 下に固定 */
-        border-top: 2px solid #007bff !important;
-        border-bottom: none !important;
-    }
-    body {
-        padding-bottom: 140px !important; /* 下に余白 */
-        padding-top: 20px !important;
-    }
-}
-
-/* --------------------------------------------------
-   2. 【横長判定】高さよりも幅が十分にある時（PC全画面・スマホ横）
-   -------------------------------------------------- */
-@media screen and (min-aspect-ratio: 13/10) {
-    #bottom-navigation {
-        bottom: auto !important;
-        top: 0 !important; /* 上に固定 */
-        border-bottom: 2px solid #007bff !important;
-        border-top: none !important;
-    }
-    body {
-        padding-top: 130px !important; /* 上に余白 */
-        padding-bottom: 20px !important;
-    }
-}
-.input-inline-group {
-    display: flex;      /* 子要素を横並びにする */
-    align-items: center; /* 上下の中心を合わせる */
-    gap: 10px;          /* ラベルと入力欄の間の隙間 */
-}
-
-/* ラベルの幅を固定すると、複数の入力項目がある場合に綺麗に揃います */
-.input-inline-group label {
-    white-space: nowrap; /* 改行を防ぐ */
-    min-width: 50px;     /* 必要に応じて調整 */
-}
-
-/* 入力コンテナが横に広がるように調整 */
-.search-container {
-    flex-grow: 1;        /* 親要素の余ったスペースを埋める */
-}
-/* ラジオボタンのグループを横に並べる */
-.checkbox-group {
-    display: flex;
-    gap: 15px; /* 「物理」と「特殊」の間の距離 */
-}
-
-/* ラジオボタンの中のラベル（文字とボタンのセット）を横並びに */
-.checkbox-group label {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    min-width: auto; /* ここだけは幅を固定しない */
-    cursor: pointer;
-}
-
-/* detailsの中身に少し余白をつける（任意） */
-details .input-inline-group {
-    margin: 8px 0;
-}
-</style>
-<style>
-    /* 全体的なレイアウト調整（既存のCSSに合わせて調整してください） */
-    .input-inline-group {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-    .input-inline-group label {
-        margin-right: 10px;
-        font-weight: bold;
-        font-size: 14px;
-        width: 80px; /* ラベルの幅を固定する場合 */
-    }
-
-    /* ボタングループのコンテナ */
-    .nature-btn-group {
-        display: inline-flex;
-        border-radius: 4px;
-        overflow: hidden; /* 角丸からはみ出さないように */
-        border: 1px solid #ccc; /* グループ全体の枠線 */
-    }
-
-    /* 基本のボタンスタイル */
-    .nature-btn {
-        padding: 8px 20px;
-        border: none; /* 個別の枠線は消す */
-        background-color: #f8f9fa; /* 未選択時は薄いグレー */
-        color: #333;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.2s ease; /* アニメーション */
-        border-right: 1px solid #ccc; /* ボタン間の仕切り線 */
-    }
-
-    /* 最後のボタンは右側の仕切り線を消す */
-    .nature-btn:last-child {
-        border-right: none;
-    }
-
-    /* ホバー時（マウスが乗った時） */
-    .nature-btn:not(.active):hover {
-        background-color: #e2e6ea;
-    }
-
-    /* 【重要】押されている（アクティブ）ボタンのスタイル */
-    .nature-btn.active {
-        background-color: #007bff; /* 鮮やかな青 */
-        color: white; /* 文字は白 */
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.15); /* 少し凹んだような影 */
-    }
-    .ev-button {
-    /* 最小サイズを確保（指のサイズに合わせる） */
-    min-width: 30px; 
-    height: 30px;
-    
-    /* 文字を中央に配置 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    /* 余白を削ってボタン自体の面積を広げる */
-    padding: 0;
-    font-size: 16px;
-    font-weight: bold;
-    
-    /* タップしやすくするためのスタイル（お好みで） */
-    cursor: pointer;
-    touch-action: manipulation; /* 連打時のズーム防止 */
-    border: 1px solid #ccc;
-    background-color: rgb(0, 76, 99);
-    border-radius: 4px;
-}
-
-/* +- ボタンを少し目立たせたい場合 */
-.ev-button[data-step] {
-    background-color: #03bc35;
-    font-size: 18px; /* 記号は見やすいように少し大きく */
-}
-</style>
-<style>
-/* 横幅が1024px以下の時（PCの縦長ウィンドウやスマホ）は非表示にする */
-@media screen and (max-width: 1024px) {
-    #result-sticky-footer {
-        display: none !important;
-    }
-}
-
-/* 逆に、画面が広い（PC全画面など）時だけ表示させたい場合 */
-@media screen and (min-width: 1025px) {
-    #result-sticky-footer {
-        display: block !important;
-    }
-}
-
-/* 横向き（landscape）かつPCサイズの時は上部バーを隠す */
-@media screen and (orientation: landscape) and (min-width: 1025px) {
-    #top-sticky-summary, #top-spacer {
-        display: none !important;
-    }
-}
-/* すべての設定を上書きして強制的に位置を変える */
-.hamburger-menu {
-    top: 50px !important;   /* ←ここで高さを自由に調整してください */
-    left: 1px !important;
-    position: fixed !important;
-    z-index: 1000 !important; /* 他の帯より確実に手前に出す */
-}
-
-/* ボタンの中身の位置も微調整が必要な場合 */
+.app-header h1 { margin: 0; text-align: center; font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.header-link { border: none; background: none; color: #1f7ae0; font-size: 16px; font-weight: 600; padding: 8px 4px; white-space: nowrap; }
+.hamburger-menu { position: relative; z-index: 11000; }
 .hamburger-btn {
-    margin: 0 !important;
+    width: 40px; height: 40px; border-radius: 8px; background: #f2f4f7; border: none;
+    display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer;
 }
-
-/* メニューの中身（nav-menu）の開始位置もボタンに合わせる */
+.hamburger-btn span { width: 20px; height: 2px; background: #333; display: block; border-radius: 2px; transition: .25s; }
+.hamburger-btn.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger-btn.active span:nth-child(2) { opacity: 0; }
+.hamburger-btn.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 .nav-menu {
-    top: 100px !important; /* topと同じ数値にするとボタンの横からメニューが出ます */
+    position: fixed; top: var(--header-h); left: -270px; width: 260px; height: calc(100% - var(--header-h));
+    background: #fff; box-shadow: 2px 0 12px rgba(0,0,0,.15); display: flex; flex-direction: column;
+    transition: left .25s; z-index: 11000; padding-top: 8px;
 }
-/* PC用：計算機の右外側に配置 */
-.floating-memo {
-    position: absolute;
-    top: 0;
-    left: 100%;         /* 計算機の右端を起点にする */
-    margin-left: 40px;  /* 計算機との隙間を少し広げて圧迫感を解消 */
-    
-    width: 450px;       /* ★ここを大幅にアップ（300px → 450px） */
-    background: #ffffff;
-    border: 2px solid #007bff;
-    border-radius: 12px; /* 少し角を丸くしてノート感を出す */
-    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-    padding: 15px;
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-}
+.nav-menu.open { left: 0; }
+.nav-link { display: block; padding: 16px 22px; color: #333; text-decoration: none; font-weight: 700; border-bottom: 1px solid #eee; }
+.nav-link:hover, .nav-link:active { background: #f0f7ff; color: #1f7ae0; }
 
-/* メモ入力エリア */
-#battle-memo {
-    width: 100%;
-    height: 700px;      /* 高さも少しアップ */
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    font-size: 0.9rem; /* 文字を少し大きく読みやすく */
-    line-height: 1.6;
-    color: #333;
-    resize: vertical;
-    box-sizing: border-box;
-    outline: none;      /* クリック時の青枠を消す（任意） */
+/* ---------- ツールバー ---------- */
+.page { max-width: 640px; margin: 0 auto; padding: 10px 10px 0; }
+.toolbar { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0 8px; scrollbar-width: none; }
+.toolbar::-webkit-scrollbar { display: none; }
+.tool-btn {
+    flex: 0 0 auto; border: 1px solid var(--line); background: #fff; border-radius: 999px;
+    padding: 7px 13px; font-size: 13px; font-weight: 700; color: #333; white-space: nowrap;
 }
+.tool-btn.primary { background: #1f7ae0; color: #fff; border-color: #1f7ae0; }
 
-#battle-memo:focus {
-    border-color: #007bff; /* フォーカス時に枠線を強調 */
-}
+/* パーティ読込 */
+.import-container { background: #fff; border-radius: var(--radius); border: 1px solid var(--line); margin-bottom: 10px; }
+.import-container > summary { list-style: none; padding: 10px 14px; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; }
+.import-container > summary::-webkit-details-marker { display: none; }
+.import-container > summary::after { content: "▼"; font-size: 11px; color: var(--muted); }
+.import-container[open] > summary::after { content: "▲"; }
+.import-body { padding: 0 14px 12px; display: grid; gap: 8px; }
+.import-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.import-buttons { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.import-buttons button { height: 42px; border: none; border-radius: 8px; color: #fff; font-weight: 800; }
+.import-buttons .ib-atk { background: var(--atk); }
+.import-buttons .ib-def { background: var(--def); }
+.import-buttons .ib-timer { background: #9aa0a6; }
+#move-quick-selection:empty { display: none; }
+.quick-move-btn { margin: 3px; border: 1px solid #1f7ae0; background: #fff; color: #1f7ae0; border-radius: 999px; font-size: 13px; }
 
-/* 【重要】非表示にする閾値を調整 
-  計算機(900px) + メモ(450px) + 隙間(40px) + 余裕 = 約1450px
-  これ以下の幅では被る前に非表示にする
-*/
-@media (max-width: 1450px), (orientation: portrait) {
-    .floating-memo {
-        display: none !important;
-    }
+/* ---------- パネル ---------- */
+.panels { display: grid; gap: 12px; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.panel { border-radius: var(--radius); overflow: hidden; background: var(--card); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.panel-head {
+    display: flex; align-items: center; justify-content: space-between; padding: 10px 12px 10px 14px;
+    color: #fff; font-weight: 800; font-size: 17px;
 }
-/* 技入力欄のサイズ調整 */
-#move-name {
-    width: 100%;           /* コンテナいっぱいに広げる */
-    padding: 10px 12px;    /* 上下左右の余白を増やして大きく見せる */
-    font-size: 16px;       /* スマホでのズーム防止のため16px以上を推奨 */
-    box-sizing: border-box;
-}
+.panel-head .head-btn { border: none; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 800; }
+.panel-atk .panel-head { background: var(--atk); } .panel-atk .head-btn { color: var(--atk); }
+.panel-def .panel-head { background: var(--def); } .panel-def .head-btn { color: var(--def); }
+.panel-env .panel-head { background: var(--env); }
+.panel-atk { background: var(--atk-bg); }
+.panel-def { background: var(--def-bg); }
+.panel-env { background: var(--env-bg); }
+.panel-body { padding: 10px 12px 14px; display: grid; gap: 10px; }
+.group-title { font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: .08em; margin-top: 4px; padding-left: 2px; }
+.panel-atk .group-title { color: #b8473a; } .panel-def .group-title { color: #2c6aa8; } .panel-env .group-title { color: #44711f; }
 
-/* デフォルト（1列） */
+/* 種族値・タイプ */
+.poke-meta { display: grid; gap: 6px; }
+.base-stats { display: flex; gap: 4px; flex-wrap: wrap; }
+.base-stats .bs { min-width: 38px; text-align: center; padding: 2px 6px; border-radius: 6px; background: var(--chip); color: #fff; font-weight: 700; font-size: 14px; position: relative; }
+.base-stats .bs small { display: block; font-size: 9px; line-height: 1; opacity: .85; font-weight: 600; }
+.panel-atk .base-stats .bs.on { background: #fff; color: var(--atk); outline: 2px solid var(--atk); }
+.panel-def .base-stats .bs.on { background: #fff; color: var(--def); outline: 2px solid var(--def); }
+.type-row { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+.type-badge { padding: 2px 9px; border-radius: 6px; color: #fff; font-size: 13px; font-weight: 800; }
+.type-badge.tera { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #c49bff; }
+.type-badge.struck { opacity: .35; text-decoration: line-through; }
+
+/* 行レイアウト */
+.row { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 8px; }
+.row > *, .panels > *, .desk-cols > *, .panel-body > * { min-width: 0; }
+select { min-width: 0; max-width: 100%; text-overflow: ellipsis; }
+html, body { overflow-x: hidden; }
+.row > label, .row > .lbl { font-weight: 800; font-size: 15px; color: #333; white-space: nowrap; margin: 0; }
+.row-inline { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.row-inline > input[type="number"] { flex: 1 1 70px; min-width: 60px; }
+.name-wrap { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: center; }
+/* Icons は 128x64 の2コマ画像なので左半分だけ表示 */
+.poke-icon { width: 48px; height: 48px; object-fit: cover; object-position: 0 50%; }
+/* タイプ変更 */
+.type-chg-btn { height: 28px; padding: 0 10px; border-radius: 6px; font-size: 13px; font-weight: 800; background: #fff; }
+.panel-atk .type-chg-btn { border: 1.5px solid var(--atk); color: var(--atk); }
+.panel-def .type-chg-btn { border: 1.5px solid var(--def); color: var(--def); }
+.panel-atk .type-chg-btn.on { background: var(--atk); color: #fff; }
+.panel-def .type-chg-btn.on { background: var(--def); color: #fff; }
+.type-panel { background: #fff; border-radius: 10px; padding: 10px; display: grid; gap: 8px; }
+.type-panel[hidden] { display: none; }
+.type-panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.type-panel-grid label { font-size: 12px; font-weight: 800; color: var(--muted); display: grid; gap: 2px; margin: 0; }
+.type-panel-grid select { height: 38px; font-size: 15px; }
+.type-presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.type-presets button { border: 1px solid var(--line); background: #f6f7f9; border-radius: 999px; padding: 5px 10px; font-size: 12px; font-weight: 700; }
+.type-changed-note { font-size: 11px; font-weight: 800; color: var(--muted); }
+
+/* 検索 */
+.search-container { position: relative; min-width: 0; }
 .suggestion-list {
-    display: none; /* JSで表示制御されるため最初は隠す */
-    max-height: 300px;
-    overflow-y: auto;
-    background: white;
-    border: 1px solid #ccc;
-    z-index: 1000;
+    display: none; position: absolute; left: 0; right: 0; top: 44px; z-index: 5000;
+    background: #fff; border: 1px solid var(--line); border-radius: 8px; max-height: 300px; overflow-y: auto;
+    box-shadow: 0 8px 20px rgba(0,0,0,.15); grid-template-columns: 1fr 1fr;
 }
+.suggestion-list[style*="block"] { display: grid !important; }
+.suggestion-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 15px; }
+.suggestion-item:hover { background: #f2f6fb; }
+#attacker-mega-container:empty, #defender-mega-container:empty { display: none; }
+#attacker-mega-container, #defender-mega-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.mega-toggle-btn { width: auto !important; padding: 5px 10px !important; border-radius: 999px !important; }
 
-/* 候補アイテムの基本スタイル */
-.suggestion-item {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
+/* ステッパー（▲▼） */
+.step-btn {
+    flex: 0 0 52px; height: 42px; border-radius: 8px; background: #fff; font-size: 18px; line-height: 1;
+    display: flex; align-items: center; justify-content: center; user-select: none; -webkit-user-select: none;
 }
+.panel-atk .step-btn { border: 1.5px solid var(--atk); color: var(--atk); }
+.panel-def .step-btn { border: 1.5px solid var(--def); color: var(--def); }
+.panel-env .step-btn { border: 1.5px solid var(--env); color: var(--env); }
+.step-btn:active { filter: brightness(.92); }
 
-/* スマホ、または画面幅が800px以下の時は2列化 */
-@media screen and (max-width: 800px) {
-    .suggestion-list {
-        /* JSで display='' にされた時に grid が適用されるようにする */
-        display: grid !important; 
-        grid-template-columns: 1fr 1fr;
-    }
-    
-    /* リストが表示されていない時は grid も消すための設定 */
-    .suggestion-list[style*="display: none"] {
-        display: none !important;
-    }
+/* 努力値 */
+.ev-line { display: flex; align-items: center; gap: 4px; }
+.ev-line .ev-tag { font-size: 12px; font-weight: 800; color: var(--muted); margin-right: 2px; white-space: nowrap; }
+.ev-line input[type="number"] { width: 58px; flex: 0 0 58px; height: 36px; }
+.ev-button {
+    flex: 0 0 auto; min-width: 38px; height: 36px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--line);
+    background: #fff; font-weight: 800; font-size: 14px; color: #444; display: flex; align-items: center; justify-content: center;
 }
-/* 選択されたボタンのスタイル */
-.remote-controls button.active {
-    background-color: #007bff; /* 青色 */
-    color: white;              /* 文字を白に */
-    border-color: #0056b3;
-}
+.ev-button[data-step] { font-size: 18px; }
 
-/* ついでにボタンの見た目を整える（任意） */
-.remote-controls button {
-    padding: 8px 12px;
-    margin: 2px;
-    cursor: pointer;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    transition: all 0.2s; /* 変化を滑らかに */
+/* セグメント（性格・物理特殊・天候など） */
+.seg { display: inline-flex; background: rgba(0,0,0,.07); border-radius: 10px; padding: 3px; gap: 2px; width: 100%; }
+.seg > button, .seg > label {
+    flex: 1; border: none; background: transparent; border-radius: 8px; padding: 8px 4px; font-size: 14px; font-weight: 700;
+    color: #444; text-align: center; white-space: nowrap; margin: 0; cursor: pointer;
 }
-</style>
+.seg > button, .seg > label { min-width: 0; overflow: hidden; }
+.seg > button.active, .seg > label:has(input:checked) { background: #fff; color: #111; box-shadow: 0 1px 3px rgba(0,0,0,.18); }
+.seg > label input { position: absolute; opacity: 0; pointer-events: none; }
+.nature-btn-group { display: inline-flex; background: rgba(0,0,0,.07); border-radius: 10px; padding: 3px; gap: 2px; width: 100%; }
+.nature-btn { flex: 1; border: none; background: transparent; border-radius: 8px; padding: 8px 4px; font-size: 14px; font-weight: 700; color: #444; }
+.nature-btn.active { background: #fff; color: #111; box-shadow: 0 1px 3px rgba(0,0,0,.18); }
+
+/* ランク */
+.rank-line { display: grid; grid-template-columns: 1fr 52px 52px; gap: 6px; }
+.rank-line select { text-align: center; font-weight: 800; }
+
+/* 状態チップ（チェックボックス） */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { position: relative; display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px 8px 9px; background: #fff; border-radius: 999px; border: 1px solid var(--line); font-size: 14px; font-weight: 700; cursor: pointer; user-select: none; margin: 0; }
+.chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip::before { content: ""; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #c8c8c8; background: #fff; flex: 0 0 auto; }
+.panel-atk .chip:has(input:checked) { background: var(--atk); color: #fff; border-color: var(--atk); }
+.panel-def .chip:has(input:checked) { background: var(--def); color: #fff; border-color: var(--def); }
+.panel-env .chip:has(input:checked) { background: var(--env); color: #fff; border-color: var(--env); }
+.chip:has(input:checked)::before { border-color: #fff; background: #fff; box-shadow: inset 0 0 0 4px currentColor; }
+.chip .sub { font-size: 11px; font-weight: 600; opacity: .8; }
+
+/* 技タイプ */
+.move-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.move-meta input#power { width: 90px; flex: 0 0 90px; }
+.eff-badge { font-size: 13px; font-weight: 800; padding: 3px 8px; border-radius: 6px; background: #fff; border: 1px solid var(--line); }
+
+/* 詳細(折りたたみ) */
+details.more { background: rgba(255,255,255,.6); border-radius: 10px; }
+details.more > summary { list-style: none; padding: 8px 12px; font-size: 13px; font-weight: 800; color: var(--muted); cursor: pointer; }
+details.more > summary::-webkit-details-marker { display: none; }
+details.more > summary::before { content: "＋ "; }
+details.more[open] > summary::before { content: "－ "; }
+details.more > .more-body { padding: 0 12px 12px; display: grid; gap: 8px; }
+
+/* 特殊技UI */
+.special-ui { background: #fff; border-radius: 10px; padding: 12px; border: 1px solid var(--line); font-size: 14px; }
+.special-ui h4 { font-size: 14px; margin-bottom: 6px; }
+.special-ui label { font-size: 12px; font-weight: 700; color: var(--muted); display: block; margin: 4px 0 2px; }
+.special-ui select, .special-ui input { height: 36px; }
+
+/* HPスライダー */
+.hp-slider { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+.hp-slider input[type="range"] { width: 100%; accent-color: var(--def); }
+.hp-slider .pct { font-weight: 800; font-size: 14px; min-width: 64px; text-align: right; }
+.quick-pcts { display: flex; gap: 4px; flex-wrap: wrap; }
+.quick-pcts button { border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 700; }
+
+/* ---------- 結果カード ---------- */
+#result { background: #fff; border-radius: var(--radius); padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-top: 12px; }
+#result h4 { font-size: 14px; margin: 10px 0 4px; color: #333; }
+.result-sub { font-size: 12px; color: var(--muted); }
+#hp_status_display { font-size: 12px; color: var(--muted); padding: 8px 2px; }
+#hp_status_display button { font-size: 12px; border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 2px 8px; }
+
+/* ---------- 下部 結果バー ---------- */
+#top-sticky-summary {
+    position: fixed; left: 0; right: 0; z-index: 9500;
+    bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom));
+    background: #fff; border-top: 1px solid var(--line); box-shadow: 0 -2px 10px rgba(0,0,0,.08);
+    height: var(--bar-h); cursor: pointer;
+}
+.bar-inner { max-width: 640px; margin: 0 auto; height: 100%; display: grid; grid-template-columns: 104px minmax(0, 1fr) 104px; align-items: stretch; }
+.bar-side { display: flex; align-items: center; gap: 4px; padding: 4px 6px; position: relative; overflow: hidden; }
+.bar-side.atk { background: var(--atk-bg); border-right: 3px solid var(--atk); }
+.bar-side.def { background: var(--def-soft); border-left: 3px solid var(--def); justify-content: flex-end; }
+.bar-side img { width: 34px; height: 34px; object-fit: cover; object-position: 0 50%; flex: 0 0 auto; }
+.bar-nums { display: grid; grid-template-columns: auto auto; align-items: center; column-gap: 3px; row-gap: 4px; font-size: 10px; line-height: 1.1; }
+.bar-nums .k { color: #fff; border-radius: 3px; padding: 1px 3px; font-weight: 700; text-align: center; white-space: nowrap; }
+.bar-side.atk .k { background: #444; } .bar-side.atk .k + .v + .k { background: var(--atk); }
+.bar-side.def .k { background: var(--def); }
+.bar-nums .v { font-weight: 800; font-size: 12px; }
+.bar-center { padding: 4px 10px; display: grid; align-content: center; gap: 2px; min-width: 0; }
+.bar-center .dmg { text-align: center; font-weight: 800; font-size: 16px; white-space: nowrap; }
+.bar-center .pct { text-align: center; font-weight: 800; font-size: 16px; white-space: nowrap; }
+.hpbar { position: relative; height: 16px; border-radius: 999px; background: #8a8f96; overflow: hidden; }
+#top-hp-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: var(--ok); transition: width .25s, background-color .25s; }
+#top-hp-bar-range { position: absolute; top: 0; bottom: 0; background: rgba(46,204,113,.45); transition: left .25s, width .25s; }
+#top-judgment { text-align: center; font-size: 12px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#top-judgment span { font-size: 12px !important; }
+#top-hp-text { display: none; }
+
+/* ---------- 下部タブ ---------- */
+#bottom-navigation {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 9600; background: #3f474f;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+.tab-menu { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); height: var(--tabs-h); }
+.tab-btn { border: none; background: none; color: #cfd4d9; font-size: 12px; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.tab-btn .ico { font-size: 20px; line-height: 1; }
+.tab-btn.active { color: #ffc94a; }
+
+/* ---------- タイマー ---------- */
+#timer-display { display: none; position: fixed; top: calc(var(--header-h) + 6px); right: 8px; background: rgba(0,0,0,.82); color: #00ff00; padding: 2px 12px; border-radius: 8px; font-family: "Courier New", monospace; font-size: 22px; z-index: 9100; border: 2px solid #00ff00; }
+
+/* ---------- モーダル ---------- */
+.modal { display: none; position: fixed; z-index: 20000; inset: 0; background: rgba(0,0,0,.65); overflow-y: auto; }
+.modal-content { background: #fff; margin: 6vh auto; padding: 18px; width: 94%; max-width: 1000px; max-height: 84vh; overflow-y: auto; border-radius: 12px; position: relative; }
+.close-button { display: none !important; }
+.quick-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.quick-table th, .quick-table td { border: 1px solid #ddd; padding: 6px; text-align: center; }
+
+/* ---------- メモ（PC） ---------- */
+.floating-memo { display: none; }
+#battle-memo { width: 100%; height: 420px; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 14px; line-height: 1.6; resize: vertical; }
+.memo-header { display: flex; justify-content: space-between; align-items: center; font-weight: 800; margin-bottom: 8px; }
+
+/* hidden helpers */
+.is-hidden { display: none !important; }
+
+/* ---------- PC: 横並び ---------- */
+@media (min-width: 1100px) {
+    .page { max-width: 1500px; padding: 14px 18px 0; }
+    .panels { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+    .tab-panel { display: block !important; }
+    #bottom-navigation .tab-btn[data-tab] { display: none; }
+    #bottom-navigation { display: none; }
+    #top-sticky-summary { bottom: 0; }
+    body { padding-bottom: calc(var(--bar-h) + 20px); }
+    .bar-inner { max-width: 900px; }
+    .desk-cols { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 14px; align-items: start; }
+    .floating-memo { display: block; background: #fff; border-radius: var(--radius); padding: 14px; margin-top: 12px; }
+    .panel-env .row:has(.seg) { grid-template-columns: 1fr; gap: 4px; }
+}
+@media (max-width: 380px) {
+    .row { grid-template-columns: 54px 1fr; }
+    .step-btn { flex-basis: 44px; }
+    .bar-inner { grid-template-columns: 70px minmax(0, 1fr) 70px; }
+    .bar-side img { display: none; }
+}
+    </style>
 </head>
 <script>
 function toggleMenu() {
@@ -948,120 +467,682 @@ document.addEventListener('click', function(event) {
     }
   });
 </script>
+<!-- ================= ヘッダー ================= -->
+<header class="app-header">
+    <div id="hamburgerMenu" class="hamburger-menu">
+        <div class="hamburger-btn" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+        <nav id="navMenu" class="nav-menu">
+            <a href="party_memo.html" class="nav-link">📋 構築メモ</a>
+            <a href="test.html" class="nav-link">⚡ ダメージ計算</a>
+            <a href="kasouteki.html" class="nav-link">🎯 仮想敵リスト</a>
+        </nav>
+    </div>
+    <button type="button" class="header-link" onclick="swapAttackerDefender()">攻防交代</button>
+    <h1>ダメ計 (シーテャkids)</h1>
+    <button type="button" class="header-link" onclick="resetAllSides()">リセット</button>
+</header>
+
+<div id="timer-display"><span id="time-left">20:00</span></div>
+
+<div class="page">
+    <!-- ツールバー -->
+    <div class="toolbar">
+        <button type="button" class="tool-btn primary" onclick="calculateDamage(); openResultModal();">詳細結果</button>
+        <button type="button" class="tool-btn" onclick="openQuickTableModal()">技早見</button>
+        <button type="button" class="tool-btn" onclick="openQuickTableModal3('attacker')">攻撃早見</button>
+        <button type="button" class="tool-btn" onclick="openQuickTableModal3('defender')">防御早見</button>
+        <button type="button" class="tool-btn" onclick="showHPGuessModal()">定数予測</button>
+        <button type="button" class="tool-btn" onclick="copyResultToClipboard()">結果コピー</button>
+    </div>
+
+    <!-- パーティメモから読み込み -->
+    <details class="import-container">
+        <summary>📂 パーティメモから読み込み</summary>
+        <div class="import-body">
+            <div class="import-controls">
+                <select id="import-slot">
+                    <option value="1">スロット 1</option>
+                </select>
+                <select id="import-pokemon-idx">
+                    <option value="0">ポケモン 1</option>
+                    <option value="1">ポケモン 2</option>
+                    <option value="2">ポケモン 3</option>
+                    <option value="3">ポケモン 4</option>
+                    <option value="4">ポケモン 5</option>
+                    <option value="5">ポケモン 6</option>
+                </select>
+            </div>
+            <div class="import-buttons">
+                <button type="button" class="ib-atk" onclick="loadFromPartyMemo('attacker', 'Atk')" title="物理アタッカーとして読込">A</button>
+                <button type="button" class="ib-atk" onclick="loadFromPartyMemo('attacker', 'SpAtk')" title="特殊アタッカーとして読込">C</button>
+                <button type="button" class="ib-def" onclick="loadFromPartyMemo('defender', 'Def')" title="物理受けとして読込">B</button>
+                <button type="button" class="ib-def" onclick="loadFromPartyMemo('defender', 'SpDef')" title="特殊受けとして読込">D</button>
+                <button type="button" class="ib-timer" id="timer-start-btn" onclick="startCountdown()" title="タイマー開始/停止">⌛</button>
+            </div>
+            <div id="move-quick-selection"></div>
+        </div>
+    </details>
+
+<div class="desk-cols">
+<div>
+    <form id="damageForm" onsubmit="return false;">
+    <div class="panels">
+
+    <!-- ================= 攻撃側 ================= -->
+    <section id="tab-atk" class="tab-panel panel panel-atk active">
+        <div class="panel-head">
+            <span>攻撃</span>
+            <button type="button" class="head-btn" onclick="resetAttackerStats()">リセット</button>
+        </div>
+        <div class="panel-body">
+            <div class="poke-meta">
+                <div class="base-stats" id="atk-base-stats"></div>
+                <div class="type-row">
+                    <span id="atk-type-badges" class="type-row"></span>
+                    <button type="button" class="type-chg-btn" data-panel="atk-type-panel">タイプ変更</button>
+                </div>
+                <div id="atk-type-panel" class="type-panel" hidden>
+                    <div class="type-panel-grid">
+                        <label>タイプ1<select id="atk-type1" class="type-sel"></select></label>
+                        <label>タイプ2<select id="atk-type2" class="type-sel"></select></label>
+                        <label>追加タイプ<select id="atk-type3" class="type-sel"></select></label>
+                        <label>テラスタル<select id="atk-tera" class="type-sel"></select></label>
+                    </div>
+                    <div class="type-presets" data-role="attacker">
+                        <button type="button" data-preset="reset">元に戻す</button>
+                        <button type="button" data-preset="protean">技タイプに（へんげんじざい/リベロ）</button>
+                        <button type="button" data-preset="mirror">ミラータイプ（相手をコピー）</button>
+                        <button type="button" data-preset="soak">みずびたし</button>
+                        <button type="button" data-preset="burnup">ほのお消失（もえつきる）</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <label for="attacker-pokemon-name">名前</label>
+                <div class="name-wrap">
+                    <div class="search-container" id="attacker-search">
+                        <input type="text" id="attacker-pokemon-name" placeholder="ポケモン名（ひらがなOK）" autocomplete="off">
+                        <div class="suggestion-list"></div>
+                        <div id="attacker-mega-container"></div>
+                    </div>
+                    <img id="atk-icon" class="poke-icon" alt="" onerror="this.style.visibility='hidden'">
+                </div>
+            </div>
+
+            <div class="row">
+                <label for="attacker-ability">特性</label>
+                <select id="attacker-ability"><option value="">（特性なし）</option></select>
+            </div>
+
+            <div class="row">
+                <label for="base_attack" id="label_base_attack">攻撃</label>
+                <div class="row-inline">
+                    <input type="number" id="base_attack" value="100" min="1" class="fixed-value" inputmode="numeric">
+                    <button type="button" class="step-btn" data-stepfor="base_attack" data-delta="1">▲</button>
+                    <button type="button" class="step-btn" data-stepfor="base_attack" data-delta="-1">▼</button>
+                </div>
+            </div>
+            <div class="row">
+                <span class="lbl">努力値</span>
+                <div class="ev-line">
+                    <button type="button" class="ev-button" data-stat="attacker" data-ev="0">0</button>
+                    <button type="button" class="ev-button" data-stat="attacker" data-step="-1">−</button>
+                    <input type="number" id="attacker_ev" value="32" min="0" max="32" step="1" inputmode="numeric">
+                    <button type="button" class="ev-button" data-stat="attacker" data-step="1">＋</button>
+                    <button type="button" class="ev-button" data-stat="attacker" data-ev="32">32</button>
+                </div>
+            </div>
+
+            <div class="row">
+                <span class="lbl">性格</span>
+                <div class="nature-btn-group">
+                    <input type="hidden" id="nature_attack" value="1.0">
+                    <button type="button" class="nature-btn" data-value="0.9">0.9</button>
+                    <button type="button" class="nature-btn active" data-value="1.0">1.0</button>
+                    <button type="button" class="nature-btn" data-value="1.1">1.1</button>
+                </div>
+            </div>
+
+            <div class="row">
+                <label for="rank_attack">ランク</label>
+                <div class="rank-line">
+                    <select id="rank_attack">
+                        <option value="4.0">+6</option>
+                        <option value="3.5">+5</option>
+                        <option value="3.0">+4</option>
+                        <option value="2.5">+3</option>
+                        <option value="2.0">+2</option>
+                        <option value="1.5">+1</option>
+                        <option value="1.0" selected>±0</option>
+                        <option value="0.667">−1</option>
+                        <option value="0.5">−2</option>
+                        <option value="0.4">−3</option>
+                        <option value="0.333">−4</option>
+                        <option value="0.286">−5</option>
+                        <option value="0.25">−6</option>
+                    </select>
+                    <button type="button" class="step-btn" onclick="changeRank('rank_attack', 1)">▲</button>
+                    <button type="button" class="step-btn" onclick="changeRank('rank_attack', -1)">▼</button>
+                </div>
+            </div>
+
+            <div class="row">
+                <label for="atk-item">道具</label>
+                <select id="atk-item"></select>
+            </div>
+
+            <div class="group-title">わざ</div>
+            <div class="row">
+                <label for="move-name">技名</label>
+                <div class="search-container" id="move-search">
+                    <input type="text" id="move-name" placeholder="技名（ひらがなOK）" autocomplete="off">
+                    <div class="suggestion-list"></div>
+                </div>
+            </div>
+            <div class="row">
+                <span class="lbl">分類</span>
+                <div class="seg">
+                    <label><input type="radio" name="move_type" value="physical" id="move_type_physical" checked>物理</label>
+                    <label><input type="radio" name="move_type" value="special" id="move_type_special">特殊</label>
+                </div>
+            </div>
+            <div class="row">
+                <label for="power">威力</label>
+                <div class="move-meta">
+                    <input type="number" id="power" value="100" min="1" class="fixed-value" inputmode="numeric">
+                    <span id="move-type-badge" class="type-badge" style="background:#999">—</span>
+                    <span id="move-eff-badge" class="eff-badge">×1</span>
+                </div>
+            </div>
+
+            <!-- 技ごとの特殊UI -->
+            <div id="multi-hit-ui" class="special-ui" style="display:none;">
+                <h4>🔄 連続技</h4>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div><label for="hit_count">ヒット数</label><select id="hit_count" onchange="updateCritOptions()"></select></div>
+                    <div><label for="crit_hit_count">うち急所</label><select id="crit_hit_count"></select></div>
+                </div>
+            </div>
+            <div id="gyro-ball-ui" class="special-ui" style="display:none;">
+                <h4>⚙️ ジャイロボール（素早さ）</h4>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div>
+                        <label>自分 S種族/個体/努力</label>
+                        <div style="display:flex; gap:4px;">
+                            <input type="number" id="s-base-atk" value="20">
+                            <input type="number" id="s-iv-atk" value="0">
+                            <input type="number" id="s-ev-atk" value="0">
+                        </div>
+                        <label>性格 / ランク</label>
+                        <div style="display:flex; gap:4px;">
+                            <select id="s-nature-atk"><option value="0.9" selected>0.9</option><option value="1.0">1.0</option><option value="1.1">1.1</option></select>
+                            <select id="s-rank-atk"><option value="0">±0</option><option value="1">+1</option><option value="-1">-1</option></select>
+                        </div>
+                        <div style="margin-top:4px;">実数値: <strong id="real-s-atk">22</strong></div>
+                    </div>
+                    <div>
+                        <label>相手 S種族/個体/努力</label>
+                        <div style="display:flex; gap:4px;">
+                            <input type="number" id="s-base-def" value="100">
+                            <input type="number" id="s-iv-def" value="31">
+                            <input type="number" id="s-ev-def" value="0">
+                        </div>
+                        <label>性格 / ランク</label>
+                        <div style="display:flex; gap:4px;">
+                            <select id="s-nature-def"><option value="0.9">0.9</option><option value="1.0" selected>1.0</option><option value="1.1">1.1</option></select>
+                            <select id="s-rank-def"><option value="0">±0</option><option value="1">+1</option><option value="-1">-1</option></select>
+                        </div>
+                        <div style="margin-top:4px;">実数値: <strong id="real-s-def">121</strong></div>
+                    </div>
+                </div>
+                <div style="text-align:center; margin-top:8px;"><strong>算出威力: <span id="gyro-calculated-power" style="color:#e74c3c;">--</span></strong></div>
+            </div>
+            <div id="stored-power-ui" class="special-ui" style="display:none;">
+                <h4>📈 能力上昇の合計（アシストパワー等）</h4>
+                <div class="row-inline">
+                    <label for="rank-sum-total" style="margin:0;">上昇ランク合計</label>
+                    <input type="number" id="rank-sum-total" value="0" min="0" max="42" oninput="updateStoredPower()" onchange="updateStoredPower()">
+                </div>
+                <div style="text-align:center; margin-top:8px;"><strong>算出威力: <span id="stored-calculated-power" style="color:#d02090;">20</span></strong></div>
+            </div>
+            <div id="rage-fist-ui" class="special-ui" style="display:none;">
+                <label>💢 被弾回数（ふんどのこぶし）</label>
+                <input type="number" id="rage-fist-count" value="0" min="0" max="6" step="1">
+                <div style="margin-top:6px;">算出威力: <strong id="rage-fist-calculated-power">50</strong></div>
+            </div>
+            <div id="last-respects-ui" class="special-ui" style="display:none;">
+                <label>👻 ひんし数（おはかまいり）</label>
+                <input type="number" id="last-respects-count" value="0" min="0" max="10" step="1">
+                <div style="margin-top:6px;">算出威力: <strong id="last-respects-calculated-power">50</strong></div>
+            </div>
+            <div id="hp-dependent-move-ui" class="special-ui" style="display:none;">
+                <h4>🧪 残りHPで威力変化</h4>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div><label>最大HP</label><input type="number" id="attacker-max-hp-input" value="150" min="1" oninput="updateHPDependentPower()"></div>
+                    <div><label>現在HP</label><input type="number" id="attacker-current-hp-input" value="150" min="0" oninput="updateHPDependentPower()"></div>
+                </div>
+                <div style="text-align:center; margin-top:8px;"><strong>算出威力: <span id="hp-calculated-power-display" style="color:#2e7d32;">150</span></strong></div>
+            </div>
+            <div id="conditional-power-ui" class="special-ui" style="display:none;">
+                <h4 id="conditional-move-title">技の威力倍増条件</h4>
+                <label class="chip" style="color:inherit;"><input type="checkbox" id="power-multiplier-check"><span id="power-multiplier-label">条件を満たしている</span></label>
+                <div class="result-sub" style="margin-top:6px;">※チェックで威力 <span id="power-multiplier-value">---</span> 倍</div>
+            </div>
+
+            <div class="group-title">状態</div>
+            <div class="chips">
+                <label class="chip"><input type="checkbox" id="burn_m_check">やけど</label>
+                <label class="chip"><input type="checkbox" id="critical_m_check">急所</label>
+                <label class="chip"><input type="checkbox" id="helping_hand">てだすけ</label>
+                <label class="chip"><input type="checkbox" id="atk_flower_gift">フラワーギフト</label>
+                <label class="chip"><input type="checkbox" id="steely_spirit">はがねのせいしん</label>
+                <label class="chip"><input type="checkbox" id="power_spot">パワースポット</label>
+                <label class="chip"><input type="checkbox" id="battery">バッテリー</label>
+                <label class="chip"><input type="checkbox" id="charge">じゅうでん</label>
+            </div>
+
+            <details class="more">
+                <summary>補正の詳細（手動調整）</summary>
+                <div class="more-body">
+                    <div class="row"><label for="affinity">相性</label><input type="number" id="affinity" value="1.0" step="0.1" min="0.0" class="fixed-value"></div>
+                    <div class="row"><label for="stab">一致</label><input type="number" id="stab" value="1.5" step="0.5" min="1.0" class="fixed-value"></div>
+                    <div class="row"><label for="ability_m_atk">特性</label><input type="number" id="ability_m_atk" value="4096" step="1" min="0"></div>
+                    <div class="row">
+                        <label for="item_m_atk">道具</label>
+                        <select id="item_m_atk" title="道具で「手動」を選んだ時のみ有効">
+                            <option value="4096">なし (1.0x)</option>
+                            <option value="4505">1.1倍</option>
+                            <option value="4915">1.2倍 (プレート/おこう等)</option>
+                            <option value="5324">1.3倍</option>
+                            <option value="6144">1.5倍</option>
+                            <option value="HONETAMA">2.0倍 (でんきだま/ふといホネ)</option>
+                        </select>
+                    </div>
+                    <div class="result-sub">道具補正は「道具：手動」を選んだ時のみ使われます。値は技威力にかかります。</div>
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <!-- ================= 防御側 ================= -->
+    <section id="tab-def" class="tab-panel panel panel-def">
+        <div class="panel-head">
+            <span>防御</span>
+            <button type="button" class="head-btn" onclick="resetDefenderStats()">リセット</button>
+        </div>
+        <div class="panel-body">
+            <div class="poke-meta">
+                <div class="base-stats" id="def-base-stats"></div>
+                <div class="type-row">
+                    <span id="def-type-badges" class="type-row"></span>
+                    <button type="button" class="type-chg-btn" data-panel="def-type-panel">タイプ変更</button>
+                </div>
+                <div id="def-type-panel" class="type-panel" hidden>
+                    <div class="type-panel-grid">
+                        <label>タイプ1<select id="def-type1" class="type-sel"></select></label>
+                        <label>タイプ2<select id="def-type2" class="type-sel"></select></label>
+                        <label>追加タイプ<select id="def-type3" class="type-sel"></select></label>
+                        <label>テラスタル<select id="def-tera" class="type-sel"></select></label>
+                    </div>
+                    <div class="type-presets" data-role="defender">
+                        <button type="button" data-preset="reset">元に戻す</button>
+                        <button type="button" data-preset="soak">みずびたし</button>
+                        <button type="button" data-preset="mirror">ミラータイプ（相手をコピー）</button>
+                        <button type="button" data-preset="halloween">ハロウィン（+ゴースト）</button>
+                        <button type="button" data-preset="forest">もりののろい（+くさ）</button>
+                        <button type="button" data-preset="burnup">ほのお消失（もえつきる）</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <label for="defender-pokemon-name">名前</label>
+                <div class="name-wrap">
+                    <div class="search-container" id="defender-search">
+                        <input type="text" id="defender-pokemon-name" placeholder="ポケモン名（ひらがなOK）" autocomplete="off">
+                        <div class="suggestion-list"></div>
+                        <div id="defender-mega-container"></div>
+                    </div>
+                    <img id="def-icon" class="poke-icon" alt="" onerror="this.style.visibility='hidden'">
+                </div>
+            </div>
+
+            <div class="row">
+                <label for="defender-ability">特性</label>
+                <select id="defender-ability"><option value="">（特性なし）</option></select>
+            </div>
+
+            <div class="row">
+                <label for="hp">HP</label>
+                <div class="row-inline">
+                    <input type="number" id="hp" value="150" min="1" oninput="updateHPByPercent(true)" inputmode="numeric">
+                    <button type="button" class="step-btn" data-stepfor="hp" data-delta="1">▲</button>
+                    <button type="button" class="step-btn" data-stepfor="hp" data-delta="-1">▼</button>
+                </div>
+            </div>
+            <div class="row">
+                <span class="lbl">努力値</span>
+                <div class="ev-line">
+                    <button type="button" class="ev-button" data-stat="hp" data-ev="0">0</button>
+                    <button type="button" class="ev-button" data-stat="hp" data-step="-1">−</button>
+                    <input type="number" id="hp_ev" value="32" min="0" max="32" step="1" inputmode="numeric">
+                    <button type="button" class="ev-button" data-stat="hp" data-step="1">＋</button>
+                    <button type="button" class="ev-button" data-stat="hp" data-ev="32">32</button>
+                </div>
+            </div>
+            <div class="row">
+                <span class="lbl">残HP</span>
+                <div>
+                    <div class="hp-slider">
+                        <input type="range" id="hp_percent" value="100.0" min="0" max="100.0" step="0.1" oninput="updateHPByPercent(false)">
+                        <span class="pct"><span id="hp_percent_display">100.0</span>%</span>
+                    </div>
+                    <div class="quick-pcts">
+                        <button type="button" onclick="updatePercentAndRecalc(100)">100%</button>
+                        <button type="button" onclick="updatePercentAndRecalc(75)">75%</button>
+                        <button type="button" onclick="updatePercentAndRecalc(50)">50%</button>
+                        <button type="button" onclick="updatePercentAndRecalc(33.3)">33%</button>
+                        <button type="button" onclick="updatePercentAndRecalc(25)">25%</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <label for="base_defense" id="label_base_defense">防御</label>
+                <div class="row-inline">
+                    <input type="number" id="base_defense" value="100" min="1" class="fixed-value" inputmode="numeric">
+                    <button type="button" class="step-btn" data-stepfor="base_defense" data-delta="1">▲</button>
+                    <button type="button" class="step-btn" data-stepfor="base_defense" data-delta="-1">▼</button>
+                </div>
+            </div>
+            <div class="row">
+                <span class="lbl">努力値</span>
+                <div class="ev-line">
+                    <button type="button" class="ev-button" data-stat="defender" data-ev="0">0</button>
+                    <button type="button" class="ev-button" data-stat="defender" data-step="-1">−</button>
+                    <input type="number" id="defender_ev" value="32" min="0" max="32" step="1" inputmode="numeric">
+                    <button type="button" class="ev-button" data-stat="defender" data-step="1">＋</button>
+                    <button type="button" class="ev-button" data-stat="defender" data-ev="32">32</button>
+                </div>
+            </div>
+
+            <div class="row">
+                <span class="lbl">性格</span>
+                <div class="nature-btn-group">
+                    <input type="hidden" id="nature_defense" value="1.0">
+                    <button type="button" class="nature-btn" data-value="0.9">0.9</button>
+                    <button type="button" class="nature-btn active" data-value="1.0">1.0</button>
+                    <button type="button" class="nature-btn" data-value="1.1">1.1</button>
+                </div>
+            </div>
+
+            <div class="row">
+                <label for="rank_defense">ランク</label>
+                <div class="rank-line">
+                    <select id="rank_defense">
+                        <option value="4.0">+6</option>
+                        <option value="3.5">+5</option>
+                        <option value="3.0">+4</option>
+                        <option value="2.5">+3</option>
+                        <option value="2.0">+2</option>
+                        <option value="1.5">+1</option>
+                        <option value="1.0" selected>±0</option>
+                        <option value="0.667">−1</option>
+                        <option value="0.5">−2</option>
+                        <option value="0.4">−3</option>
+                        <option value="0.333">−4</option>
+                        <option value="0.286">−5</option>
+                        <option value="0.25">−6</option>
+                    </select>
+                    <button type="button" class="step-btn" onclick="changeRank('rank_defense', 1)">▲</button>
+                    <button type="button" class="step-btn" onclick="changeRank('rank_defense', -1)">▼</button>
+                </div>
+            </div>
+
+            <div class="row">
+                <label for="item_m_def_select">道具</label>
+                <select id="item_m_def_select" onchange="calculateDamage()">
+                    <option value="none">アイテムなし</option>
+                    <optgroup label="耐久アップ">
+                        <option value="shinka">しんかのきせき (B/D 1.5倍)</option>
+                        <option value="chokki">とつげきチョッキ (D 1.5倍)</option>
+                        <option value="hangen">半減きのみ (0.5倍)</option>
+                    </optgroup>
+                    <optgroup label="回復（確定数に加算）">
+                        <option value="obon">オボンのみ (1/4回復)</option>
+                        <option value="konran">混乱きのみ (1/3回復)</option>
+                        <option value="tabenokoshi">たべのこし ×1 (1/16)</option>
+                        <option value="tabenokoshi2">たべのこし ×2 (2/16)</option>
+                        <option value="tabenokoshi3">たべのこし ×3 (3/16)</option>
+                        <option value="tabenokoshi4">たべのこし ×4 (4/16)</option>
+                        <option value="tabenokoshi5">たべのこし ×5 (5/16)</option>
+                        <option value="tabenokoshi6">たべのこし ×6 (6/16)</option>
+                        <option value="tabenokoshi7">たべのこし ×7 (7/16)</option>
+                        <option value="tabenokoshi8">たべのこし ×8 (8/16)</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="group-title">状態</div>
+            <div class="chips">
+                <label class="chip"><input type="checkbox" id="wall_check">リフレク・光の壁</label>
+                <label class="chip"><input type="checkbox" id="roost_check">はねやすめ</label>
+                <label class="chip"><input type="checkbox" id="def_flower_gift">フラワーギフト</label>
+                <label class="chip"><input type="checkbox" id="substitute_check">みがわり</label>
+            </div>
+            <input type="checkbox" id="wall_single_check" class="is-hidden" tabindex="-1">
+            <input type="checkbox" id="wall_double_check" class="is-hidden" tabindex="-1">
+
+            <details class="more">
+                <summary>補正の詳細（手動調整）</summary>
+                <div class="more-body">
+                    <input type="hidden" id="item_m_def" value="4096">
+                    <div class="row"><label for="ability_m_def">特性</label><input type="number" id="ability_m_def" value="1.0" step="0.0001" min="0.0"></div>
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <!-- ================= その他 ================= -->
+    <section id="tab-env" class="tab-panel panel panel-env">
+        <div class="panel-head"><span>その他</span></div>
+        <div class="panel-body">
+            <div class="group-title">状況</div>
+            <div class="row">
+                <span class="lbl">形式</span>
+                <div class="seg" id="format-seg">
+                    <button type="button" class="active" data-format="single">シングル</button>
+                    <button type="button" data-format="double">ダブル</button>
+                </div>
+            </div>
+            <div class="chips" id="range-row" style="display:none;">
+                <label class="chip"><input type="checkbox" id="range_m_check">範囲技（0.75倍）</label>
+            </div>
+
+            <div class="row">
+                <span class="lbl">天候</span>
+                <div class="seg">
+                    <button type="button" class="active" onclick="changeSelect('environment_m_select', 'None', this)">なし</button>
+                    <button type="button" onclick="changeSelect('environment_m_select', 'Rain', this)">あめ</button>
+                    <button type="button" onclick="changeSelect('environment_m_select', 'Sun', this)">はれ</button>
+                    <button type="button" onclick="changeSelect('environment_m_select', 'Sandstorm', this)">すな</button>
+                    <button type="button" onclick="changeSelect('environment_m_select', 'Snow', this)">ゆき</button>
+                </div>
+            </div>
+            <div class="row">
+                <span class="lbl">場</span>
+                <div class="seg">
+                    <button type="button" class="active" onclick="changeSelect('environment_m_select_field', 'None', this)">なし</button>
+                    <button type="button" onclick="changeSelect('environment_m_select_field', 'ElectricTerrain', this)">エレキ</button>
+                    <button type="button" onclick="changeSelect('environment_m_select_field', 'GrassyTerrain', this)">グラス</button>
+                    <button type="button" onclick="changeSelect('environment_m_select_field', 'PsychicTerrain', this)">サイコ</button>
+                    <button type="button" onclick="changeSelect('environment_m_select_field', 'MistyTerrain', this)">ミスト</button>
+                </div>
+            </div>
+            <select id="environment_m_select" name="environment_m_select" class="is-hidden">
+                <option value="None">なし</option>
+                <option value="Rain">雨</option>
+                <option value="Sun">晴れ</option>
+                <option value="Sandstorm">砂嵐</option>
+                <option value="Snow">雪</option>
+            </select>
+            <select id="environment_m_select_field" name="environment_m_select_field" class="is-hidden">
+                <option value="None">なし</option>
+                <option value="ElectricTerrain">エレキ</option>
+                <option value="GrassyTerrain">グラス</option>
+                <option value="MistyTerrain">ミスト</option>
+                <option value="PsychicTerrain">サイコ</option>
+            </select>
+            <div class="chips">
+                <label class="chip"><input type="checkbox" id="gravity_check">じゅうりょく</label>
+            </div>
+            <div class="group-title">オーラ（場にいる場合）</div>
+            <div class="chips">
+                <label class="chip"><input type="checkbox" id="dark_aura">ダークオーラ <span class="sub">あく×1.33</span></label>
+                <label class="chip"><input type="checkbox" id="fairy_aura">フェアリーオーラ <span class="sub">フェアリー×1.33</span></label>
+                <label class="chip"><input type="checkbox" id="aura_break">オーラブレイク <span class="sub">オーラが×0.75に</span></label>
+            </div>
+
+            <div class="group-title">定数ダメージ（確定数に加算）</div>
+            <div class="row">
+                <span class="lbl">まきびし</span>
+                <div class="nature-btn-group">
+                    <input type="hidden" id="spikes_layer" value="0">
+                    <button type="button" class="nature-btn active" data-value="0">0</button>
+                    <button type="button" class="nature-btn" data-value="1">1</button>
+                    <button type="button" class="nature-btn" data-value="2">2</button>
+                    <button type="button" class="nature-btn" data-value="3">3</button>
+                </div>
+            </div>
+            <div class="chips">
+                <label class="chip"><input type="checkbox" id="stealth_rock_check">ステルスロック <span id="stealth_rock_display" class="sub">(岩相性: 1.0倍)</span></label>
+            </div>
+            <div class="row">
+                <label for="other_fixed_damage_select">その他</label>
+                <div class="rank-line">
+                    <select id="other_fixed_damage_select">
+                        <option value="none">なし</option>
+                        <option value="SIXTEENTH">1/16 (天候・火傷等)</option>
+                        <option value="TENTH">1/10 (いのちのたま反動)</option>
+                        <option value="EIGHTH">1/8 (さめはだ・毒等)</option>
+                        <option value="SIXTH">1/6 (ゴツメ・バインド)</option>
+                        <option value="FOURTH">1/4 (みがわり・のろい)</option>
+                        <option value="HALF">1/2 (カタストロフィ・前歯)</option>
+                    </select>
+                    <button type="button" class="step-btn" onclick="stepSelect('other_fixed_damage_select', -1)">▲</button>
+                    <button type="button" class="step-btn" onclick="stepSelect('other_fixed_damage_select', 1)">▼</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    </div>
+    </form>
+</div>
+
+<!-- ================= 結果 ================= -->
+<div>
+    <div id="result-sticky-footer">
+        <div id="result">
+            <strong>計算結果:</strong>
+            <div id="damage-output">ここに結果が表示されます</div>
+        </div>
+        <div id="result-sticky-wrapper">
+            <div id="hp_status_display">
+                計算後の残りHP: <span id="current_hp_val" style="font-weight:bold; color:#d9534f;">150</span>
+                <button type="button" onclick="applyCurrentHPAsMax()">この値を最大HPにする</button>
+            </div>
+        </div>
+    </div>
+    <div id="pc-floating-memo" class="floating-memo">
+        <div class="memo-header">
+            <span>📝 対戦メモ</span>
+            <button type="button" onclick="clearBattleMemoOnly()" style="font-size:12px;">消去</button>
+        </div>
+        <textarea id="battle-memo" placeholder="相手の選出予想など..."></textarea>
+    </div>
+</div>
+</div><!-- /desk-cols -->
+
+<div id="quick-table-container-outer" style="margin-top: 30px; overflow-x: auto;"></div>
+</div><!-- /page -->
+
+<!-- ================= 下部 結果バー ================= -->
+<div id="top-sticky-summary" onclick="calculateDamage(); openResultModal();" title="タップで詳細">
+    <div class="bar-inner">
+        <div class="bar-side atk">
+            <img id="bar-atk-icon" alt="" onerror="this.style.visibility='hidden'">
+            <div class="bar-nums">
+                <span class="k">威力</span><span class="v" id="bar-atk-power">-</span>
+                <span class="k" id="bar-atk-label">攻撃</span><span class="v" id="bar-atk-stat">-</span>
+            </div>
+        </div>
+        <div class="bar-center">
+            <div class="dmg" id="top-damage-real">(0 ～ 0)</div>
+            <div class="hpbar"><div id="top-hp-bar-fill"></div><div id="top-hp-bar-range"></div></div>
+            <div class="pct" id="top-damage-percent">0% ～ 0%</div>
+            <div id="top-judgment"></div>
+            <div id="top-hp-text"></div>
+        </div>
+        <div class="bar-side def">
+            <div class="bar-nums" style="text-align:right;">
+                <span class="k">HP</span><span class="v" id="bar-def-hp">-</span>
+                <span class="k" id="bar-def-label">防御</span><span class="v" id="bar-def-stat">-</span>
+            </div>
+            <img id="bar-def-icon" alt="" onerror="this.style.visibility='hidden'">
+        </div>
+    </div>
+</div>
+
+<!-- ================= 下部タブ ================= -->
 <div id="bottom-navigation">
-
     <nav class="tab-menu">
-        <button type="button" class="tab-btn active" onclick="openTab('tab-atk')">⚔️ 攻撃</button>
-        <button type="button" class="tab-btn" onclick="openTab('tab-def')">🛡️ 防御</button>
-        <button type="button" class="tab-btn" onclick="openTab('tab-env')">🌍 その他</button>
+        <button type="button" class="tab-btn active" data-tab="tab-atk" onclick="openTab('tab-atk')"><span class="ico">⚔️</span>攻撃</button>
+        <button type="button" class="tab-btn" data-tab="tab-def" onclick="openTab('tab-def')"><span class="ico">🛡️</span>防御</button>
+        <button type="button" class="tab-btn" data-tab="tab-env" onclick="openTab('tab-env')"><span class="ico">🌍</span>その他</button>
+        <button type="button" class="tab-btn" onclick="calculateDamage(); openResultModal();"><span class="ico">📊</span>詳細</button>
     </nav>
 </div>
-<!-- ハンバーガーメニュー -->
-<div id="hamburgerMenu" class="hamburger-menu">
-    <div class="hamburger-btn" onclick="toggleMenu()">
-        <span></span><span></span><span></span>
-    </div>
-    
-    <nav id="navMenu" class="nav-menu">
-        <a href="party_memo.html" class="nav-link">📋 構築メモ</a>
-        <a href="test.html" class="nav-link">⚡ ダメージ計算</a>
-        <a href="kasouteki.html" class="nav-link">🎯 仮想敵リスト</a>
-    </nav>
-</div>
-<div class="import-container">
-    <h4 style="margin-top:0;">📂 パーティメモから読み込み</h4>
-    
-    <div class="import-controls">
-        <select id="import-slot">
-            <script>
-                for(let i=1; i<=50; i++) {
-                    document.write(`<option value="${i}">スロット ${i}</option>`);
-                }
-            </script>
-        </select>
 
-        <div class="import-buttons">
-    <button type="button" onclick="loadFromPartyMemo('attacker', 'Atk')" style="background-color: #ff0000; color:white;" title="物理アタッカーとして読込">A</button>
-    <button type="button" onclick="loadFromPartyMemo('attacker', 'SpAtk')" style="background-color: #ff0000; color:white;" title="特殊アタッカーとして読込">C</button>
-    
-    <button type="button" onclick="loadFromPartyMemo('defender', 'Def')" style="background-color: #0033ff; color:white;" title="物理受けとして読込">B</button>
-    <button type="button" onclick="loadFromPartyMemo('defender', 'SpDef')" style="background-color: #0033ff; color:white;" title="特殊受けとして読込">D</button>
-    
-    <button type="button" id="timer-start-btn" onclick="startCountdown()" style="background-color: #cccccc; color:white;" title="タイマー開始">⌛</button>
-</div>
-    </div>
-
-    <select id="import-pokemon-idx">
-        <option value="0">ポケモン 1</option>
-        <option value="1">ポケモン 2</option>
-        <option value="2">ポケモン 3</option>
-        <option value="3">ポケモン 4</option>
-        <option value="4">ポケモン 5</option>
-        <option value="5">ポケモン 6</option>
-    </select>
-    <div id="move-quick-selection" style="margin-bottom: 15px;"></div>
-</div>
-
-<div id="timer-display" style="display: none; position: fixed; top: 55px; right: 0px; background: rgba(0,0,0,0.8); color: #00ff00; padding: 1px 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 24px; z-index: 1000; border: 2px solid #00ff00; box-shadow: 0 0 10px rgba(0,255,0,0.5);">
-    <span id="time-left">20:00</span>
-</div>
-    <h2>ダメ計ツール(シーテャkids)</h2>
-        <button type="button" 
-        onclick="calculateDamage(); openResultModal();" 
-        class="btn-table">
-    詳細計算
-</button>
-        <button type="button" onclick="openQuickTableModal()" class="btn-table">技早見</button>
-    <button type="button" onclick="openQuickTableModal3('attacker')" class="btn-table">攻撃早見</button>
-    <button type="button" onclick="openQuickTableModal3('defender')" class="btn-table">防御早見</button>
-    <button type="button" onclick="showHPGuessModal()" class="btn-table">定数予測</button>
-
+<!-- ================= モーダル類 ================= -->
 <div id="hp-guess-modal" style="display:none; position:fixed; z-index:30000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.7); overflow-y: auto; -webkit-overflow-scrolling: touch;">
-    
     <div style="background:#fff; margin:20px auto; padding:20px; width:90%; max-width:500px; border-radius:10px; position:relative; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-        
         <span onclick="closeHPGuessModal()" style="position:absolute; right:15px; top:10px; cursor:pointer; font-size:24px; font-weight:bold; color:#666;">&times;</span>
         <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">🛡️ 相手HP推測・％予測表</h3>
-<div id="recoil-section" style="background:#fff4f4; padding:15px; border-radius:8px; border:1px solid #fab1a0; margin-bottom:15px;">
-    <h4 style="margin:0 0 10px 0; font-size:14px; color:#c0392b;">⚔️ 相手の反動からHP実数を見破る</h4>
-    
-    <div style="display: flex; gap: 8px; margin-top: 10px;">
-        <button type="button" onclick="calculateHPByRecoil()" style="flex: 2; padding:8px; background:#e17055; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">特定する</button>
-        
-        <button type="button" onclick="resetRecoilFields()" style="flex: 1; padding:8px; background:#636e72; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:12px;">リセット</button>
-    </div>
-    
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-        <div>
-            <label style="font-size:11px;">受けたダメージ</label>
-            <input type="number" id="recoil_damage" placeholder="例: 150" style="width:100%; padding:5px;">
+        <div id="recoil-section" style="background:#fff4f4; padding:15px; border-radius:8px; border:1px solid #fab1a0; margin:15px 0;">
+            <h4 style="margin:0 0 10px 0; font-size:14px; color:#c0392b;">⚔️ 相手の反動からHP実数を見破る</h4>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div>
+                    <label style="font-size:11px;">受けたダメージ</label>
+                    <input type="number" id="recoil_damage" placeholder="例: 150">
+                </div>
+                <div>
+                    <label style="font-size:11px;">反動率</label>
+                    <select id="recoil_ratio">
+                        <option value="3">1/3 (ウェブタ等)</option>
+                        <option value="4">1/4 (突進等)</option>
+                        <option value="2">1/2 (諸刃等)</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-bottom:10px;">
+                <label style="font-size:11px;">相手のHPバーが減った量(%)</label>
+                <input type="number" id="lost_percent" placeholder="例: 9" style="width:120px;"> %
+            </div>
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                <button type="button" onclick="calculateHPByRecoil()" style="flex: 2; padding:10px; background:#e17055; color:#fff; border:none; border-radius:6px; font-weight:bold;">特定する</button>
+                <button type="button" onclick="resetRecoilFields()" style="flex: 1; padding:10px; background:#636e72; color:#fff; border:none; border-radius:6px; font-size:12px;">リセット</button>
+            </div>
+            <div id="recoil-guess-result" style="font-size:12px; background:#fff; padding:8px; border-radius:4px; min-height:50px; border:1px solid #ddd;"></div>
         </div>
-        <div>
-            <label style="font-size:11px;">反動率</label>
-            <select id="recoil_ratio" style="width:100%; padding:5px;">
-                <option value="3">1/3 (ウェブタ等)</option>
-                <option value="4">1/4 (突進等)</option>
-                <option value="2">1/2 (諸刃等)</option>
-            </select>
-        </div>
-    </div>
-
-    <div style="margin-bottom:10px;">
-        <label style="font-size:11px;">相手のHPバーが減った量(%)</label>
-        <input type="number" id="lost_percent" placeholder="例: 9" style="width:120px; padding:5px;"> %
-    </div>
-
-    <div id="recoil-guess-result" style="font-size:12px; background:#fff; padding:8px; border-radius:4px; min-height:50px; border:1px solid #ddd;"></div>
-</div>
 
         <p style="font-size:11px; color:#666;">※自分のHP調整から逆算する場合は以下を使用</p>
-
         <div id="constant-damage-checks" style="display:grid; grid-template-columns:1fr 1fr; font-size:12px; gap:8px; background:#f8f9fa; padding:12px; border-radius:8px; border:1px solid #ddd;">
             <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/8" style="margin-right:5px;"> 1/8 (毒等)</label>
-    <label style="display:flex; align-items:center; cursor:pointer; color:#d35400;"><input type="checkbox" value="1/8" style="margin-right:5px;"> 1/8 (追加)</label>
-    
-    <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/16" style="margin-right:5px;"> 1/16 (砂等)</label>
-    <label style="display:flex; align-items:center; cursor:pointer; color:#2980b9;"><input type="checkbox" value="1/16" style="margin-right:5px;"> 1/16 (追加)</label>
+            <label style="display:flex; align-items:center; cursor:pointer; color:#d35400;"><input type="checkbox" value="1/8" style="margin-right:5px;"> 1/8 (追加)</label>
+            <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/16" style="margin-right:5px;"> 1/16 (砂等)</label>
+            <label style="display:flex; align-items:center; cursor:pointer; color:#2980b9;"><input type="checkbox" value="1/16" style="margin-right:5px;"> 1/16 (追加)</label>
             <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="50" style="margin-right:5px;"> 固定50(投げ)</label>
             <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/2" style="margin-right:5px;"> 1/2(怒り等)</label>
             <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/4" style="margin-right:5px;"> 1/4(身代わり)</label>
@@ -1069,568 +1150,11 @@ document.addEventListener('click', function(event) {
             <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/10" style="margin-right:5px;"> 1/10(珠)</label>
             <label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" value="1/32" style="margin-right:5px;"> 1/32</label>
         </div>
-
-        <button type="button" onclick="calculateHPGuess()" style="width:100%; margin:15px 0; padding:12px; background:#28a745; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">予測表を更新</button>
-        
+        <button type="button" onclick="calculateHPGuess()" style="width:100%; margin:15px 0; padding:12px; background:#28a745; color:#fff; border:none; border-radius:6px; font-weight:bold; font-size:14px;">予測表を更新</button>
         <div id="hp-guess-result" style="margin-top:10px;"></div>
-        
-        <button type="button" onclick="closeHPGuessModal()" style="width:100%; margin-top:10px; padding:8px; background:#eee; border:1px solid #ccc; border-radius:4px; cursor:pointer;">閉じる</button>
+        <button type="button" onclick="closeHPGuessModal()" style="width:100%; margin-top:10px; padding:10px; background:#eee; border:1px solid #ccc; border-radius:6px;">閉じる</button>
     </div>
 </div>
-    </div>
-    <!-- <button type="button" onclick="openQuickTableModal2()" class="btn-table">調整早見</button> -->
-    <div id="top-sticky-summary" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; background: rgba(255, 255, 255, 0.98); border-bottom: 2px solid #e74c3c; padding: 6px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
-    <div style="max-width: 600px; margin: 0 auto;">
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-            <div style="display: flex; flex-direction: column; align-items: flex-start; min-width: 110px;">
-                <div id="top-damage-percent" style="font-size: 1.1rem; font-weight: bold; color: #d35400; white-space: nowrap; line-height: 1.1;">0% ～ 0%</div>
-                <div id="top-damage-real" style="font-size: 0.75rem; color: #666; font-weight: normal; white-space: nowrap; margin-top: 2px;">(0 ～ 0)</div>
-            </div>
-
-            <div style="flex-grow: 1;">
-                <div style="background: #e9ecef; border-radius: 4px; height: 14px; border: 1px solid #ccc; position: relative; overflow: hidden; margin-bottom: 2px;">
-                    <div id="top-hp-bar-fill" style="width: 100%; height: 100%; background: #28a745; transition: width 0.3s ease;"></div>
-                </div>
-                <div id="top-judgment" style="font-size: 0.85rem; font-weight: bold; color: #333; text-align: center;"></div>
-            </div>
-
-            <div id="top-hp-text" style="font-size: 0.9rem; font-weight: bold; color: #666; min-width: 50px; text-align: right;">100%</div>
-        </div>
-    </div>
-</div>
-
-<div style="height: 65px; display: none;" id="top-spacer"></div>
-        <div class="container">
-    <div class="main-inputs">
-    <form id="damageForm">
-        <div class="container">
-        <div id="tab-atk" class="tab-panel active">
-            <div class="card">
-                <h3>⚔️ 攻撃側</h3>
-                <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-            <button type="button" onclick="resetAttackerStats()" style="padding: 5px 15px; background-color: #0b9c3c; border: none; color: white; border-radius: 4px; cursor: pointer;">リセット</button>
-        </div>
-        <div class="pokemon-select-group">
-    <div class="input-inline-group">
-        <label for="attacker-pokemon-name">名前</label>
-        <div class="search-container" id="attacker-search">
-            <input type="text" id="attacker-pokemon-name" placeholder="例: フシギダネ (ひらがな・カタカナ混在OK)">
-            <div id="attacker-mega-container"></div>
-            <div class="suggestion-list"></div>
-        </div>
-    </div>
-
-    <div class="input-inline-group">
-        <label for="attacker-ability">特性</label>
-        <select id="attacker-ability">
-            <option value="">（特性なし）</option>
-        </select>
-    </div>
-</div>
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-            <button type="button" onclick="swapAttackerDefender()" style="padding: 5px 15px; background-color: #6c757d; border: none; color: white; border-radius: 4px; cursor: pointer;">⇄ 攻防入れ替え</button>
-        </div>
-    <div class="pokemon-select-group">
-    <div class="input-inline-group">
-        <label for="move-name">技</label>
-        <div class="search-container" id="move-search">
-            <input type="text" id="move-name" 
-                   placeholder="例: はっぱカッター" 
-                   oninput="handleMoveUpdate(this)">
-            <div class="suggestion-list"></div>
-        </div>
-    </div>
-</div>
-        <div id="multi-hit-ui" style="display: none; background-color: #fff3e0; padding: 15px; border: 1px solid #ffb74d; border-radius: 4px; margin-top: 10px;">
-    <h4 style="margin-top: 0; font-size: 0.9em; color: #e65100;">🔄 連続技設定</h4>
-    <div style="display: flex; align-items: center; gap: 20px;">
-        <div>
-            <label for="hit_count" style="margin-top:0;">ヒット数:</label>
-            <select id="hit_count" onchange="updateCritOptions()"></select>
-        </div>
-        <div>
-            <label for="crit_hit_count" style="margin-top:0;">うち急所回数:</label>
-            <select id="crit_hit_count"></select>
-        </div>
-    </div>
-    <div style="font-size: 0.8em; color: #666; margin-top: 8px;">
-        ※各ヒットごとのダメージを合計して計算します。
-    </div>
-</div>
-        <div id="gyro-ball-ui" style="display: none; background-color: #eef9ff; padding: 15px; border: 1px solid #b8daff; border-radius: 4px; margin-top: 10px;">
-    <h4 style="margin-top: 0; font-size: 0.9em; color: #004085;">⚙️ ジャイロボール威力計算（素早さ詳細）</h4>
-    
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        <div style="font-size: 0.85em;">
-            <label>自分のS種族値 / 個体値 / 努力値</label>
-            <div style="display: flex; gap: 5px;">
-                <input type="number" id="s-base-atk" value="20" style="width: 60px;">
-                <input type="number" id="s-iv-atk" value="0" style="width: 50px;">
-                <input type="number" id="s-ev-atk" value="0" style="width: 60px;">
-            </div>
-            <label>性格補正 / ランク</label>
-            <div style="display: flex; gap: 5px;">
-                <select id="s-nature-atk" style="width: 70px;"><option value="0.9" selected>0.9</option><option value="1.0">1.0</option><option value="1.1">1.1</option></select>
-                <select id="s-rank-atk" style="width: 70px;"><option value="0">±0</option><option value="1">+1</option><option value="-1">-1</option></select>
-            </div>
-            <div style="margin-top:5px;">計算後の実数値: <strong id="real-s-atk">22</strong></div>
-        </div>
-
-        <div style="font-size: 0.85em;">
-            <label>相手のS種族値 / 個体値 / 努力値</label>
-            <div style="display: flex; gap: 5px;">
-                <input type="number" id="s-base-def" value="100" style="width: 60px;">
-                <input type="number" id="s-iv-def" value="31" style="width: 50px;">
-                <input type="number" id="s-ev-def" value="0" style="width: 60px;">
-            </div>
-            <label>性格補正 / ランク</label>
-            <div style="display: flex; gap: 5px;">
-                <select id="s-nature-def" style="width: 70px;"><option value="0.9">0.9</option><option value="1.0" selected>1.0</option><option value="1.1">1.1</option></select>
-                <select id="s-rank-def" style="width: 70px;"><option value="0">±0</option><option value="1">+1</option><option value="-1">-1</option></select>
-            </div>
-            <div style="margin-top:5px;">計算後の実数値: <strong id="real-s-def">121</strong></div>
-        </div>
-    </div>
-    <div style="text-align: center; margin-top: 10px; border-top: 1px solid #b8daff; padding-top: 10px;">
-        <strong>算出威力: <span id="gyro-calculated-power" style="color: red; font-size: 1.2em;">--</span></strong>
-    </div>
-</div>
-<div id="stored-power-ui" style="display: none; background-color: #fff0f5; padding: 15px; border: 1px solid #ffb6c1; border-radius: 4px; margin-top: 10px;">
-    <h4 style="margin-top: 0; font-size: 0.9em; color: #d02090;">📈 能力上昇の合計</h4>
-    <p style="font-size: 0.8em; color: #666;">上昇したランクの合計値を入力してください（最大42）。下降分（マイナス）は含みません。</p>
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <label for="rank-sum-total" style="margin-top:0;">上昇ランク合計:</label>
-        <input type="number" id="rank-sum-total" value="0" min="0" max="42" style="width: 80px;" 
-       oninput="updateStoredPower()" 
-       onchange="updateStoredPower()">
-    </div>
-    <div style="text-align: center; margin-top: 10px; border-top: 1px solid #ffb6c1; padding-top: 10px;">
-        <strong>算出威力: <span id="stored-calculated-power" style="color: #d02090; font-size: 1.2em;">20</span></strong>
-    </div>
-</div>
-<div id="rage-fist-ui" style="display: none; background-color: #fff0f0; padding: 10px; border: 1px solid #ffcccc; border-radius: 5px; margin-top: 10px;">
-    <label style="color: #d9534f;">💢 被弾回数 (ふんどのこぶし):</label>
-    <input type="number" id="rage-fist-count" value="0" min="0" max="6" step="1" style="width: 80px;">
-    <p style="font-size: 0.9em; margin-top: 5px;">算出威力: <strong id="rage-fist-calculated-power">50</strong></p>
-</div>
-<div id="last-respects-ui" style="display: none; background-color: #fff0f0; padding: 10px; border: 1px solid #ffcccc; border-radius: 5px; margin-top: 10px;">
-    <label style="color: #d9534f;">👻 死亡回数 (おはかまいり):</label>
-    <input type="number" id="last-respects-count" value="0" min="0" max="10" step="1" style="width: 80px;">
-    <p style="font-size: 0.9em; margin-top: 5px;">算出威力: <strong id="last-respects-calculated-power">50</strong></p>
-</div>
-<div id="hp-dependent-move-ui" style="display: none; background-color: #e0ffe0; padding: 15px; border: 1px solid #90ee90; border-radius: 4px; margin-top: 10px;">
-    <h4 style="margin-top: 0; font-size: 0.9em; color: #006400;">🧪 残りHPによる威力変化</h4>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        <div>
-            <label>最大HP:</label>
-            <input type="number" id="attacker-max-hp-input" value="150" min="1" oninput="updateHPDependentPower()">
-        </div>
-        <div>
-            <label>現在HP:</label>
-            <input type="number" id="attacker-current-hp-input" value="150" min="0" oninput="updateHPDependentPower()">
-        </div>
-    </div>
-    <div style="text-align: center; margin-top: 10px; border-top: 1px solid #90ee90; padding-top: 10px;">
-        <strong>算出威力: <span id="hp-calculated-power-display" style="color: #006400; font-size: 1.2em;">150</span></strong>
-    </div>
-</div>
-<div id="conditional-power-ui" style="display: none; margin-top: 10px; padding: 10px; border: 1px solid #4caf50; background-color: #f0fff0; border-radius: 4px;">
-    <h4 id="conditional-move-title" style="margin-top: 0; color: #2e7d32;">技の威力倍増条件</h4>
-    <label style="display: inline-flex; align-items: center; cursor: pointer;">
-        <input type="checkbox" id="power-multiplier-check" style="width: auto; margin-right: 8px;">
-        <span id="power-multiplier-label">条件を満たしている（威力アップ）</span>
-    </label>
-    <div style="font-size: 0.85em; color: #666; margin-top: 5px;">
-        ※チェックを入れると威力が <span id="power-multiplier-value">---</span> 倍になります。
-    </div>
-</div>
-<div class="input-inline-group">
-    <label for="base_attack" id="label_base_attack">能力値(A,C)</label>
-    <input type="number" id="base_attack" value="100" min="1" class="fixed-value">
-</div>
-
-<div class="input-inline-group" style="display: flex; align-items: center; gap: 10px;">
-    <label for="attacker_ev" style="white-space: nowrap;">努力値</label>
-    
-    <div class="checkbox-group" style="display: flex; align-items: center; gap: 1px;">
-        <button type="button" class="ev-button" data-stat="attacker" data-ev="0">0</button>
-        
-        <button type="button" class="ev-button" data-stat="attacker" data-step="-1">-</button>
-        
-        <input type="number" id="attacker_ev" value="32" min="0" max="32" step="1" 
-               style="width: 60px; height: 40px; text-align: center; flex-grow: 0;">
-        
-        <button type="button" class="ev-button" data-stat="attacker" data-step="1">+</button>
-        
-        <button type="button" class="ev-button" data-stat="attacker" data-ev="32">32</button>
-    </div>
-</div>
-
-<div class="input-inline-group">
-    <label>性格</label>
-    <div class="nature-btn-group">
-        <input type="hidden" id="nature_attack" value="1.0">
-        
-        <button type="button" class="nature-btn" data-value="1.1">1.1</button>
-        <button type="button" class="nature-btn active" data-value="1.0">1.0</button>
-        <button type="button" class="nature-btn" data-value="0.9">0.9</button>
-    </div>
-</div>
-
-<div class="input-inline-group">
-    <label for="rank_attack">ランク</label>
-
-    <button type="button" onclick="changeRank('rank_attack', -1)"style="width: 30px; height: 30px; font-size: 1.2em; cursor: pointer;">−</button>
-
-    <select id="rank_attack" style="width: 100px;">
-        <option value="4.0">+6 (4.0倍)</option>
-        <option value="3.5">+5 (3.5倍)</option>
-        <option value="3.0">+4 (3.0倍)</option>
-        <option value="2.5">+3 (2.5倍)</option>
-        <option value="2.0">+2 (2.0倍)</option>
-        <option value="1.5">+1 (1.5倍)</option>
-        <option value="1.0" selected>±0 (1.0倍)</option>
-        <option value="0.667">-1 (2/3倍)</option>
-        <option value="0.5">-2 (2/4倍)</option>
-        <option value="0.4">-3 (2/5倍)</option>
-        <option value="0.333">-4 (2/6倍)</option>
-        <option value="0.286">-5 (2/7倍)</option>
-        <option value="0.25">-6 (2/8倍)</option>
-    </select>
-
-    <button type="button" onclick="changeRank('rank_attack', 1)"style="width: 30px; height: 30px; font-size: 1.2em; cursor: pointer;">＋</button>
-</div>
-
-<div class="input-inline-group">
-    <label for="item_m_atk">持ち物</label>
-    <select id="item_m_atk">
-    <option value="4096">なし (1.0x)</option>
-    <option value="4505">1.1</option>
-    <option value="4915">1.2倍 (プレート/おこう等)</option>
-    <option value="5324">1.3倍 (いのちのたま等)</option>
-    <option value="6144">1.5倍 (こだわりハチマキ/メガネ等)</option>
-    <option value="HONETAMA">でんきだま/ふといホネ (2.0x)</option>
-    </select>
-</div>
-<div class="checkbox-group">
-                    <label for="critical_m_check">✅ 急所(1.5倍)</label>
-                    <input type="checkbox" id="critical_m_check">
-                </div>
-
-                <div class="input-inline-group">
- <div style="display: flex; align-items: center; flex-grow: 1;">
-        <label for="stealth_rock_check" style="min-width: auto; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-            <input type="checkbox" id="stealth_rock_check"> ステロ
-        </label>
-        <span id="stealth_rock_display" style="margin-left: 10px; font-size: 0.85em; color: #cc5500;">(岩相性: 1.0倍)</span>
-    </div>
-</div>
-
-<details>
-    <summary style="cursor: pointer; list-style: none;">
-        <span>詳細</span>
-    </summary>
-    
-    <div class="input-inline-group">
-        <label>分類</label>
-        <div class="checkbox-group">
-            <label>
-                <input type="radio" name="move_type" value="physical" id="move_type_physical" checked> 物理
-            </label>
-            <label>
-                <input type="radio" name="move_type" value="special" id="move_type_special"> 特殊
-            </label>
-        </div>
-    </div>
-
-    <div class="input-inline-group">
-        <label for="power">威力</label>
-        <input type="number" id="power" value="100" min="1" class="fixed-value">
-    </div>
-
-    <div class="input-inline-group">
-        <label for="affinity">相性</label>
-        <input type="number" id="affinity" value="1.0" step="0.1" min="0.0" class="fixed-value">
-    </div>
-
-    <div class="input-inline-group">
-        <label for="stab">一致</label>
-        <input type="number" id="stab" value="1.5" step="0.5" min="1.0" class="fixed-value">
-    </div>
-
-    <div class="input-inline-group">
-        <label for="ability_m_atk">特性補正</label>
-        <input type="number" id="ability_m_atk" value="4096" step="0.0001" min="0.0">
-    </div>
-</details>
-                </div>
-        </div>
-
-<div id="tab-def" class="tab-panel">
-    <div class="card">
-        <h3>🛡️ 防御側</h3><div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-            <button type="button" onclick="resetDefenderStats()" style="padding: 5px 15px; background-color: #047f29; border: none; color: white; border-radius: 4px; cursor: pointer;">リセット</button>
-        </div>
-
-        <div class="input-inline-group">
-            <label for="defender-pokemon-name">名前</label>
-            <div class="search-container" id="defender-search">
-                <input type="text" id="defender-pokemon-name" placeholder="例: リザードン (ひらがな・カタカナ混在OK)">
-                <div id="defender-mega-container"></div>
-                <div class="suggestion-list"></div>
-            </div>
-        </div>
-
-        <div class="input-inline-group">
-            <label>特性</label>
-            <select id="defender-ability">
-                <option value="">（特性なし）</option>
-            </select>
-        </div>
-
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-            <button type="button" onclick="swapAttackerDefender()" style="padding: 5px 15px; background-color: #6c757d; border: none; color: white; border-radius: 4px; cursor: pointer;">⇄ 攻防入れ替え</button>
-        </div>
-
-        <div class="input-inline-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-    <label for="hp" style="width: 80px; white-space: nowrap;">HP実数値</label>
-    <div style="display: flex; flex-direction: column; flex-grow: 1; gap: 8px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <input type="number" id="hp" value="150" min="1" oninput="updateHPByPercent(true)" style="flex: 1; height: 44px; font-size: 16px;">
-            <div style="flex: 1; text-align: right; font-weight: bold; font-size: 14px;">
-                残り: <span id="hp_percent_display">100.0</span>%
-            </div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <input type="range" id="hp_percent" value="100.0" min="0" max="100.0" step="0.1" oninput="updateHPByPercent(false)" style="flex: 1; height: 30px;">
-        </div>
-    </div>
-</div>
-
-<div class="input-inline-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-    <label for="hp_ev" style="width: 80px; white-space: nowrap;">H努力値</label>
-    <div class="checkbox-group" style="display: flex; align-items: center; gap: 1px;">
-        <button type="button" class="ev-button" data-stat="hp" data-ev="0">0</button>
-        <button type="button" class="ev-button" data-stat="hp" data-step="-1">-</button>
-        <input type="number" id="hp_ev" value="32" min="0" max="32" step="1" 
-               style="width: 60px; height: 40px; text-align: center; flex-grow: 0;">
-        <button type="button" class="ev-button" data-stat="hp" data-step="1">+</button>
-        <button type="button" class="ev-button" data-stat="hp" data-ev="32">32</button>
-    </div>
-</div>
-
-<div class="input-inline-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-    <label for="base_defense" id="label_base_defense" style="width: 80px; white-space: nowrap;">能力値(B,D)</label>
-    <input type="number" id="base_defense" value="100" min="1" class="fixed-value" style="height: 40px; flex-grow: 1;">
-</div>
-
-<div class="input-inline-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-    <label for="defender_ev" style="width: 80px; white-space: nowrap;">BD努力値</label>
-    <div class="checkbox-group" style="display: flex; align-items: center; gap: 1px;">
-        <button type="button" class="ev-button" data-stat="defender" data-ev="0">0</button>
-        <button type="button" class="ev-button" data-stat="defender" data-step="-1">-</button>
-        <input type="number" id="defender_ev" value="32" min="0" max="32" step="1" 
-               style="width: 60px; height: 40px; text-align: center; flex-grow: 0;">
-        <button type="button" class="ev-button" data-stat="defender" data-step="1">+</button>
-        <button type="button" class="ev-button" data-stat="defender" data-ev="32">32</button>
-    </div>
-</div>
-
-        <div class="input-inline-group">
-    <label>性格</label>
-    <div class="nature-btn-group">
-        <input type="hidden" id="nature_defense" value="1.0">
-        
-        <button type="button" class="nature-btn" data-value="1.1">1.1</button>
-        <button type="button" class="nature-btn active" data-value="1.0">1.0</button>
-        <button type="button" class="nature-btn" data-value="0.9">0.9</button>
-    </div>
-</div>
-
-        <div class="input-inline-group">
-    <label for="rank_defense">ランク</label>
-    
-    <button type="button" onclick="changeRank('rank_defense', -1)"style="width: 30px; height: 30px; font-size: 1.2em; cursor: pointer;">−</button>
-    
-    <select id="rank_defense" style="width: 100px;">
-        <option value="4.0">+6 (4.0倍)</option>
-        <option value="3.5">+5 (3.5倍)</option>
-        <option value="3.0">+4 (3.0倍)</option>
-        <option value="2.5">+3 (2.5倍)</option>
-        <option value="2.0">+2 (2.0倍)</option>
-        <option value="1.5">+1 (1.5倍)</option>
-        <option value="1.0" selected>±0 (1.0倍)</option>
-        <option value="0.667">-1 (2/3倍)</option>
-        <option value="0.5">-2 (2/4倍)</option>
-        <option value="0.4">-3 (2/5倍)</option>
-        <option value="0.333">-4 (2/6倍)</option>
-        <option value="0.286">-5 (2/7倍)</option>
-        <option value="0.25">-6 (2/8倍)</option>
-    </select>
-    
-    <button type="button" onclick="changeRank('rank_defense', 1)"style="width: 30px; height: 30px; font-size: 1.2em; cursor: pointer;">＋</button>
-</div>
-
-        <div class="input-inline-group">
-            <label for="item_m_def_select">持ち物</label>
-<select id="item_m_def_select" onchange="calculateDamage()">
-    <option value="none">なし</option>
-    <option value="shinka">しんかのきせき (B/D 1.5倍)</option>
-    <option value="chokki">とつげきチョッキ (D 1.5倍)</option>
-    <option value="hangen">半減実 (0.5倍)</option>
-    <option value="obon">オボンのみ (1/4回復)</option>
-    <option value="konran">混乱実 (1/3回復)</option>
-    <option value="tabenokoshi">たべのこし (1/16回復)</option>
-    <option value="tabenokoshi2">たべのこし2 (2/16回復)</option>
-    <option value="tabenokoshi3">たべのこし3 (3/16回復)</option>
-    <option value="tabenokoshi4">たべのこし4 (4/16回復)</option>
-    <option value="tabenokoshi5">たべのこし5 (5/16回復)</option>
-    <option value="tabenokoshi6">たべのこし6 (6/16回復)</option>
-    <option value="tabenokoshi7">たべのこし7 (7/16回復)</option>
-    <option value="tabenokoshi8">たべのこし8 (8/16回復)</option>
-</select>
-        </div>
-
-        <details>
-            <summary style="cursor: pointer; list-style: none; color: #007bff; font-size: 0.9em; margin-top: 10px;">
-                <span>詳細</span>
-            </summary>
-            <div style="margin-top: 10px;">
-                <input type="hidden" id="item_m_def" value="4096">
-                <div class="input-inline-group">
-                    <label for="ability_m_def">特性補正</label>
-                    <input type="number" id="ability_m_def" value="1.0" step="0.0001" min="0.0">
-                </div>
-            </div>
-        </details>
-    </div>
-</div>
-
-        <div id="tab-env" class="tab-panel">
-            <div class="card">
-                <h3>🌍 天候、フィールド、その他設定</h3>
-    <div class="remote-controls">
-    <div class="control-group">
-        <h3>天候</h3>
-        <button type="button" onclick="changeSelect('environment_m_select', 'Rain', this)">☔</button>
-        <button type="button" onclick="changeSelect('environment_m_select', 'Sun', this)">☀️</button>
-        <button type="button" onclick="changeSelect('environment_m_select', 'Sandstorm', this)">🌪️</button>
-        <button type="button" onclick="changeSelect('environment_m_select', 'Snow', this)">❄️</button>
-        <button type="button" class="active" onclick="changeSelect('environment_m_select', 'None', this)">なし</button>
-    </div>
-
-    <div class="control-group">
-        <h3>フィールド</h3>
-        <button type="button" onclick="changeSelect('environment_m_select_field', 'ElectricTerrain', this)">⚡</button>
-        <button type="button" onclick="changeSelect('environment_m_select_field', 'GrassyTerrain', this)">🌱</button>
-        <button type="button" onclick="changeSelect('environment_m_select_field', 'MistyTerrain', this)">🌫️</button>
-        <button type="button" onclick="changeSelect('environment_m_select_field', 'PsychicTerrain', this)">🧠</button>
-        <button type="button" class="active" onclick="changeSelect('environment_m_select_field', 'None', this)">なし</button>
-    </div>
-</div>
-    <div class="input-inline-group" style="display: none;">
-    <label for="environment_m_select_weather">天候</label>
-    <select id="environment_m_select" name="environment_m_select">
-        <option value="None">補正なし (1.0)</option>
-            <option value="Rain">☔ 雨 (水1.5/炎0.5)</option>
-            <option value="Sun">☀️ 晴れ (炎1.5/水0.5)</option>
-            <option value="Sandstorm">🌪️ 砂嵐 (岩特防1.5)</option>
-            <option value="Snow">❄️ 霰/雪 (氷防御1.5)</option>
-        </optgroup>
-    </select>
-</div>
-
-<div class="input-inline-group" style="display: none;">
-    <label for="environment_m_select_field">フィールド</label>
-    <select id="environment_m_select_field" name="environment_m_select_field">
-        <option value="None">補正なし (1.0)</option>
-            <option value="ElectricTerrain">⚡ エレキ (電1.3)</option>
-            <option value="GrassyTerrain">🌱 グラス (草1.3)</option>
-            <option value="MistyTerrain">🌫️ ミスト (竜0.5)</option>
-            <option value="PsychicTerrain">🧠 サイコ (超1.3)</option>
-        </optgroup>
-    </select>
-</div>
-
-<div class="input-inline-group">
-    <label>まきびし</label>
-    <div class="nature-btn-group">
-        <input type="hidden" id="spikes_layer" value="0">
-        
-        <button type="button" class="nature-btn active" data-value="0">0</button>
-        <button type="button" class="nature-btn" data-value="1">1</button>
-        <button type="button" class="nature-btn" data-value="2">2</button>
-        <button type="button" class="nature-btn" data-value="3">3</button>
-    </div>
-</div>
-
-<div class="input-group" style="display: flex; align-items: center; gap: 5px;">
-    <label for="other_fixed_damage_select" style="white-space: nowrap;">その他定数</label>
-    
-    <button type="button" onclick="stepSelect('other_fixed_damage_select', -1)" style="padding: 10px 10px;">-</button>
-    
-    <select id="other_fixed_damage_select" style="flex-grow: 1;">
-        <option value="none">なし</option>
-        <option value="SIXTEENTH">1/16 (天候・火傷等)</option>
-        <option value="TENTH">1/10 (いのちのたま反動)</option>
-        <option value="EIGHTH">1/8 (さめはだ・毒等)</option>
-        <option value="SIXTH">1/6 (ゴツメ・バインド最大)</option>
-        <option value="FOURTH">1/4 (みがわり・のろい)</option>
-        <option value="HALF">1/2 (カタストロフィ・前歯)</option>
-    </select>
-    
-    <button type="button" onclick="stepSelect('other_fixed_damage_select', 1)" style="padding: 10px 10px;">+</button>
-</div>
-                
-                
-                <div class="checkbox-group">
-                    <label for="burn_m_check">🔥やけど(0.5倍)</label>
-                    <input type="checkbox" id="burn_m_check">
-                </div>
-                
-                <div class="checkbox-group">
-                    <label for="substitute_check">👤みがわり(HP: 1/4)</label>
-                    <input type="checkbox" id="substitute_check">
-                </div>
-                
-                <div class="checkbox-section">
-                    <div class="checkbox-group">
-                        <label for="wall_single_check">🛡️壁(シングル)</label>
-                        <input type="checkbox" id="wall_single_check">
-                    </div>
-                    <div class="checkbox-group">
-                        <label for="wall_double_check">🛡️壁(ダブル)</label>
-                        <input type="checkbox" id="wall_double_check">
-                    </div>
-                    <div class="checkbox-group">
-                        <label for="range_m_check">👥範囲</label>
-                        <input type="checkbox" id="range_m_check">
-                    </div>
-                </div>
-
-                </div>
-        </div>
-    </form>
-
-</form> 
-
-
-
-    <div class="main-wrapper" style="display: flex; gap: 20px; align-items: flex-start;">
-    <div id="result-sticky-footer" style="flex: 1; min-width: 0;">
-        <div id="result" class="card">
-            <strong>計算結果:</strong>
-            <div id="damage-output">ここに結果が表示されます</div>
-        </div>
-        <div id="result-sticky-wrapper">
-            <div id="hp_status_display" style="font-size: 0.9em; color: #666;">
-                計算対象HP: <span id="current_hp_val" style="font-weight: bold; color: #d9534f;">150</span>
-                <button type="button" onclick="applyCurrentHPAsMax()" style="font-size: 0.8em; padding: 2px 8px; cursor: pointer;">
-                    この数値を最大HPに設定
-                </button>
-            </div>
-        </div>
-    </div>
 
 <div id="quick-table-modal" class="modal">
     <div class="modal-content">
@@ -1639,41 +1163,21 @@ document.addEventListener('click', function(event) {
     </div>
 </div>
 
-<div id="quick-table-modal2" class="modal"> <div class="modal-content">
+<div id="quick-table-modal2" class="modal">
+    <div class="modal-content">
         <span class="close-button" onclick="closeQuickTableModal2()">&times;</span>
-        <div id="quick-table-container2"></div> </div>
+        <div id="quick-table-container2"></div>
+    </div>
 </div>
 
-<div id="resultModal" class="modal" style="display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8);">
-    <div class="modal-content" style="background:#fff; margin:10% auto; padding:20px; width:90%; max-width:500px; border-radius:10px; position:relative;">
-        <span onclick="closeResultModal()" style="position:absolute; right:15px; top:10px; font-size:30px; cursor:pointer;">&times;</span>
-        <h2 style="font-size:1.2rem; color:#007bff; border-bottom:2px solid #007bff;">📊 計算結果</h2>
-        
+<div id="resultModal" class="modal">
+    <div class="modal-content" style="max-width:520px;">
+        <span onclick="closeResultModal()" style="position:absolute; right:15px; top:8px; font-size:30px; cursor:pointer;">&times;</span>
+        <h2 style="font-size:1.1rem; color:#1f7ae0; border-bottom:2px solid #1f7ae0; padding-bottom:6px;">📊 計算結果</h2>
         <div id="modal-result-body" style="margin-top:15px;"></div>
-        
-        <button type="button" onclick="closeResultModal()" style="width:100%; margin-top:20px; padding:12px; background:#6c757d; color:white; border:none; border-radius:5px; font-weight:bold;">
-            閉じる
-        </button>
+        <button type="button" onclick="closeResultModal()" style="width:100%; margin-top:20px; padding:12px; background:#6c757d; color:white; border:none; border-radius:8px; font-weight:bold;">閉じる</button>
     </div>
 </div>
-
-<div class="calculator-container" style="position: relative; max-width: 1200px; margin: 0 auto;">
-    
-    <div id="result-sticky-footer">
-        </div>
-
-    <div id="pc-floating-memo" class="floating-memo">
-        <div class="memo-header">
-            <span>📝 対戦メモ</span>
-            <button type="button" onclick="clearBattleMemoOnly()" style="font-size: 0.7rem; cursor: pointer;">消去</button>
-        </div>
-        <textarea id="battle-memo" placeholder="相手の選出予想など..."></textarea>
-    </div>
-    
-</div>
-
-<div id="quick-table-container-outer" style="margin-top: 30px; overflow-x: auto;">
-    </div>
 
     <script>
         const floor = Math.floor;
@@ -2625,7 +2129,7 @@ function updateAbilitiesAndCalculate() {
 
     // ⭐ 計算結果を即座にUIへ反映（後の判定で affinity.value を使うため）
     document.getElementById('affinity').value = effect.affinity.toFixed(2);
-    document.getElementById('stab').value = effect.stab.toFixed(1);
+    document.getElementById('stab').value = String(+effect.stab.toFixed(2));
 
     // --- ⭐ わざわい系特性の補正 ---
     const ruin_def_checked = document.getElementById("ruin_def")?.checked;
@@ -2714,20 +2218,10 @@ function updateAbilitiesAndCalculate() {
     }
 
     // てきおうりょく
-    let isAdaptabilityApplied = false;
-    if (ability === "ADAPTABILITY") {
-        const attackerKey = NAME_TO_KEY_MAP[hiraganaToKatakana(attackerName)];
-        if (attackerKey) {
-            const attackerTypes = POKEDATA_MAP[attackerKey].Types.filter(t => t).map(t => t.toUpperCase());
-            if (attackerTypes.includes(moveTypeUpper)) {
-                document.getElementById("stab").value = "2.0"; 
-                isAdaptabilityApplied = true;
-            }
-        }
-    }
-    if (!isAdaptabilityApplied) {
+    // （calculateEffectiveness 側でてきおうりょく・テラスタルを考慮済み）
+    {
          const { stab } = calculateEffectiveness(attackerName, defenderName, moveName, currentType);
-         document.getElementById('stab').value = stab.toFixed(1); 
+         document.getElementById('stab').value = String(+stab.toFixed(2));
     }
 
     // 変幻自在 / リベロ
@@ -2781,7 +2275,9 @@ function updateAbilitiesAndCalculate() {
     // オーラ判定 (修正：moveType -> moveTypeUpper)
     const isDarkAuraActive = (ability === "DARKAURA" || defAbility === "DARKAURA") && moveTypeUpper === "DARK";
     const isFairyAuraActive = (ability === "FAIRYAURA" || defAbility === "FAIRYAURA") && moveTypeUpper === "FAIRY";
-    if (isDarkAuraActive || isFairyAuraActive) atkMod = Math.round(atkMod * 5448 / 4096);
+    // オーラブレイク（特性 or チェック）があるとオーラは 0.75倍 に反転
+    const isAuraBreak = document.getElementById('aura_break')?.checked || ability === "AURABREAK" || defAbility === "AURABREAK";
+    if (isDarkAuraActive || isFairyAuraActive) atkMod = Math.round(atkMod * (isAuraBreak ? 3072 : 5448) / 4096);
 
     document.getElementById("ability_m_atk").value = atkMod;
 
@@ -3034,13 +2530,21 @@ function initAppDisplay(moveDataLoaded) {
     let stab = 1.0;
     if (attackerKey) {
         const pKey = Array.isArray(attackerKey) ? attackerKey[0] : attackerKey;
-        const attackerTypes = POKEDATA_MAP[pKey].Types.filter(t => t).map(t => t.toUpperCase());
-        
+        // タイプ変更を反映した攻撃側タイプ（一致判定用）
+        const attackerTypes = (typeof getBattleBaseTypes === 'function')
+            ? getBattleBaseTypes('attacker', pKey)
+            : POKEDATA_MAP[pKey].Types.filter(t => t).map(t => t.toUpperCase());
+
         const isHengen = (ability === "PROTEAN" || ability === "LIBERO");
         const isTekio = (ability === "ADAPTABILITY");
+        const atkTera = (typeof getTeraType === 'function') ? getTeraType('attacker') : '';
 
-        if (isHengen) {
-            stab = 1.5; 
+        if (atkTera && atkTera !== 'STELLAR' && atkTera === moveTypeUpper) {
+            // テラスタル一致：元タイプとも一致なら2.0（てきおうりょくは2.25）
+            const orig = attackerTypes.includes(moveTypeUpper);
+            stab = isTekio ? (orig ? 2.25 : 2.0) : (orig ? 2.0 : 1.5);
+        } else if (isHengen) {
+            stab = 1.5;
         } else if (attackerTypes.includes(moveTypeUpper)) {
             stab = isTekio ? 2.0 : 1.5;
         }
@@ -3050,8 +2554,12 @@ function initAppDisplay(moveDataLoaded) {
     let affinity = 1.0;
     if (defenderKey) {
         const dKey = Array.isArray(defenderKey) ? defenderKey[0] : defenderKey;
-        const defenderTypes = POKEDATA_MAP[dKey].Types.filter(t => t);
-        
+        // テラスタル・はねやすめを反映した防御側タイプ
+        const defenderTypes = (typeof getDefenderBattleTypes === 'function')
+            ? getDefenderBattleTypes(dKey)
+            : POKEDATA_MAP[dKey].Types.filter(t => t);
+        const isGravity = !!document.getElementById('gravity_check')?.checked;
+
         // きもったま・しんがんの判定
         const isScrappyOrMindsEye = (ability === "SCRAPPY" || ability === "MINDSEYE");
 
@@ -3066,6 +2574,11 @@ function initAppDisplay(moveDataLoaded) {
             // 特殊処理：フリーズドライ（水に抜群）
             if (isFreezeDry && defTypeUpper === "WATER") {
                 multiplier = 2.0;
+            }
+
+            // じゅうりょく：じめん技がひこうに当たる
+            if (isGravity && moveTypeUpper === "GROUND" && defTypeUpper === "FLYING") {
+                multiplier = 1.0;
             }
 
             // 特殊処理：きもったま・しんがん（ノーマル・格闘がゴーストに1倍）
@@ -3230,7 +2743,7 @@ function updateBasicEffectiveness() {
     const stabEl = document.getElementById('stab');
     
     if (affinityEl) affinityEl.value = affinity.toFixed(2); 
-    if (stabEl) stabEl.value = stab.toFixed(1);
+    if (stabEl) stabEl.value = String(+stab.toFixed(2));
 }
         
        /**
@@ -3294,7 +2807,9 @@ function updateHazardDisplay(defenderKey) {
         return;
     }
 
-    const defenderTypes = POKEDATA_MAP[defenderKey].Types.filter(t => t !== null && t).map(t => t.toUpperCase());
+    const defenderTypes = (typeof getDefenderBattleTypes === 'function')
+        ? getDefenderBattleTypes(defenderKey)
+        : POKEDATA_MAP[defenderKey].Types.filter(t => t !== null && t).map(t => t.toUpperCase());
     const srEffectiveness = getEffectivenessMultiplier("ROCK", defenderTypes);
     srDisplay.textContent = `(岩相性: ${srEffectiveness}倍)`;
 }
@@ -3317,7 +2832,9 @@ function calculateEntryHazardDamage(defenderKey, maxHP) {
         return { totalDamage: 0, details: ["防御側ポケモンが選択されていません。"] };
     }
 
-    const defenderTypes = POKEDATA_MAP[defenderKey].Types.filter(t => t !== null && t).map(t => t.toUpperCase());
+    const defenderTypes = (typeof getDefenderBattleTypes === 'function')
+        ? getDefenderBattleTypes(defenderKey)
+        : POKEDATA_MAP[defenderKey].Types.filter(t => t !== null && t).map(t => t.toUpperCase());
     const defenderAbility = document.getElementById('defender-ability').value;
     
     // 【修正】 ?.checked を使用することで、要素がなくても null エラーを防ぎます
@@ -3616,12 +3133,12 @@ document.querySelectorAll('.ev-button').forEach(button => {
     if (substituteHP > 0) {
         const minSubPercent = ((minResult / targetHP) * 100).toFixed(1);
         const maxSubPercent = ((maxResult / targetHP) * 100).toFixed(1);
-        percentageText = `HPに対する割合: **${minSubPercent}%** 〜 **${maxSubPercent}%**`;
+        percentageText = `HPに対する割合: <strong>${minSubPercent}%</strong> 〜 <strong>${maxSubPercent}%</strong>`;
         substituteText = `<div class="substitute-info">HP: ${targetHP}</div>`;
     } else {
         const minPercent = ((minResult / targetHP) * 100).toFixed(1);
         const maxPercent = ((maxResult / targetHP) * 100).toFixed(1);
-        percentageText = `HP割合: **${minPercent}%** 〜 **${maxPercent}%**`;
+        percentageText = `HP割合: <strong>${minPercent}%</strong> 〜 <strong>${maxPercent}%</strong>`;
     }
     
     // --- 連続技の内訳表示（新規追加） ---
@@ -3659,7 +3176,7 @@ document.querySelectorAll('.ev-button').forEach(button => {
 
         <div class="percentage">
             ${percentageText}<br>
-            **KO判定**: ${koInfo.koText} ${koProbabilityText}
+            <strong>KO判定</strong>: ${koInfo.koText} ${koProbabilityText}
         </div>
         ${substituteText}
     `;
@@ -3707,7 +3224,15 @@ function runDamageCalculation(isCriticalOverride, args) {
     const defenderName = document.getElementById('defender-pokemon-name').value;
     const normalizedDefenderName = hiraganaToKatakana(defenderName);
     const defenderKey = NAME_TO_KEY_MAP[normalizedDefenderName];
-    const defenderTypes = defenderKey ? POKEDATA_MAP[defenderKey].Types.map(t => t.toUpperCase()) : [];
+    const defenderTypes = defenderKey
+        ? ((typeof getDefenderBattleTypes === 'function') ? getDefenderBattleTypes(defenderKey) : POKEDATA_MAP[defenderKey].Types.filter(t => t).map(t => t.toUpperCase()))
+        : [];
+
+    // 攻撃側の道具（名前で選択）の効果。null のときは手動の数値補正を使う
+    const atkItemEff = (typeof getAttackerItemEffect === 'function')
+        ? getAttackerItemEffect(isPhysical, moveType, affinity_m)
+        : null;
+    const isSunNow = (environment === 'Sun');
 
     // --- 2. 設置物ダメージの算出 ---
     const hazardResult = calculateEntryHazardDamage(defenderKey, hp);
@@ -3739,8 +3264,16 @@ function runDamageCalculation(isCriticalOverride, args) {
         let atkWithAbility = Math.floor(base_attack * (abilityAtkMult || 1.0));
         const itemAtkSelection = document.getElementById('item_m_atk').value;
 
-        if (itemAtkSelection === "HONETAMA") {
+        if (atkItemEff ? atkItemEff.honetama : itemAtkSelection === "HONETAMA") {
             atkWithAbility = Math.floor(atkWithAbility * 2.0);
+        }
+        // こだわりハチマキ / こだわりメガネ（能力値1.5倍）
+        if (atkItemEff && atkItemEff.stat !== 1) {
+            atkWithAbility = Math.floor(atkWithAbility * atkItemEff.stat);
+        }
+        // フラワーギフト（はれ・物理で攻撃1.5倍）
+        if (isSunNow && isPhysical && document.getElementById('atk_flower_gift')?.checked) {
+            atkWithAbility = Math.floor(atkWithAbility * 1.5);
         }
 
         atkWithAbility = Math.floor(atkWithAbility * ruinAtkMult);
@@ -3753,6 +3286,10 @@ function runDamageCalculation(isCriticalOverride, args) {
         if (itemDefKey === "shinka") {
             defWithAbility = Math.floor(defWithAbility * 1.5);
         } else if (itemDefKey === "chokki" && !isPhysical) {
+            defWithAbility = Math.floor(defWithAbility * 1.5);
+        }
+        // フラワーギフト（はれ・特殊で特防1.5倍）
+        if (isSunNow && !isPhysical && document.getElementById('def_flower_gift')?.checked) {
             defWithAbility = Math.floor(defWithAbility * 1.5);
         }
 
@@ -3789,11 +3326,17 @@ function runDamageCalculation(isCriticalOverride, args) {
             finalPower = applyStrictModifier(finalPower, ability_m_atk);
         }
         
-        // 持ち物威力補正（帯、メガネ等）を適用
-        if (item_m_atk && item_m_atk !== 4096) {
-            finalPower = applyStrictModifier(finalPower, item_m_atk);
+        // 持ち物威力補正（プレート、ハチマキ等）を適用
+        const itemPowerMod = atkItemEff ? atkItemEff.power : item_m_atk;
+        if (itemPowerMod && itemPowerMod !== 4096) {
+            finalPower = applyStrictModifier(finalPower, itemPowerMod);
         }
-        
+
+        // その他の威力補正（てだすけ・はがねのせいしん・パワースポット・じゅうでん等）
+        if (other_m && other_m !== 1) {
+            finalPower = applyStrictModifier(finalPower, Math.round(other_m * 4096));
+        }
+
         finalPower = Math.max(1, finalPower);
 
         // 以下、修正済みの finalPower を使って damageBase を計算
@@ -3816,7 +3359,7 @@ function runDamageCalculation(isCriticalOverride, args) {
             stab_m, 
             affinity_m,
             burn_m, 
-            item_m_atk: 1.0,    // すでにfinalPowerに反映済み
+            item_m_atk: atkItemEff ? atkItemEff.final / 4096 : 1.0, // いのちのたま・たつじんのおび（最終補正）
             ability_m_atk: 1.0, // すでにfinalPowerに反映済み
             item_m_def: currentItemMDef / 4096, 
             ability_m_def, 
@@ -3855,7 +3398,7 @@ function runDamageCalculation(isCriticalOverride, args) {
 function calculateDamage() {
     console.log("calculateDamage() is called.");
     const resultDiv = document.getElementById('result');
-    resultDiv.innerHTML = "**計算中...**";
+    resultDiv.innerHTML = "計算中...";
 
     try {
         // 1. 全ての入力を取得
@@ -3892,14 +3435,24 @@ function calculateDamage() {
 
         // ▼▼▼ その他補正開始 ▼▼▼
         let extraMultiplier = 1.0;
-        if (document.getElementById("dark_aura")?.checked && moveType === "DARK") extraMultiplier *= 1.33;
-        if (document.getElementById("fairy_aura")?.checked && moveType === "FAIRY") extraMultiplier *= 1.33;
+        // オーラ（チェックで指定。特性で既に適用されている場合は二重にかけない）
+        {
+            const atkAb = document.getElementById("attacker-ability")?.value;
+            const defAb = document.getElementById("defender-ability")?.value;
+            const auraBreak = document.getElementById("aura_break")?.checked || atkAb === "AURABREAK" || defAb === "AURABREAK";
+            const auraMult = auraBreak ? 3072 / 4096 : 5448 / 4096;
+            const darkByAbility = atkAb === "DARKAURA" || defAb === "DARKAURA";
+            const fairyByAbility = atkAb === "FAIRYAURA" || defAb === "FAIRYAURA";
+            if (document.getElementById("dark_aura")?.checked && moveType === "DARK" && !darkByAbility) extraMultiplier *= auraMult;
+            if (document.getElementById("fairy_aura")?.checked && moveType === "FAIRY" && !fairyByAbility) extraMultiplier *= auraMult;
+        }
         if (document.getElementById("steely_spirit")?.checked && moveType === "STEEL") extraMultiplier *= 1.5;
         if (document.getElementById("power_spot")?.checked) extraMultiplier *= 1.3;
-        // バッテリー (category変数が未定義の場合のエラー防止策)
-        const categoryElement = document.getElementById('move-category'); // カテゴリ取得元を想定
-        const category = categoryElement ? categoryElement.value : "Physical";
+        // バッテリー（特殊技のみ）
+        const category = document.getElementById('move_type_special')?.checked ? "Special" : "Physical";
         if (document.getElementById("battery")?.checked && category === "Special") extraMultiplier *= 1.3;
+        // てだすけ
+        if (document.getElementById("helping_hand")?.checked) extraMultiplier *= 1.5;
         if (document.getElementById("charge")?.checked && moveType === "ELECTRIC") extraMultiplier *= 2.0;
 
         const supremeOverlordElement = document.getElementById("supreme_overlord");
@@ -3913,9 +3466,9 @@ function calculateDamage() {
         }
 
         if (affinity_m === 0) {
-            resultDiv.innerHTML = `**計算結果**<br>
+            resultDiv.innerHTML = `<strong>計算結果</strong><br>
             タイプ相性によりダメージは無効化されます (<span class="result-min">0</span>ダメージ)。
-            <div class="percentage">HP割合: **0.0%**</div>`;
+            <div class="percentage">HP割合: <strong>0.0%</strong></div>`;
             return;
         }
 
@@ -6480,6 +6033,417 @@ function calculateHPGuess() {
     html += `</tbody></table>`;
     resultDiv.innerHTML = html;
 }
+</script>
+<script>
+/* =========================================================
+   UI刷新に伴う追加機能
+   - 種族値/タイプ/アイコン表示、テラスタル、はねやすめ、じゅうりょく
+   - 道具を名前で選択、実数値▲▼、対戦形式（シングル/ダブル）
+   - 下部の結果バー同期、タブ切替
+   ========================================================= */
+(function () {
+    const TYPES = ['NORMAL','FIRE','WATER','ELECTRIC','GRASS','ICE','FIGHTING','POISON','GROUND','FLYING','PSYCHIC','BUG','ROCK','GHOST','DRAGON','DARK','STEEL','FAIRY'];
+    const TYPE_JA = {NORMAL:'ノーマル',FIRE:'ほのお',WATER:'みず',ELECTRIC:'でんき',GRASS:'くさ',ICE:'こおり',FIGHTING:'かくとう',POISON:'どく',GROUND:'じめん',FLYING:'ひこう',PSYCHIC:'エスパー',BUG:'むし',ROCK:'いわ',GHOST:'ゴースト',DRAGON:'ドラゴン',DARK:'あく',STEEL:'はがね',FAIRY:'フェアリー',STELLAR:'ステラ'};
+    const TYPE_COLOR = {NORMAL:'#9fa19f',FIRE:'#e62829',WATER:'#2980ef',ELECTRIC:'#d4b400',GRASS:'#3fa129',ICE:'#3dc7ef',FIGHTING:'#ff8000',POISON:'#9141cb',GROUND:'#915121',FLYING:'#81b9ef',PSYCHIC:'#ef4179',BUG:'#91a119',ROCK:'#afa981',GHOST:'#704170',DRAGON:'#5060e1',DARK:'#624d4e',STEEL:'#60a1b8',FAIRY:'#ef70ef',STELLAR:'#7e8ce0'};
+    const TYPE_ITEM = {NORMAL:'シルクのスカーフ',FIRE:'もくたん',WATER:'しんぴのしずく',ELECTRIC:'じしゃく',GRASS:'きせきのタネ',ICE:'とけないこおり',FIGHTING:'くろおび',POISON:'どくバリ',GROUND:'やわらかいすな',FLYING:'するどいくちばし',PSYCHIC:'まがったスプーン',BUG:'ぎんのこな',ROCK:'かたいいし',GHOST:'のろいのおふだ',DRAGON:'りゅうのキバ',DARK:'くろいメガネ',STEEL:'メタルコート',FAIRY:'ようせいのハネ'};
+    TYPE_JA.___ = '???'; TYPE_COLOR.___ = '#68a090';   // タイプなし（もえつきる等）
+    window.TYPE_JA = TYPE_JA;
+
+    const $ = (id) => document.getElementById(id);
+
+    /* ---------- 共通ヘルパー ---------- */
+    function keyOf(role) {
+        const v = $(role === 'attacker' ? 'attacker-pokemon-name' : 'defender-pokemon-name')?.value || '';
+        if (!v || typeof NAME_TO_KEY_MAP === 'undefined') return null;
+        const k = NAME_TO_KEY_MAP[hiraganaToKatakana(v).toUpperCase().trim()];
+        return Array.isArray(k) ? k[0] : (k || null);
+    }
+    function iconSrc(key) { return key ? `Icons/${key[0]}/${key}.png` : ''; }
+    function setIcon(img, key) {
+        if (!img) return;
+        const src = iconSrc(key);
+        if (!src) { img.removeAttribute('src'); img.style.visibility = 'hidden'; return; }
+        if (img.getAttribute('src') !== src) { img.style.visibility = 'visible'; img.setAttribute('src', src); }
+    }
+    function moveData() {
+        if (typeof MOVEDATA_MAP === 'undefined') return null;
+        return MOVEDATA_MAP[hiraganaToKatakana($('move-name')?.value || '')] || null;
+    }
+
+    /* ---------- テラスタル / はねやすめ ---------- */
+    window.getTeraType = function (role) {
+        const el = $(role === 'attacker' ? 'atk-tera' : 'def-tera');
+        return el ? el.value : '';
+    };
+    /* ---------- タイプ変更（自由設定） ---------- */
+    const PRE = role => role === 'attacker' ? 'atk' : 'def';
+    function originalTypes(key) {
+        const k = Array.isArray(key) ? key[0] : key;
+        const p = (typeof POKEDATA_MAP !== 'undefined') ? POKEDATA_MAP[k] : null;
+        return p ? p.Types.filter(t => t).map(t => t.toUpperCase()) : [];
+    }
+    function isTypeChanged(role) {
+        const pre = PRE(role);
+        return !!($(pre + '-type1').value || $(pre + '-type3').value);
+    }
+    // タイプ変更（タイプ1/2 の上書き＋追加タイプ）を反映したタイプ。テラスタルは含まない
+    window.getBattleBaseTypes = function (role, key) {
+        const pre = PRE(role);
+        let types = originalTypes(key);
+        const t1 = $(pre + '-type1').value;
+        if (t1) {
+            types = [t1];
+            const t2 = $(pre + '-type2').value;
+            if (t2 && t2 !== t1) types.push(t2);
+        }
+        const t3 = $(pre + '-type3').value;
+        if (t3 && !types.includes(t3)) types.push(t3);
+        return types;
+    };
+    window.getDefenderBattleTypes = function (dKey) {
+        let types = getBattleBaseTypes('defender', dKey);
+        const tera = getTeraType('defender');
+        if (tera && tera !== 'STELLAR') return [tera];
+        if ($('roost_check')?.checked) {
+            types = types.filter(t => t !== 'FLYING');
+            if (!types.length) types = ['NORMAL'];
+        }
+        return types;
+    };
+    const typeOpts = (first) => `<option value="">${first}</option>` + TYPES.map(t => `<option value="${t}">${TYPE_JA[t]}</option>`).join('');
+    ['atk', 'def'].forEach(pre => {
+        $(pre + '-type1').innerHTML = typeOpts('元のまま');
+        $(pre + '-type2').innerHTML = typeOpts('なし');
+        $(pre + '-type3').innerHTML = typeOpts('なし');
+        $(pre + '-tera').innerHTML = typeOpts('なし') + '<option value="STELLAR">ステラ</option>';
+    });
+    function clearTypeChange(role) {
+        const pre = PRE(role);
+        ['-type1', '-type2', '-type3', '-tera'].forEach(s => { $(pre + s).value = ''; });
+    }
+    function setTypes(role, types) {
+        const pre = PRE(role);
+        $(pre + '-type1').value = types[0] || '';
+        $(pre + '-type2').value = types[1] || '';
+        $(pre + '-type3').value = types[2] || '';
+    }
+    // パネル開閉
+    document.querySelectorAll('.type-chg-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const panel = $(btn.dataset.panel);
+            panel.hidden = !panel.hidden;
+        });
+    });
+    // プリセット
+    document.querySelectorAll('.type-presets').forEach(box => {
+        const role = box.dataset.role;
+        const other = role === 'attacker' ? 'defender' : 'attacker';
+        box.addEventListener('click', (e) => {
+            const b = e.target.closest('button[data-preset]');
+            if (!b) return;
+            const cur = getBattleBaseTypes(role, keyOf(role));
+            switch (b.dataset.preset) {
+                case 'reset': clearTypeChange(role); break;
+                case 'soak': setTypes(role, ['WATER']); break;
+                case 'protean': {
+                    const md = moveData();
+                    if (md) setTypes(role, [String(md.Type).toUpperCase()]);
+                    break;
+                }
+                case 'mirror': {
+                    const ot = getBattleBaseTypes(other, keyOf(other));
+                    if (ot.length) setTypes(role, ot);
+                    break;
+                }
+                case 'halloween': $(PRE(role) + '-type3').value = 'GHOST'; break;
+                case 'forest': $(PRE(role) + '-type3').value = 'GRASS'; break;
+                case 'burnup': {
+                    const rest = cur.filter(t => t !== 'FIRE');
+                    // ほのお単タイプが もえつきる と「タイプなし」になる → 相性等倍として扱うため ??? 扱い（ノーマル相当にはしない）
+                    setTypes(role, rest.length ? rest : ['___']);
+                    break;
+                }
+            }
+            refreshEffectiveness();
+        });
+    });
+    // 「タイプなし」用の選択肢（もえつきる後のほのお単など）
+    ['atk', 'def'].forEach(pre => {
+        $(pre + '-type1').insertAdjacentHTML('beforeend', '<option value="___">タイプなし（???）</option>');
+    });
+
+    /* ---------- 攻撃側の道具（名前で選択） ---------- */
+    const ATK_ITEMS = [
+        { v: 'none', n: 'アイテムなし' },
+        { g: '火力アップ' },
+        { v: 'choiceband', n: 'こだわりハチマキ (物理A×1.5)', stat: 1.5, cat: 'P' },
+        { v: 'choicespecs', n: 'こだわりメガネ (特殊C×1.5)', stat: 1.5, cat: 'S' },
+        { v: 'lifeorb', n: 'いのちのたま (×1.3)', final: 5324 },
+        { v: 'expertbelt', n: 'たつじんのおび (抜群×1.2)', final: 4915, se: true },
+        { v: 'muscleband', n: 'ちからのハチマキ (物理×1.1)', power: 4505, cat: 'P' },
+        { v: 'wiseglasses', n: 'ものしりメガネ (特殊×1.1)', power: 4505, cat: 'S' },
+        { v: 'punchingglove', n: 'パンチグローブ (パンチ×1.1)', power: 4506, flag: 'Punching' },
+        { v: 'lightball', n: 'でんきだま (A/C×2)', honetama: true },
+        { v: 'thickclub', n: 'ふといホネ (A×2)', honetama: true, cat: 'P' },
+        { g: 'タイプ強化 (一致タイプの技×1.2)' },
+        ...TYPES.map(t => ({ v: 'type_' + t, n: `${TYPE_ITEM[t]}（${TYPE_JA[t]}）`, power: 4915, type: t })),
+        { g: 'ジュエル' },
+        { v: 'normalgem', n: 'ノーマルジュエル (×1.3)', power: 5325, type: 'NORMAL' },
+        { g: 'その他' },
+        { v: 'manual', n: '手動（補正の詳細の値を使う）' }
+    ];
+    const ATK_ITEM_MAP = {};
+    (function buildItemSelect() {
+        const sel = $('atk-item');
+        let html = '', inGroup = false;
+        ATK_ITEMS.forEach(it => {
+            if (it.g) { if (inGroup) html += '</optgroup>'; html += `<optgroup label="${it.g}">`; inGroup = true; return; }
+            ATK_ITEM_MAP[it.v] = it;
+            html += `<option value="${it.v}">${it.n}</option>`;
+        });
+        if (inGroup) html += '</optgroup>';
+        sel.innerHTML = html;
+    })();
+
+    window.getAttackerItemEffect = function (isPhysical, moveType, affinity) {
+        const sel = $('atk-item');
+        if (!sel || sel.value === 'manual') return null;
+        const it = ATK_ITEM_MAP[sel.value];
+        const r = { power: 4096, stat: 1, final: 4096, honetama: false };
+        if (!it || sel.value === 'none') return r;
+        if (it.cat && (it.cat === 'P') !== !!isPhysical) return r;
+        if (it.type && it.type !== String(moveType || '').toUpperCase()) return r;
+        if (it.flag) {
+            const md = moveData();
+            if (!md || !String(md.Flags || '').includes(it.flag)) return r;
+        }
+        if (it.se && !(parseFloat(affinity) > 1)) return r;
+        if (it.power) r.power = it.power;
+        if (it.stat) r.stat = it.stat;
+        if (it.final) r.final = it.final;
+        if (it.honetama) r.honetama = true;
+        return r;
+    };
+
+    /* ---------- ラベル短縮（getStatKeys をラップ） ---------- */
+    const ATK_LABEL = { Atk: '攻撃', SpAtk: '特攻', Def: '防御', OpponentAtk: '相手A' };
+    const DEF_LABEL = { Def: '防御', SpDef: '特防' };
+    if (typeof window.getStatKeys === 'function') {
+        const _gsk = window.getStatKeys;
+        window.getStatKeys = function () {
+            const r = _gsk.apply(this, arguments);
+            window.__statKeys = r;
+            if ($('label_base_attack')) $('label_base_attack').textContent = ATK_LABEL[r.attackerStatKey] || '攻撃';
+            if ($('label_base_defense')) $('label_base_defense').textContent = DEF_LABEL[r.defenderStatKey] || '防御';
+            return r;
+        };
+    }
+
+    /* ---------- 種族値・タイプ・アイコン表示 ---------- */
+    const STAT_ORDER = [['HP', 'H'], ['Atk', 'A'], ['Def', 'B'], ['SpAtk', 'C'], ['SpDef', 'D'], ['Speed', 'S']];
+    function badge(t, extra) {
+        return `<span class="type-badge ${extra || ''}" style="background:${TYPE_COLOR[t] || '#999'}">${TYPE_JA[t] || t}</span>`;
+    }
+    const lastKeys = { attacker: null, defender: null };
+    function renderSide(role) {
+        const pre = role === 'attacker' ? 'atk' : 'def';
+        const key = keyOf(role);
+        const p = key && typeof POKEDATA_MAP !== 'undefined' ? POKEDATA_MAP[key] : null;
+        const sk = window.__statKeys || {};
+        const onStats = role === 'attacker'
+            ? [sk.attackerStatKey === 'OpponentAtk' ? '' : (sk.attackerStatKey || 'Atk')]
+            : ['HP', sk.defenderStatKey || 'Def'];
+
+        const bs = $(pre + '-base-stats');
+        if (bs) {
+            bs.innerHTML = p ? STAT_ORDER.map(([k, l]) =>
+                `<span class="bs ${onStats.includes(k) ? 'on' : ''}"><small>${l}</small>${p[k] ?? p.Stats?.[k] ?? '-'}</span>`).join('') : '';
+        }
+        // ポケモンが変わったらタイプ変更をリセット
+        if (lastKeys[role] && key && lastKeys[role] !== key && (isTypeChanged(role) || getTeraType(role))) {
+            clearTypeChange(role);
+            setTimeout(refreshEffectiveness, 0);
+        }
+        if (key) lastKeys[role] = key;
+
+        const tb = $(pre + '-type-badges');
+        const tera = getTeraType(role);
+        const changed = isTypeChanged(role);
+        if (tb) {
+            if (!p) { tb.innerHTML = ''; }
+            else {
+                const types = getBattleBaseTypes(role, key);
+                const roost = role === 'defender' && $('roost_check')?.checked;
+                const struckAll = role === 'defender' && tera && tera !== 'STELLAR';
+                tb.innerHTML = types.map(t => badge(t, (struckAll || (roost && t === 'FLYING')) ? 'struck' : '')).join('') +
+                    (tera ? badge(tera, 'tera') : '') +
+                    (changed ? '<span class="type-changed-note">変更中</span>' : '');
+            }
+        }
+        const chgBtn = document.querySelector(`.type-chg-btn[data-panel="${pre}-type-panel"]`);
+        if (chgBtn) chgBtn.classList.toggle('on', changed || !!tera);
+        setIcon($(pre + '-icon'), key);
+        setIcon($('bar-' + pre + '-icon'), key);
+    }
+
+    /* ---------- 計算後の表示同期（calculateDamage をラップ） ---------- */
+    function syncNatureButtons() {
+        document.querySelectorAll('.nature-btn-group').forEach(g => {
+            const hid = g.querySelector('input[type="hidden"]');
+            if (!hid) return;
+            const v = parseFloat(hid.value);
+            g.querySelectorAll('.nature-btn').forEach(b => b.classList.toggle('active', parseFloat(b.dataset.value) === v));
+        });
+    }
+    function afterCalc() {
+        renderSide('attacker');
+        renderSide('defender');
+        if (typeof updateHazardDisplay === 'function') updateHazardDisplay(keyOf('defender'));
+        syncNatureButtons();
+
+        // 技タイプと相性
+        const md = moveData();
+        const mt = md ? String(md.Type).toUpperCase() : '';
+        const mb = $('move-type-badge');
+        if (mb) { mb.textContent = mt ? (TYPE_JA[mt] || mt) : '—'; mb.style.background = TYPE_COLOR[mt] || '#999'; }
+        const aff = parseFloat($('affinity')?.value);
+        const eb = $('move-eff-badge');
+        if (eb) {
+            eb.textContent = isNaN(aff) ? '×1' : (aff === 0 ? 'こうかなし' : '×' + (+aff.toFixed(2)));
+            eb.style.color = aff > 1 ? '#c0392b' : (aff < 1 ? '#2c6aa8' : '#333');
+        }
+
+        // 下部バーの左右
+        const sk = window.__statKeys || {};
+        $('bar-atk-power').textContent = $('power')?.value || '-';
+        $('bar-atk-stat').textContent = $('base_attack')?.value || '-';
+        $('bar-atk-label').textContent = ATK_LABEL[sk.attackerStatKey] || '攻撃';
+        $('bar-def-hp').textContent = $('hp')?.value || '-';
+        $('bar-def-stat').textContent = $('base_defense')?.value || '-';
+        $('bar-def-label').textContent = DEF_LABEL[sk.defenderStatKey] || '防御';
+
+        // HPバー（最大ダメージ後を濃色、乱数幅を淡色で表示）
+        const fill = $('top-hp-bar-fill'), range = $('top-hp-bar-range');
+        if (aff === 0) {
+            $('top-damage-real').textContent = '0';
+            $('top-damage-percent').textContent = '0%';
+            $('top-judgment').textContent = 'こうかなし';
+            fill.style.width = '100%'; fill.style.backgroundColor = '#2ecc71'; range.style.width = '0';
+            return;
+        }
+        const m = ($('top-damage-real')?.textContent || '').match(/(\d+)\s*～\s*(\d+)/);
+        const hp = (typeof lastCalculatedEffectiveHP === 'number' && lastCalculatedEffectiveHP > 0) ? lastCalculatedEffectiveHP : parseFloat($('hp')?.value);
+        if (m && hp > 0) {
+            const minD = +m[1], maxD = +m[2];
+            $('top-damage-real').textContent = `${minD} ～ ${maxD}`;
+            const remMax = Math.max(0, 100 - maxD / hp * 100);
+            const remMin = Math.max(0, 100 - minD / hp * 100);
+            const col = remMax > 50 ? '#2ecc71' : (remMax > 20 ? '#f1c40f' : '#e74c3c');
+            const colMin = remMin > 50 ? 'rgba(46,204,113,.5)' : (remMin > 20 ? 'rgba(241,196,15,.55)' : 'rgba(231,76,60,.5)');
+            fill.style.width = remMax + '%';
+            fill.style.backgroundColor = col;
+            range.style.left = remMax + '%';
+            range.style.width = Math.max(0, remMin - remMax) + '%';
+            range.style.background = colMin;
+        }
+    }
+    if (typeof window.calculateDamage === 'function') {
+        const _cd = window.calculateDamage;
+        window.calculateDamage = function () {
+            const r = _cd.apply(this, arguments);
+            try { afterCalc(); } catch (e) { console.warn('afterCalc:', e); }
+            return r;
+        };
+    }
+
+    /* ---------- 相性に関わる変更（テラ/はねやすめ/じゅうりょく）→ 全再計算 ---------- */
+    function refreshEffectiveness() {
+        try { if (typeof updateBasicEffectiveness === 'function') updateBasicEffectiveness(); } catch (e) {}
+        $('attacker-ability')?.dispatchEvent(new Event('change'));
+        $('defender-ability')?.dispatchEvent(new Event('change'));
+        calculateDamage();
+    }
+    ['atk-tera', 'def-tera', 'atk-type1', 'atk-type2', 'atk-type3', 'def-type1', 'def-type2', 'def-type3',
+     'roost_check', 'gravity_check', 'aura_break'].forEach(id => {
+        $(id)?.addEventListener('change', refreshEffectiveness);
+    });
+    $('atk-item')?.addEventListener('change', () => calculateDamage());
+
+    /* ---------- 対戦形式・壁 ---------- */
+    let battleFormat = 'single';
+    function syncWalls() {
+        const on = $('wall_check').checked;
+        $('wall_single_check').checked = on && battleFormat === 'single';
+        $('wall_double_check').checked = on && battleFormat === 'double';
+    }
+    $('wall_check').addEventListener('change', syncWalls);
+    document.querySelectorAll('#format-seg button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            battleFormat = btn.dataset.format;
+            document.querySelectorAll('#format-seg button').forEach(b => b.classList.toggle('active', b === btn));
+            $('range-row').style.display = battleFormat === 'double' ? '' : 'none';
+            if (battleFormat === 'single') $('range_m_check').checked = false;
+            syncWalls();
+            calculateDamage();
+        });
+    });
+
+    /* ---------- 実数値 ▲▼（長押しで連続） ---------- */
+    function bumpStat(id, delta) {
+        const el = $(id);
+        if (!el) return;
+        const v = Math.max(1, (parseInt(el.value) || 0) + delta);
+        if (id === 'hp') {
+            const slider = $('hp_percent');
+            if (slider) slider.value = '100.0';
+            el.value = v;
+            el.dispatchEvent(new Event('input'));
+        } else {
+            el.value = v;
+            el.dispatchEvent(new Event('change'));
+        }
+    }
+    document.querySelectorAll('.step-btn[data-stepfor]').forEach(btn => {
+        let t1 = null, t2 = null;
+        const stop = () => { clearTimeout(t1); clearInterval(t2); t1 = t2 = null; };
+        btn.addEventListener('pointerdown', (e) => {
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+            e.preventDefault();
+            const id = btn.dataset.stepfor, d = parseInt(btn.dataset.delta);
+            bumpStat(id, d);
+            t1 = setTimeout(() => { t2 = setInterval(() => bumpStat(id, d), 80); }, 450);
+        });
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => btn.addEventListener(ev, stop));
+    });
+
+    /* ---------- タブ切り替え ---------- */
+    window.openTab = function (tabId) {
+        document.querySelectorAll('.tab-panel').forEach(p => {
+            p.classList.toggle('active', p.id === tabId);
+            p.style.display = '';
+        });
+        document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    /* ---------- リセット・攻防交代の拡張 ---------- */
+    const ATK_TOGGLES = ['burn_m_check', 'critical_m_check', 'helping_hand', 'atk_flower_gift', 'steely_spirit', 'power_spot', 'battery', 'charge'];
+    const DEF_TOGGLES = ['wall_check', 'wall_single_check', 'wall_double_check', 'roost_check', 'def_flower_gift', 'substitute_check', 'stealth_rock_check'];
+    function clearIds(ids) { ids.forEach(id => { if ($(id)) $(id).checked = false; }); }
+    function wrap(name, before) {
+        const orig = window[name];
+        if (typeof orig !== 'function') return;
+        window[name] = function () { before(); return orig.apply(this, arguments); };
+    }
+    wrap('resetAttackerStats', () => { clearIds(ATK_TOGGLES); clearTypeChange('attacker'); $('atk-item').value = 'none'; });
+    wrap('resetDefenderStats', () => { clearIds(DEF_TOGGLES); clearTypeChange('defender'); });
+    wrap('swapAttackerDefender', () => { clearTypeChange('attacker'); clearTypeChange('defender'); $('atk-item').value = 'none'; $('item_m_def_select').value = 'none'; });
+    window.resetAllSides = function () {
+        resetAttackerStats();
+        resetDefenderStats();
+        refreshEffectiveness();
+    };
+})();
 </script>
 </body>
 

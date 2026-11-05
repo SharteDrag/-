@@ -39,124 +39,208 @@ manifest-src 'self';
     <link rel="apple-touch-icon" href="Aicon.png">
     <link rel="icon" href="icon.png" type="image/png">
     <style>
-        /* ハンバーガーメニュー */
-        .hamburger-menu { position: fixed; top: 1px; left: 1px; z-index: 10000; }
-        .hamburger-btn {
-            width: 50px; height: 50px; background: #007bff; border: none; border-radius: 4px;
-            cursor: pointer; display: flex; flex-direction: column; justify-content: center;
-            align-items: center; gap: 6px; padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-        .hamburger-btn.active span:nth-child(1) { transform: rotate(45deg) translate(8px, 8px); }
-        .hamburger-btn.active span:nth-child(2) { opacity: 0; }
-        .hamburger-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(7px, -7px); }
-        /* --- ハンバーガーメニュー追加分 --- */
-.hamburger-btn span { width: 25px; height: 3px; background: white; display: block; border-radius: 2px; transition: all 0.3s ease; }
-
-.nav-menu {
-    position: fixed; top: 0; left: -250px; width: 250px; height: 100%;
-    background: white; transition: 0.3s; box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-    display: flex; flex-direction: column; padding-top: 100px; z-index: 9999;
+/* =========================================================
+   構築メモ UI（ダメ計と同じフォーマット）
+   ========================================================= */
+:root {
+    --atk: #e8604c; --atk-bg: #fde3df;
+    --def: #3d8bd9; --def-bg: #dcebfa;
+    --env: #5f9a35; --env-bg: #e3efd7;
+    --memo: #7a5af5; --memo-bg: #ece7ff;
+    --ink: #222; --muted: #6b6b6b; --line: #d9d9d9;
+    --bg: #eef0f3; --card: #fff; --chip: #6e6e6e;
+    --header-h: 52px; --tabs-h: 58px; --radius: 12px;
 }
-.nav-menu.open { left: 0; display: flex; } /* スライドして表示 */
-
-.nav-link {
-    padding: 18px 25px; text-decoration: none; color: #333; border-bottom: 1px solid #eee;
-    font-size: 1.1rem; font-weight: bold; transition: background 0.2s;
+* { box-sizing: border-box; }
+html, body { overflow-x: hidden; }
+body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Segoe UI", Meiryo, sans-serif;
+    font-size: 15px; line-height: 1.45;
+    padding-top: var(--header-h);
+    padding-bottom: calc(var(--tabs-h) + 16px + env(safe-area-inset-bottom));
 }
-.nav-link:hover { background-color: #f0f7ff; color: #007bff; }
-
-/* 画面が広い時にメニューボタンとコンテンツが被らないように調整 */
-@media screen and (min-width: 600px) {
-    .container { padding-left: 80px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; touch-action: manipulation; }
+input[type="number"], input[type="text"], select, textarea {
+    width: 100%; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff;
+    font-size: 16px !important;
 }
-        
-        :root { --primary: #007bff; --bg: #f8f9fa; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; font-size: 14px; }
-        .container { max-width: 1400px; margin: 0 auto; }
+input[type="number"], input[type="text"], select { height: 42px; }
+select { min-width: 0; max-width: 100%; }
+input[type="number"] { text-align: center; -moz-appearance: textfield; appearance: textfield; }
+input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input:focus, select:focus, textarea:focus { outline: 2px solid rgba(61,139,217,.35); border-color: var(--def); }
+h2, h3, h4 { margin: 0; }
 
-        /* コントロールエリア（スマホでボタンが崩れないよう修正） */
-        .party-controls { 
-            background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-wrap: wrap; align-items: center; gap: 10px; 
-        }
-        .party-controls h2 { width: 100%; margin: 0 0 5px 0; font-size: 18px; }
-
-        /* モバイルファースト：基本を2列にする */
-.party-grid { 
-    display: grid; 
-    grid-template-columns: repeat(2, 1fr); /* スマホで2列 */
-    gap: 10px; /* 隙間を少し狭くして画面に収まりやすくする */
+/* ---------- ヘッダー ---------- */
+.app-header {
+    position: fixed; top: 0; left: 0; right: 0; height: var(--header-h); z-index: 9000;
+    display: grid; grid-template-columns: 44px auto minmax(0, 1fr) auto; align-items: center; gap: 6px;
+    padding: 0 10px; background: rgba(255,255,255,.97); border-bottom: 1px solid var(--line);
 }
+.app-header h1 { margin: 0; text-align: center; font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.header-link { border: none; background: none; color: #1f7ae0; font-size: 16px; font-weight: 600; padding: 8px 4px; white-space: nowrap; }
+.hamburger-menu { position: relative; z-index: 11000; }
+.hamburger-btn { width: 40px; height: 40px; border-radius: 8px; background: #f2f4f7; border: none; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; }
+.hamburger-btn span { width: 20px; height: 2px; background: #333; display: block; border-radius: 2px; transition: .25s; }
+.hamburger-btn.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger-btn.active span:nth-child(2) { opacity: 0; }
+.hamburger-btn.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+.nav-menu { position: fixed; top: var(--header-h); left: -270px; width: 260px; height: calc(100% - var(--header-h)); background: #fff; box-shadow: 2px 0 12px rgba(0,0,0,.15); display: flex; flex-direction: column; transition: left .25s; z-index: 11000; padding-top: 8px; }
+.nav-menu.open { left: 0; }
+.nav-link { display: block; padding: 16px 22px; color: #333; text-decoration: none; font-weight: 700; border-bottom: 1px solid #eee; }
+.nav-link:hover { background: #f0f7ff; color: #1f7ae0; }
 
-/* 非常に画面が狭い（350px以下など）場合は1列に落とす（任意） */
+/* ---------- ページ / ツールバー ---------- */
+.page { max-width: 640px; margin: 0 auto; padding: 10px 10px 0; }
+.toolbar { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0 8px; scrollbar-width: none; }
+.toolbar::-webkit-scrollbar { display: none; }
+.tool-btn { flex: 0 0 auto; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 7px 13px; font-size: 13px; font-weight: 700; color: #333; white-space: nowrap; }
+.tool-btn.primary { background: #1f7ae0; color: #fff; border-color: #1f7ae0; }
+
+/* ---------- パネル ---------- */
+.panel { border-radius: var(--radius); overflow: hidden; background: var(--card); box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 12px; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px 10px 14px; color: #fff; font-weight: 800; font-size: 17px; }
+.panel-head .head-btn { border: none; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 800; white-space: nowrap; }
+.panel-body { padding: 10px 12px 14px; display: grid; gap: 10px; }
+.panel-body > * { min-width: 0; }
+.panel-party { background: var(--env-bg); } .panel-party .panel-head { background: var(--env); }
+.panel-memo { background: var(--memo-bg); } .panel-memo .panel-head { background: var(--memo); }
+.pokemon-card { background: var(--def-bg); scroll-margin-top: calc(var(--header-h) + 8px); }
+.pokemon-card .panel-head { background: var(--def); }
+.pokemon-card .head-btn { color: var(--def); }
+.pokemon-card .head-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.pokemon-card .head-title span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.group-title { font-size: 12px; font-weight: 800; color: #2c6aa8; letter-spacing: .08em; margin-top: 2px; padding-left: 2px; display: flex; justify-content: space-between; align-items: center; }
+
+/* 行 */
+.row { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 8px; }
+.row > * { min-width: 0; }
+.row > label, .row > .lbl { font-weight: 800; font-size: 15px; color: #333; white-space: nowrap; margin: 0; }
+.name-wrap { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: center; }
+.poke-icon { width: 48px; height: 48px; object-fit: cover; object-position: 0 50%; }
+.head-icon { width: 32px; height: 32px; object-fit: cover; object-position: 0 50%; background: rgba(255,255,255,.85); border-radius: 8px; }
+.item-icon { width: 28px; height: 28px; object-fit: contain; }
+
+/* 種族値・タイプ */
+.meta-line { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.type-badge { padding: 2px 9px; border-radius: 6px; color: #fff; font-size: 13px; font-weight: 800; }
+.champ-badge { padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 800; background: #fff; border: 1.5px solid #f0a020; color: #b86e00; }
+.champ-badge.out { border-color: #bbb; color: #888; }
+
+/* 検索 */
+.search-container { position: relative; min-width: 0; }
+.search-input { width: 100%; }
+.suggestion-list { display: none; position: absolute; left: 0; right: 0; top: 44px; z-index: 5000; background: #fff; border: 1px solid var(--line); border-radius: 8px; max-height: 300px; overflow-y: auto; box-shadow: 0 8px 20px rgba(0,0,0,.15); grid-template-columns: 1fr 1fr; }
+.suggestion-list[style*="block"] { display: grid !important; }
+.suggestion-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 15px; }
+.suggestion-item:hover { background: #f2f6fb; }
+.mega-toggle-btn { margin-top: 6px; width: auto !important; padding: 5px 12px !important; border-radius: 999px !important; border: none; background: #6c757d; color: #fff; font-size: 12px !important; font-weight: 700; }
+
+/* 能力値テーブル */
+.stat-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; }
+.stat-table th { font-size: 11px; color: var(--muted); font-weight: 800; padding: 0 2px; text-align: center; }
+.stat-table td { background: #fff; padding: 3px 4px; text-align: center; font-weight: 700; }
+.stat-table td:first-child { border-radius: 8px 0 0 8px; font-size: 13px; color: #555; width: 44px; }
+.stat-table td:last-child { border-radius: 0 8px 8px 0; }
+.stat-table .base-val { color: #fff; }
+.stat-table td.base-cell { width: 50px; }
+.stat-table td.base-cell .base-val { display: inline-block; min-width: 38px; padding: 1px 6px; border-radius: 6px; background: var(--chip); font-size: 14px; }
+.ev-cell { display: flex; align-items: center; justify-content: center; gap: 3px; }
+.ev-cell button { width: 32px; height: 32px; flex: 0 0 32px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font-weight: 800; font-size: 16px; color: #444; padding: 0; }
+.ev-input { width: 50px !important; flex: 0 0 50px; height: 32px !important; padding: 2px !important; }
+.total-display { font-size: 17px; font-weight: 800; min-width: 44px; display: inline-block; }
+.nature-up { color: #d9534f; }
+.nature-down { color: #2c6aa8; }
+.ev-counter { font-size: 12px; color: var(--muted); text-align: right; font-weight: 700; }
+.ev-over { color: #e74c3c; font-weight: 800; }
+
+/* 技 */
+.moves-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.learn-btn { border: 1.5px solid var(--def); color: var(--def); background: #fff; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 800; letter-spacing: 0; }
+.learn-btn:disabled { border-color: #bbb; color: #999; }
+.memo-area { width: 100%; height: 72px; padding: 8px; resize: vertical; background: #fffdf0; }
+
+/* 技のタイプ色（ダメ計と同じ配色） */
+.type-normal { background-color: #9fa19f !important; color: #fff; }
+.type-fire { background-color: #e62829 !important; color: #fff; }
+.type-water { background-color: #2980ef !important; color: #fff; }
+.type-electric { background-color: #d4b400 !important; color: #fff; }
+.type-grass { background-color: #3fa129 !important; color: #fff; }
+.type-ice { background-color: #3dc7ef !important; color: #fff; }
+.type-fighting { background-color: #ff8000 !important; color: #fff; }
+.type-poison { background-color: #9141cb !important; color: #fff; }
+.type-ground { background-color: #915121 !important; color: #fff; }
+.type-flying { background-color: #81b9ef !important; color: #fff; }
+.type-psychic { background-color: #ef4179 !important; color: #fff; }
+.type-bug { background-color: #91a119 !important; color: #fff; }
+.type-rock { background-color: #afa981 !important; color: #fff; }
+.type-ghost { background-color: #704170 !important; color: #fff; }
+.type-dragon { background-color: #5060e1 !important; color: #fff; }
+.type-dark { background-color: #624d4e !important; color: #fff; }
+.type-steel { background-color: #60a1b8 !important; color: #fff; }
+.type-fairy { background-color: #ef70ef !important; color: #fff; }
+.move-input[class*="type-"] { border-color: transparent; font-weight: 700; }
+
+/* チップ */
+.chip { position: relative; display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px 7px 9px; background: #fff; border-radius: 999px; border: 1px solid var(--line); font-size: 13px; font-weight: 700; cursor: pointer; user-select: none; margin: 0; white-space: nowrap; }
+.chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip::before { content: ""; width: 16px; height: 16px; border-radius: 50%; border: 2px solid #c8c8c8; background: #fff; flex: 0 0 auto; }
+.chip:has(input:checked) { background: #f0a020; color: #fff; border-color: #f0a020; }
+.chip:has(input:checked)::before { border-color: #fff; box-shadow: inset 0 0 0 3px #f0a020; }
+
+/* ---------- 下部タブ（ポケモン切替） ---------- */
+#bottom-navigation { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9600; background: #3f474f; padding-bottom: env(safe-area-inset-bottom); }
+.tab-menu { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(7, 1fr); height: var(--tabs-h); }
+.tab-btn { border: none; background: none; color: #cfd4d9; font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0; min-width: 0; }
+.tab-btn img { width: 30px; height: 30px; object-fit: cover; object-position: 0 50%; }
+.tab-btn .ico { font-size: 20px; line-height: 30px; height: 30px; }
+.tab-btn.active { color: #ffc94a; }
+
+/* ---------- 覚える技モーダル ---------- */
+.lm-backdrop { display: none; position: fixed; inset: 0; z-index: 20000; background: rgba(0,0,0,.55); }
+.lm-backdrop.open { display: block; }
+.lm-sheet { position: absolute; left: 0; right: 0; bottom: 0; max-width: 640px; margin: 0 auto; height: 86vh; background: #fff; border-radius: 16px 16px 0 0; display: flex; flex-direction: column; overflow: hidden; }
+.lm-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; background: var(--def); color: #fff; font-weight: 800; }
+.lm-head .head-btn { border: none; background: #fff; color: var(--def); border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 800; }
+.lm-tools { padding: 10px 12px; display: grid; gap: 8px; border-bottom: 1px solid var(--line); background: var(--def-bg); }
+.seg { display: inline-flex; background: rgba(0,0,0,.07); border-radius: 10px; padding: 3px; gap: 2px; width: 100%; }
+.seg > button { flex: 1; min-width: 0; border: none; background: transparent; border-radius: 8px; padding: 7px 2px; font-size: 13px; font-weight: 700; color: #444; white-space: nowrap; }
+.seg > button.active { background: #fff; color: #111; box-shadow: 0 1px 3px rgba(0,0,0,.18); }
+.lm-types { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.lm-types::-webkit-scrollbar { display: none; }
+.lm-types button { flex: 0 0 auto; border: 2px solid transparent; border-radius: 6px; padding: 3px 8px; font-size: 12px; font-weight: 800; color: #fff; opacity: .45; }
+.lm-types button.all { background: #555; }
+.lm-types button.active { opacity: 1; border-color: #222; }
+.lm-target { font-size: 12px; color: var(--muted); font-weight: 700; }
+.lm-list { flex: 1; overflow-y: auto; padding: 6px 10px 20px; }
+.lm-item { display: grid; grid-template-columns: 70px minmax(0, 1fr) 46px 44px 34px; align-items: center; gap: 6px; padding: 8px 6px; border-bottom: 1px solid #eee; cursor: pointer; }
+.lm-item:active, .lm-item:hover { background: #f2f6fb; }
+.lm-item .tb { text-align: center; padding: 2px 0; border-radius: 6px; color: #fff; font-size: 12px; font-weight: 800; }
+.lm-item .nm { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lm-item .cat { font-size: 11px; font-weight: 800; text-align: center; border-radius: 6px; padding: 2px 0; }
+.lm-item .cat.P { background: #fde3df; color: #c0392b; } .lm-item .cat.S { background: #dcebfa; color: #2c6aa8; } .lm-item .cat.St { background: #eee; color: #666; }
+.lm-item .pw { text-align: right; font-weight: 800; font-size: 14px; }
+.lm-item .stab { font-size: 10px; font-weight: 800; color: #b86e00; text-align: center; }
+.lm-item.chosen { background: #fff6dc; }
+.lm-empty { padding: 30px 10px; text-align: center; color: var(--muted); }
+.lm-count { font-size: 12px; color: var(--muted); padding: 6px 4px 0; }
+
+/* ---------- PC ---------- */
+@media (min-width: 1100px) {
+    .page { max-width: 1500px; padding: 14px 18px 0; }
+    #partyGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
+    #partyGrid .panel { margin-bottom: 0; }
+    .top-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    #bottom-navigation { display: none; }
+    body { padding-bottom: 30px; }
+}
 @media (max-width: 380px) {
-    .party-grid { grid-template-columns: 1fr; }
+    .row { grid-template-columns: 54px minmax(0, 1fr); }
+    .ev-cell button { width: 28px; flex-basis: 28px; }
+    .ev-input { width: 42px !important; flex-basis: 42px; }
 }
-
-/* PCなどの広い画面では3列にする */
-@media (min-width: 900px) {
-    .party-grid { 
-        grid-template-columns: repeat(3, 1fr); 
-        gap: 15px;
-    }
-}
-
-/* カード内の要素も2列時に崩れないよう調整 */
-.pokemon-card { 
-    padding: 10px; /* 余白を少し削る */
-}
-
-/* 入力欄が重ならないよう調整 */
-.stat-table th, .stat-table td {
-    padding: 4px 2px;
-    font-size: 12px;
-}
-.ev-input {
-    width: 40px !important; /* 少し細くする */
-}
-
-        .pokemon-card { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        input, select, textarea { font-size: 16px !important; }
-        .search-container { position: relative; width: 100%; }
-        .search-input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .suggestion-list { 
-            position: absolute; width: 100%; max-height: 200px; overflow-y: auto; 
-            background: white; border: 1px solid #ddd; z-index: 1000; display: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .suggestion-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
-
-        .stat-table { width: 100%; border-collapse: collapse; margin: 8px 0; }
-        .stat-table th, .stat-table td { padding: 6px 4px; border-bottom: 1px solid #eee; text-align: center; }
-        .ev-input, .iv-input { width: 50px !important; height: 35px; text-align: center; border: 1px solid #ccc; border-radius: 3px; }
-        .total-display { font-weight: bold; min-width: 60px; display: inline-block; }
-        .ev-counter { font-size: 12px; color: #666; text-align: right; margin-bottom: 10px; }
-        .ev-over { color: red; font-weight: bold; }
-        .nature-up { color: #d9534f; }
-        .nature-down { color: #0275d8; }
-        
-        .memo-area { width: 100%; height: 80px; margin-top: 10px; padding: 8px; border: 1px solid #eee; border-radius: 4px; resize: none; box-sizing: border-box; background: #fffdf0; }
-        button { padding: 10px 15px; cursor: pointer; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; }
-
-        /* 技のタイプ別背景色 */
-        .type-normal { background-color: #A8A878 !important; color: white; }
-        .type-fire { background-color: #F08030 !important; color: white; }
-        .type-water { background-color: #6890F0 !important; color: white; }
-        .type-electric { background-color: #F8D030 !important; color: black; }
-        .type-grass { background-color: #78C850 !important; color: white; }
-        .type-ice { background-color: #98D8D8 !important; color: black; }
-        .type-fighting { background-color: #C03028 !important; color: white; }
-        .type-poison { background-color: #A040A0 !important; color: white; }
-        .type-ground { background-color: #E0C068 !important; color: white; }
-        .type-flying { background-color: #A890F0 !important; color: white; }
-        .type-psychic { background-color: #F85888 !important; color: white; }
-        .type-bug { background-color: #A8B820 !important; color: white; }
-        .type-rock { background-color: #B8A038 !important; color: white; }
-        .type-ghost { background-color: #705898 !important; color: white; }
-        .type-dragon { background-color: #7038F8 !important; color: white; }
-        .type-dark { background-color: #705848 !important; color: white; }
-        .type-steel { background-color: #B8B8D0 !important; color: black; }
-        .type-fairy { background-color: #EE99AC !important; color: white; }
     </style>
 </head>
 <body>
@@ -260,32 +344,93 @@ manifest-src 'self';
   });
 </script>
 
-<div id="hamburgerMenu" class="hamburger-menu">
-    <div class="hamburger-btn" onclick="toggleMenu()">
-        <span></span><span></span><span></span>
+<!-- ================= ヘッダー ================= -->
+<header class="app-header">
+    <div id="hamburgerMenu" class="hamburger-menu">
+        <div class="hamburger-btn" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+        <nav id="navMenu" class="nav-menu">
+            <a href="party_memo.html" class="nav-link">📋 構築メモ</a>
+            <a href="test.html" class="nav-link">⚡ ダメージ計算</a>
+            <a href="kasouteki.html" class="nav-link">🎯 仮想敵リスト</a>
+        </nav>
     </div>
-    <nav id="navMenu" class="nav-menu">
-        <a href="party_memo.html" class="nav-link">📋 構築メモ</a>
-        <a href="test.html" class="nav-link">⚡ ダメージ計算</a>
-        <a href="kasouteki.html" class="nav-link">🎯 仮想敵リスト</a>
-    </nav>
+    <button type="button" class="header-link" onclick="loadParty()">読込</button>
+    <h1>構築メモ (シーテャkids)</h1>
+    <button type="button" class="header-link" onclick="saveParty()">保存</button>
+</header>
+
+<div class="page">
+    <div class="toolbar">
+        <button type="button" class="tool-btn primary" onclick="openNewWindow('test.html')">ダメ計を開く</button>
+        <button type="button" class="tool-btn" onclick="exportPartyImage()">画像として保存</button>
+        <button type="button" class="tool-btn" onclick="exportPartyCode()">URLをコピー</button>
+        <button type="button" class="tool-btn" onclick="deleteParty()">スロット削除</button>
+    </div>
+
+    <div class="top-cols">
+        <!-- パーティ情報 -->
+        <section class="panel panel-party">
+            <div class="panel-head"><span>パーティ</span></div>
+            <div class="panel-body">
+                <div class="row">
+                    <label for="partyName">名前</label>
+                    <input type="text" id="partyName" placeholder="パーティ名">
+                </div>
+                <div class="row">
+                    <label for="saveSlot">スロット</label>
+                    <select id="saveSlot"></select>
+                </div>
+                <div class="meta-line">
+                    <label class="chip" title="ポケモン名の候補をチャンピオンズで使えるポケモンだけに絞る"><input type="checkbox" id="champOnly" checked>チャンピオンズ内定のみ表示</label>
+                    <label class="chip" title="技の候補をそのポケモンが覚える技だけに絞る"><input type="checkbox" id="learnOnly" checked>技候補を覚える技に限定</label>
+                </div>
+            </div>
+        </section>
+
+        <!-- 全体メモ -->
+        <section class="panel panel-memo">
+            <div class="panel-head"><span>全体メモ</span></div>
+            <div class="panel-body">
+                <textarea id="partyMemo" placeholder="パーティ全体のメモ（苦手なポケモン、選出パターンなど）" style="height: 96px; resize: vertical;"></textarea>
+            </div>
+        </section>
+    </div>
+
+    <div id="partyGrid"></div>
 </div>
 
-<div class="container">
-   <div class="party-controls">
-    <h2>　　　構築メモ(シーテャkids)</h2>
-    <input type="text" id="partyName" placeholder="パーティ名" style="flex: 1; min-width: 150px; padding:8px; border:1px solid #ccc; border-radius:4px;">
-    <select id="saveSlot" style="width: 110px;"></select>
-    <button onclick="saveParty()">保存</button>
-    <button onclick="loadParty()">読込</button>
-    <button onclick="deleteParty()">削除</button>
-    <button onclick="openNewWindow('test.html')" style="background: #17a2b8;">プチダメ計</button>
-    <button onclick="exportPartyImage()" style="background: #28a745;">画像として保存</button>
-    <button onclick="exportPartyCode()" style="background: #6f42c1;">URLをコピー</button>
+<!-- ================= 覚える技 一覧 ================= -->
+<div id="learnModal" class="lm-backdrop" onclick="if (event.target === this) closeLearnset()">
+    <div class="lm-sheet">
+        <div class="lm-head">
+            <span id="lm-title">覚える技</span>
+            <button type="button" class="head-btn" onclick="closeLearnset()">閉じる</button>
+        </div>
+        <div class="lm-tools">
+            <input type="text" id="lm-search" placeholder="技名で絞り込み（ひらがなOK）" autocomplete="off">
+            <div class="seg" id="lm-cat">
+                <button type="button" class="active" data-cat="">すべて</button>
+                <button type="button" data-cat="Physical">物理</button>
+                <button type="button" data-cat="Special">特殊</button>
+                <button type="button" data-cat="Status">変化</button>
+            </div>
+            <div class="seg" id="lm-sort">
+                <button type="button" class="active" data-sort="type">タイプ順</button>
+                <button type="button" data-sort="power">威力順</button>
+                <button type="button" data-sort="name">名前順</button>
+            </div>
+            <div class="lm-types" id="lm-types"></div>
+            <div class="lm-target" id="lm-target"></div>
+        </div>
+        <div class="lm-list" id="lm-list"></div>
+    </div>
 </div>
-    <div id="partyGrid" class="party-grid"></div>
-        <textarea id="partyMemo" placeholder="パーティ全体のメモ（苦手なポケモン、選出パターンなど）" 
-              style="width: 100%; height: 60px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; resize: vertical;"></textarea>
+
+<!-- ================= 下部タブ ================= -->
+<div id="bottom-navigation">
+    <nav class="tab-menu" id="memo-tabs">
+        <button type="button" class="tab-btn" onclick="window.scrollTo({top:0, behavior:'smooth'})"><span class="ico">📋</span>全体</button>
+    </nav>
 </div>
 
 <script>
@@ -444,6 +589,7 @@ const MEGA_STONE_MAP = {
 };
 
 let db = { species: [], items: [], moves: [], abilities: {} };
+let CHAMP = null;   // { species: {KEY: [MOVEID...]}, sets: {KEY: Set} }
 let currentForms = [0, 0, 0, 0, 0, 0];
 
 function toggleMenu() {
@@ -468,7 +614,17 @@ async function init() {
         ]);
 
         db.species = Object.keys(sp).map(k => ({ id: k, name: sp[k].Name, data: sp[k] }));
-        db.moves = mv.map(m => ({ id: m.ID, name: m.Name, type: m.Type }));
+        db.moves = mv.map(m => ({ id: m.ID, name: m.Name, type: m.Type, cat: m.Category, power: parseInt(m.Power) || 0 }));
+
+        // チャンピオンズ内定ポケモンと覚える技（無くても他機能は動く）
+        try {
+            const cr = await fetch('champions_learnsets.json');
+            if (cr.ok) {
+                const cj = await cr.json();
+                CHAMP = { species: cj.species, source: cj.source, generated: cj.generated, sets: {} };
+                Object.keys(cj.species).forEach(k => { CHAMP.sets[k] = new Set(cj.species[k]); });
+            }
+        } catch (e) { console.warn('champions_learnsets.json を読み込めませんでした', e); }
         db.items = it.items.map(i => ({ id: i.id, name: i.name }));
         db.abilities = ab || {};
 
@@ -884,7 +1040,8 @@ function setupSearchableInput(container, dataList, onSelectCallback) {
             if(input.classList.contains('move-input')) updateMoveColor(input, "");
             return; 
         }
-        const filtered = dataList.filter(item => toKatakana(item.name).includes(query)).slice(0, 20);
+        const src = (typeof dataList === 'function') ? dataList() : dataList;
+        const filtered = src.filter(item => toKatakana(item.name).includes(query)).slice(0, 30);
         if (filtered.length > 0) {
             filtered.forEach(item => {
                 const div = document.createElement('div');
@@ -907,7 +1064,7 @@ function setupSearchableInput(container, dataList, onSelectCallback) {
             list.style.display = 'none';
             // 手動入力時も色を反映させる
             if (input.classList.contains('move-input')) {
-                const found = dataList.find(m => m.name === input.value);
+                const found = db.moves.find(m => m.name === input.value);
                 updateMoveColor(input, found ? found.type : "");
             }
         }, 200);
@@ -918,52 +1075,85 @@ function createPartyUI() {
     const grid = document.getElementById('partyGrid');
     grid.innerHTML = '';
     for (let i = 0; i < 6; i++) {
-        const card = document.createElement('div');
-        card.className = 'pokemon-card';
+        const card = document.createElement('section');
+        card.className = 'panel pokemon-card';
         card.id = `pokemon-${i}`;
         card.innerHTML = `
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
-                <div class="search-container">
-                    <input type="text" class="search-input sp-input" placeholder="ポケモン名">
-                    <div class="suggestion-list"></div>
+            <div class="panel-head">
+                <div class="head-title"><img class="head-icon" alt="" style="visibility:hidden"><span class="head-name">${i + 1}匹目</span></div>
+                <button type="button" class="head-btn" onclick="clearCard(${i})">クリア</button>
+            </div>
+            <div class="panel-body">
+                <div class="meta-line">
+                    <span class="type-badges meta-line"></span>
+                    <span class="champ-badge" style="display:none"></span>
                 </div>
-                <div class="search-container">
-                    <input type="text" class="search-input item-input" placeholder="持ち物">
-                    <div class="suggestion-list"></div>
+                <div class="row">
+                    <label>名前</label>
+                    <div class="name-wrap">
+                        <div class="search-container">
+                            <input type="text" class="search-input sp-input" placeholder="ポケモン名（ひらがなOK）" autocomplete="off">
+                            <div class="suggestion-list"></div>
+                        </div>
+                        <img class="poke-icon card-icon" alt="" style="visibility:hidden">
+                    </div>
                 </div>
+                <div class="row">
+                    <label>道具</label>
+                    <div class="name-wrap">
+                        <div class="search-container">
+                            <input type="text" class="search-input item-input" placeholder="持ち物" autocomplete="off">
+                            <div class="suggestion-list"></div>
+                        </div>
+                        <img class="item-icon card-item-icon" alt="" style="visibility:hidden">
+                    </div>
+                </div>
+                <div class="row">
+                    <label>特性</label>
+                    <select class="ability-select"><option value="">特性</option></select>
+                </div>
+                <div class="row">
+                    <label>性格</label>
+                    <select class="nature-select" onchange="calcStats(${i})">
+                        <option value="まじめ">無補正（まじめ等）</option>
+                        ${Object.keys(NATURES).filter(n => n !== "まじめ").map(n => `<option value="${n}">${n}（${natureLabel(n)}）</option>`).join('')}
+                    </select>
+                </div>
+
+                <div class="group-title"><span>能力値</span><span class="ev-counter">努力値 <span class="ev-sum">0</span> / 66</span></div>
+                <table class="stat-table">
+                    <thead><tr><th></th><th>種族</th><th>努力値</th><th>実数値</th></tr></thead>
+                    ${['H','A','B','C','D','S'].map((label, j) => `
+                        <tr class="stats-row">
+                            <td>${label}</td>
+                            <td class="base-cell"><span class="base-val">0</span></td>
+                            <td><div class="ev-cell">
+                                <button type="button" onclick="stepEV(${i}, ${j}, -1)">−</button>
+                                <input type="number" class="ev-input" value="0" min="0" max="32" inputmode="numeric" oninput="validateEV(this, ${i})">
+                                <button type="button" onclick="stepEV(${i}, ${j}, 1)">＋</button>
+                            </div></td>
+                            <td><span class="total-display">0</span></td>
+                        </tr>`).join('')}
+                </table>
+
+                <div class="group-title"><span>わざ</span><button type="button" class="learn-btn" onclick="openLearnset(${i})">覚える技を見る</button></div>
+                <div class="moves-grid">
+                    ${[0,1,2,3].map(j => `
+                        <div class="search-container">
+                            <input type="text" class="search-input move-input" placeholder="技${j + 1}" autocomplete="off" data-slot="${j}">
+                            <div class="suggestion-list"></div>
+                        </div>`).join('')}
+                </div>
+                <textarea class="memo-area" placeholder="調整メモ..."></textarea>
             </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:5px;">
-                <select class="ability-select"><option value="">特性</option></select>
-                <select class="nature-select" onchange="calcStats(${i})">
-                    <option value="まじめ">性格(無補正)</option>
-                    ${Object.keys(NATURES).filter(n => n !== "まじめ").map(n => `<option value="${n}">${n}</option>`).join('')}
-                </select>
-            </div>
-            <table class="stat-table">
-                <thead><tr><th>能力</th><th>種族</th><th>努力</th><th>実数</th></tr></thead>
-                ${['HP','攻撃','防御','特攻','特防','素早'].map((label, j) => `
-                    <tr class="stats-row">
-                        <td style="font-size:11px; color:#666;">${label}</td>
-                        <td class="base-val">0</td>
-                        <td><input type="number" class="ev-input" value="0" min="0" max="32" inputmode="numeric" oninput="validateEV(this, ${i})"></td>
-                        <td class="total-display">0</td>
-                    </tr>`).join('')}
-            </table>
-            <div class="ev-counter">努力値合計: <span class="ev-sum">0</span> / 66</div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                ${[1,2,3,4].map(() => `
-                    <div class="search-container">
-                        <input type="text" class="search-input move-input" placeholder="技">
-                        <div class="suggestion-list"></div>
-                    </div>`).join('')}
-            </div>
-            <textarea class="memo-area" placeholder="調整メモ..."></textarea>
         `;
         grid.appendChild(card);
 
-        setupSearchableInput(card.querySelector('.sp-input').parentNode, db.species, (item) => updateSpecies(i, item.data));
-        setupSearchableInput(card.querySelector('.item-input').parentNode, db.items);
-        card.querySelectorAll('.move-input').forEach(mvInput => setupSearchableInput(mvInput.parentNode, db.moves));
+        setupSearchableInput(card.querySelector('.sp-input').parentNode, () => speciesCandidates(), (item) => { updateSpecies(i, item.data); refreshCardMeta(i); });
+        setupSearchableInput(card.querySelector('.item-input').parentNode, db.items, () => refreshCardMeta(i));
+        card.querySelectorAll('.move-input').forEach(mvInput => setupSearchableInput(mvInput.parentNode, () => moveCandidates(i)));
+        card.querySelector('.sp-input').addEventListener('change', () => refreshCardMeta(i));
+        card.querySelector('.item-input').addEventListener('blur', () => setTimeout(() => refreshCardMeta(i), 250));
 
         card.querySelectorAll('input[type="number"]').forEach(input => {
             input.addEventListener('focus', function() { this.select(); });
@@ -1261,6 +1451,258 @@ function loadParty() {
 }
 
 init();
+</script>
+<script>
+/* =========================================================
+   構築メモ：チャンピオンズ内定ポケモンの覚える技 / UI補助
+   ========================================================= */
+const MEMO_TYPES = ['NORMAL','FIRE','WATER','ELECTRIC','GRASS','ICE','FIGHTING','POISON','GROUND','FLYING','PSYCHIC','BUG','ROCK','GHOST','DRAGON','DARK','STEEL','FAIRY'];
+const MEMO_TYPE_JA = {NORMAL:'ノーマル',FIRE:'ほのお',WATER:'みず',ELECTRIC:'でんき',GRASS:'くさ',ICE:'こおり',FIGHTING:'かくとう',POISON:'どく',GROUND:'じめん',FLYING:'ひこう',PSYCHIC:'エスパー',BUG:'むし',ROCK:'いわ',GHOST:'ゴースト',DRAGON:'ドラゴン',DARK:'あく',STEEL:'はがね',FAIRY:'フェアリー'};
+const MEMO_TYPE_COLOR = {NORMAL:'#9fa19f',FIRE:'#e62829',WATER:'#2980ef',ELECTRIC:'#d4b400',GRASS:'#3fa129',ICE:'#3dc7ef',FIGHTING:'#ff8000',POISON:'#9141cb',GROUND:'#915121',FLYING:'#81b9ef',PSYCHIC:'#ef4179',BUG:'#91a119',ROCK:'#afa981',GHOST:'#704170',DRAGON:'#5060e1',DARK:'#624d4e',STEEL:'#60a1b8',FAIRY:'#ef70ef'};
+const STAT_JA = ['H','A','B','C','D','S'];
+
+function natureLabel(n) {
+    const d = NATURES[n];
+    if (!d || !d.up) return '無補正';
+    return `${STAT_JA[d.up]}↑${STAT_JA[d.down]}↓`;
+}
+
+/* ---------- カードのポケモン特定 ---------- */
+function cardKey(i) {
+    const inp = document.querySelector(`#pokemon-${i} .sp-input`);
+    if (!inp) return null;
+    const v = inp.value.trim();
+    if (!v) return null;
+    const sel = inp.dataset.selectedId;
+    const bySel = sel && db.species.find(s => s.id === sel);
+    if (bySel && bySel.name === v) return sel;
+    const byName = db.species.find(s => s.name === v || s.name === toKatakana(v));
+    return byName ? byName.id : (sel || null);
+}
+function isChampLegal(key) { return !!(CHAMP && key && CHAMP.sets[key]); }
+
+/* ---------- 候補の絞り込み ---------- */
+function speciesCandidates() {
+    if (CHAMP && document.getElementById('champOnly')?.checked) {
+        return db.species.filter(s => CHAMP.sets[s.id]);
+    }
+    return db.species;
+}
+function moveCandidates(i) {
+    const key = cardKey(i);
+    if (document.getElementById('learnOnly')?.checked && isChampLegal(key)) {
+        const set = CHAMP.sets[key];
+        return db.moves.filter(m => set.has(m.id));
+    }
+    return db.moves;
+}
+
+/* ---------- カード表示の更新 ---------- */
+function refreshCardMeta(i) {
+    const card = document.getElementById(`pokemon-${i}`);
+    if (!card) return;
+    const key = cardKey(i);
+    const sp = key ? db.species.find(s => s.id === key) : null;
+    const name = card.querySelector('.sp-input').value.trim();
+
+    card.querySelector('.head-name').textContent = name || `${i + 1}匹目`;
+    const iconSrc = key ? `Icons/${key.charAt(0)}/${key}.png` : '';
+    [card.querySelector('.head-icon'), card.querySelector('.card-icon')].forEach(img => {
+        if (!img) return;
+        if (iconSrc) { img.src = iconSrc; img.style.visibility = 'visible'; img.onerror = () => { img.style.visibility = 'hidden'; }; }
+        else { img.removeAttribute('src'); img.style.visibility = 'hidden'; }
+    });
+
+    const tb = card.querySelector('.type-badges');
+    tb.innerHTML = sp ? sp.data.Types.filter(t => t).map(t => {
+        const u = t.toUpperCase();
+        return `<span class="type-badge" style="background:${MEMO_TYPE_COLOR[u] || '#999'}">${MEMO_TYPE_JA[u] || t}</span>`;
+    }).join('') : '';
+
+    const cb = card.querySelector('.champ-badge');
+    const lb = card.querySelector('.learn-btn');
+    if (CHAMP && key) {
+        const ok = isChampLegal(key);
+        cb.style.display = '';
+        cb.textContent = ok ? `チャンピオンズ内定（覚える技 ${CHAMP.sets[key].size}）` : 'チャンピオンズ対象外';
+        cb.classList.toggle('out', !ok);
+        lb.disabled = !ok;
+    } else {
+        cb.style.display = 'none';
+        lb.disabled = !CHAMP || !key;
+    }
+
+    // 道具アイコン
+    const itemInp = card.querySelector('.item-input');
+    let itemId = itemInp.dataset.selectedId;
+    const itemByName = db.items.find(it => it.name === itemInp.value);
+    if (itemByName) itemId = itemByName.id;
+    const itImg = card.querySelector('.card-item-icon');
+    if (itemInp.value && itemId) { itImg.src = `Items/${itemId}.png`; itImg.style.visibility = 'visible'; itImg.onerror = () => { itImg.style.visibility = 'hidden'; }; }
+    else { itImg.removeAttribute('src'); itImg.style.visibility = 'hidden'; }
+
+    // 下部タブ
+    const tab = document.querySelector(`#memo-tabs .tab-btn[data-idx="${i}"]`);
+    if (tab) tab.innerHTML = iconSrc ? `<img src="${iconSrc}" alt="">${i + 1}` : `<span class="ico">⚪</span>${i + 1}`;
+}
+function refreshAllCards() { for (let i = 0; i < 6; i++) refreshCardMeta(i); }
+
+/* ---------- 努力値 ± / カードクリア ---------- */
+function stepEV(i, j, d) {
+    const input = document.querySelectorAll(`#pokemon-${i} .ev-input`)[j];
+    if (!input) return;
+    input.value = Math.max(0, Math.min(MAX_SINGLE_EV, (parseInt(input.value) || 0) + d));
+    validateEV(input, i);
+}
+function clearCard(i) {
+    const card = document.getElementById(`pokemon-${i}`);
+    if (!card) return;
+    if (card.querySelector('.sp-input').value && !confirm(`${i + 1}匹目をクリアしますか？`)) return;
+    card.querySelectorAll('.search-input').forEach(el => { el.value = ''; delete el.dataset.selectedId; });
+    card.querySelectorAll('.move-input').forEach(el => updateMoveColor(el, ''));
+    card.querySelector('.ability-select').innerHTML = '<option value="">特性</option>';
+    card.querySelector('.nature-select').value = 'まじめ';
+    card.querySelectorAll('.base-val').forEach(el => el.textContent = '0');
+    card.querySelectorAll('.ev-input').forEach(el => el.value = 0);
+    card.querySelector('.memo-area').value = '';
+    card.querySelector('.mega-toggle-btn')?.remove();
+    validateEV(card.querySelector('.ev-input'), i);
+    refreshCardMeta(i);
+}
+
+/* ---------- 覚える技 一覧 ---------- */
+const LM = { idx: 0, cat: '', sort: 'type', type: '', slot: 0 };
+function lmMoveInputs() { return [...document.querySelectorAll(`#pokemon-${LM.idx} .move-input`)]; }
+function openLearnset(i) {
+    const key = cardKey(i);
+    if (!isChampLegal(key)) { alert('このポケモンはチャンピオンズの技データがありません。'); return; }
+    LM.idx = i;
+    const inputs = lmMoveInputs();
+    const empty = inputs.findIndex(el => !el.value.trim());
+    LM.slot = empty >= 0 ? empty : 0;
+    const sp = db.species.find(s => s.id === key);
+    document.getElementById('lm-title').textContent = `${sp ? sp.name : key} の覚える技`;
+    document.getElementById('lm-search').value = '';
+    document.getElementById('learnModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    renderLearnset();
+}
+function closeLearnset() {
+    document.getElementById('learnModal').classList.remove('open');
+    document.body.style.overflow = '';
+}
+function renderLearnset() {
+    const key = cardKey(LM.idx);
+    const set = CHAMP && CHAMP.sets[key];
+    if (!set) return;
+    const sp = db.species.find(s => s.id === key);
+    const myTypes = sp ? sp.data.Types.filter(t => t).map(t => t.toUpperCase()) : [];
+    const q = toKatakana(document.getElementById('lm-search').value.trim().toLowerCase());
+    const chosen = new Set(lmMoveInputs().map(el => el.value.trim()).filter(Boolean));
+
+    let list = db.moves.filter(m => set.has(m.id));
+    const total = list.length;
+    if (LM.cat) list = list.filter(m => m.cat === LM.cat);
+    if (LM.type) list = list.filter(m => String(m.type).toUpperCase() === LM.type);
+    if (q) list = list.filter(m => toKatakana(m.name.toLowerCase()).includes(q));
+    const tIdx = t => { const n = MEMO_TYPES.indexOf(String(t).toUpperCase()); return n < 0 ? 99 : n; };
+    const catIdx = c => ({ Physical: 0, Special: 1, Status: 2 }[c] ?? 3);
+    if (LM.sort === 'power') list.sort((a, b) => (b.power - a.power) || a.name.localeCompare(b.name, 'ja'));
+    else if (LM.sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+    else list.sort((a, b) => (tIdx(a.type) - tIdx(b.type)) || (catIdx(a.cat) - catIdx(b.cat)) || (b.power - a.power));
+
+    // タイプボタン（このポケモンが覚える技のタイプのみ）
+    const typesInSet = new Set(db.moves.filter(m => set.has(m.id)).map(m => String(m.type).toUpperCase()));
+    document.getElementById('lm-types').innerHTML =
+        `<button type="button" class="all ${LM.type ? '' : 'active'}" data-type="">全タイプ</button>` +
+        MEMO_TYPES.filter(t => typesInSet.has(t)).map(t =>
+            `<button type="button" class="${LM.type === t ? 'active' : ''}" data-type="${t}" style="background:${MEMO_TYPE_COLOR[t]}">${MEMO_TYPE_JA[t]}</button>`).join('');
+
+    document.getElementById('lm-target').innerHTML =
+        `タップした技を入れる先：` + [0, 1, 2, 3].map(s =>
+            `<button type="button" class="learn-btn" data-slot="${s}" style="margin-left:4px;${LM.slot === s ? 'background:var(--def);color:#fff;' : ''}">技${s + 1}</button>`).join('');
+
+    const catLabel = { Physical: ['物理', 'P'], Special: ['特殊', 'S'], Status: ['変化', 'St'] };
+    const rows = list.map(m => {
+        const t = String(m.type).toUpperCase();
+        const [cl, cc] = catLabel[m.cat] || ['-', 'St'];
+        const pw = m.cat === 'Status' ? '—' : (m.power > 1 ? m.power : '変動');
+        const stab = m.cat !== 'Status' && myTypes.includes(t) ? '一致' : '';
+        return `<div class="lm-item ${chosen.has(m.name) ? 'chosen' : ''}" data-name="${m.name}">
+            <span class="tb" style="background:${MEMO_TYPE_COLOR[t] || '#999'}">${MEMO_TYPE_JA[t] || t}</span>
+            <span class="nm">${m.name}</span>
+            <span class="cat ${cc}">${cl}</span>
+            <span class="pw">${pw}</span>
+            <span class="stab">${stab}</span>
+        </div>`;
+    }).join('');
+    document.getElementById('lm-list').innerHTML =
+        `<div class="lm-count">${list.length} / ${total} 件（データ: Pokémon Showdown チャンピオンズ ${CHAMP.generated || ''}）</div>` +
+        (rows || '<div class="lm-empty">該当する技がありません</div>');
+}
+function pickLearnsetMove(name) {
+    const inputs = lmMoveInputs();
+    const input = inputs[LM.slot];
+    if (!input) return;
+    input.value = name;
+    const mv = db.moves.find(m => m.name === name);
+    if (mv) input.dataset.selectedId = mv.id;
+    updateMoveColor(input, mv ? mv.type : '');
+    // 次の空き枠へ
+    const nextEmpty = inputs.findIndex(el => !el.value.trim());
+    if (nextEmpty >= 0) LM.slot = nextEmpty;
+    renderLearnset();
+}
+document.getElementById('lm-search').addEventListener('input', renderLearnset);
+document.getElementById('lm-cat').addEventListener('click', e => {
+    const b = e.target.closest('button[data-cat]'); if (!b) return;
+    LM.cat = b.dataset.cat;
+    document.querySelectorAll('#lm-cat button').forEach(x => x.classList.toggle('active', x === b));
+    renderLearnset();
+});
+document.getElementById('lm-sort').addEventListener('click', e => {
+    const b = e.target.closest('button[data-sort]'); if (!b) return;
+    LM.sort = b.dataset.sort;
+    document.querySelectorAll('#lm-sort button').forEach(x => x.classList.toggle('active', x === b));
+    renderLearnset();
+});
+document.getElementById('lm-types').addEventListener('click', e => {
+    const b = e.target.closest('button[data-type]'); if (!b) return;
+    LM.type = b.dataset.type; renderLearnset();
+});
+document.getElementById('lm-target').addEventListener('click', e => {
+    const b = e.target.closest('button[data-slot]'); if (!b) return;
+    LM.slot = parseInt(b.dataset.slot); renderLearnset();
+});
+document.getElementById('lm-list').addEventListener('click', e => {
+    const it = e.target.closest('.lm-item'); if (!it) return;
+    pickLearnsetMove(it.dataset.name);
+});
+
+/* ---------- 下部タブ ---------- */
+(function buildTabs() {
+    const nav = document.getElementById('memo-tabs');
+    for (let i = 0; i < 6; i++) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'tab-btn'; b.dataset.idx = i;
+        b.innerHTML = `<span class="ico">⚪</span>${i + 1}`;
+        b.onclick = () => document.getElementById(`pokemon-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        nav.appendChild(b);
+    }
+})();
+
+/* ---------- 既存処理のあとで表示を更新 ---------- */
+(function hook() {
+    const after = (name, fn) => {
+        const orig = window[name];
+        if (typeof orig !== 'function') return;
+        window[name] = function () { const r = orig.apply(this, arguments); try { fn.apply(this, arguments); } catch (e) { console.warn(e); } return r; };
+    };
+    after('updateSpecies', (idx) => refreshCardMeta(idx));
+    after('loadParty', () => refreshAllCards());
+    after('importPartyFromCode', () => refreshAllCards());
+    after('createPartyUI', () => refreshAllCards());
+})();
 </script>
 </body>
 </html>
