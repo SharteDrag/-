@@ -227,6 +227,32 @@ h2, h3, h4 { margin: 0; }
 .lm-empty { padding: 30px 10px; text-align: center; color: var(--muted); }
 .lm-count { font-size: 12px; color: var(--muted); padding: 6px 4px 0; }
 
+/* ---------- 性格の表 ---------- */
+.nature-open-btn { width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 8px; background: #fff; text-align: left; padding: 0 12px; font-size: 16px; font-weight: 700; color: #222; display: flex; align-items: center; justify-content: space-between; }
+.nature-open-btn::after { content: "▼"; font-size: 11px; color: var(--muted); }
+.nature-open-btn .eff { font-size: 13px; font-weight: 800; margin-left: 6px; }
+.nature-open-btn .up { color: #d9534f; } .nature-open-btn .down { color: #2c6aa8; }
+.np-backdrop { display: none; position: fixed; inset: 0; z-index: 20000; background: rgba(0,0,0,.55); align-items: center; justify-content: center; padding: 10px; }
+.np-backdrop.open { display: flex; }
+.np-box { background: #fff; border-radius: 14px; overflow: hidden; width: 100%; max-width: 560px; box-shadow: 0 10px 30px rgba(0,0,0,.3); }
+.np-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--def); color: #fff; font-weight: 800; }
+.np-head button { border: none; background: #fff; color: var(--def); border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 800; }
+.np-grid { display: grid; grid-template-columns: 1.05fr repeat(5, 1fr); }
+.np-grid > div, .np-grid > button { min-height: 52px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 13px; font-weight: 700; border-right: 1px solid #e3e5e8; border-bottom: 1px solid #e3e5e8; padding: 2px; min-width: 0; word-break: keep-all; }
+.np-grid .hd { background: #59606b; color: #fff; font-size: 13px; }
+.np-grid .hd .u { color: #ff8a80; } .np-grid .hd .d { color: #8ec5ff; }
+.np-grid button { background: #fff; border-top: none; border-left: none; color: #222; padding: 2px; letter-spacing: -.02em; }
+.np-grid button.neutral { background: #f3f4f6; color: #555; }
+.np-grid .np-blank { background: #eceef1; }
+.np-grid button.active { background: #1f7ae0; color: #fff; }
+.np-grid button:active { filter: brightness(.92); }
+@media (max-width: 480px) {
+    .np-grid { grid-template-columns: 50px repeat(5, minmax(0, 1fr)); }
+    .np-grid > div, .np-grid > button { font-size: 12px; letter-spacing: -.06em; padding: 0; }
+    .np-grid .hd { font-size: 12px; letter-spacing: 0; }
+}
+@media (max-width: 360px) { .np-grid > div, .np-grid > button { font-size: 11px; } }
+
 /* ---------- PC ---------- */
 @media (min-width: 1100px) {
     .page { max-width: 1500px; padding: 14px 18px 0; }
@@ -423,6 +449,14 @@ h2, h3, h4 { margin: 0; }
             <div class="lm-target" id="lm-target"></div>
         </div>
         <div class="lm-list" id="lm-list"></div>
+    </div>
+</div>
+
+<!-- ================= 性格の表 ================= -->
+<div id="naturePicker" class="np-backdrop" onclick="if (event.target === this) closeNaturePicker()">
+    <div class="np-box">
+        <div class="np-head"><span id="np-title">性格を選択</span><button type="button" onclick="closeNaturePicker()">閉じる</button></div>
+        <div class="np-grid" id="np-grid"></div>
     </div>
 </div>
 
@@ -1114,10 +1148,13 @@ function createPartyUI() {
                 </div>
                 <div class="row">
                     <label>性格</label>
-                    <select class="nature-select" onchange="calcStats(${i})">
-                        <option value="まじめ">無補正（まじめ等）</option>
-                        ${Object.keys(NATURES).filter(n => n !== "まじめ").map(n => `<option value="${n}">${n}（${natureLabel(n)}）</option>`).join('')}
-                    </select>
+                    <div>
+                        <select class="nature-select" onchange="calcStats(${i})" style="display:none">
+                            <option value="まじめ">まじめ（無補正）</option>
+                            ${Object.keys(NATURES).filter(n => n !== "まじめ").map(n => `<option value="${n}">${n}（${natureLabel(n)}）</option>`).join('')}
+                        </select>
+                        <button type="button" class="nature-open-btn" onclick="openNaturePicker(${i})">まじめ（無補正）</button>
+                    </div>
                 </div>
 
                 <div class="group-title"><span>能力値</span><span class="ev-counter">努力値 <span class="ev-sum">0</span> / 66</span></div>
@@ -1541,11 +1578,59 @@ function refreshCardMeta(i) {
     if (itemInp.value && itemId) { itImg.src = `Items/${itemId}.png`; itImg.style.visibility = 'visible'; itImg.onerror = () => { itImg.style.visibility = 'hidden'; }; }
     else { itImg.removeAttribute('src'); itImg.style.visibility = 'hidden'; }
 
+    syncNatureButton(i);
+
     // 下部タブ
     const tab = document.querySelector(`#memo-tabs .tab-btn[data-idx="${i}"]`);
     if (tab) tab.innerHTML = iconSrc ? `<img src="${iconSrc}" alt="">${i + 1}` : `<span class="ico">⚪</span>${i + 1}`;
 }
 function refreshAllCards() { for (let i = 0; i < 6; i++) refreshCardMeta(i); }
+
+/* ---------- 性格（表から選択） ---------- */
+const NP_STATS = ['攻撃', '防御', '特攻', '特防', '素早'];            // NATURES の up/down 1〜5 に対応
+let npIdx = 0;
+// 対角（無補正）は右下の「まじめ」だけ。他の対角マスは空欄
+function natureAt(up, down) {
+    if (up === down) return up === 5 ? 'まじめ' : null;
+    return Object.keys(NATURES).find(n => NATURES[n].up === up && NATURES[n].down === down);
+}
+function syncNatureButton(i) {
+    const card = document.getElementById(`pokemon-${i}`);
+    const btn = card && card.querySelector('.nature-open-btn');
+    if (!btn) return;
+    const n = card.querySelector('.nature-select').value || 'まじめ';
+    const d = NATURES[n];
+    btn.innerHTML = (d && d.up)
+        ? `<span>${n}<span class="eff"><span class="up">${STAT_JA[d.up]}↑</span> <span class="down">${STAT_JA[d.down]}↓</span></span></span>`
+        : `<span>${n}<span class="eff" style="color:var(--muted)">無補正</span></span>`;
+}
+function openNaturePicker(i) {
+    npIdx = i;
+    const cur = document.querySelector(`#pokemon-${i} .nature-select`).value || 'まじめ';
+    const name = document.querySelector(`#pokemon-${i} .sp-input`).value.trim();
+    document.getElementById('np-title').textContent = `${name || (i + 1) + '匹目'} の性格`;
+    let html = '<div class="hd"></div>' + NP_STATS.map(s => `<div class="hd">${s}<span class="d">↓</span></div>`).join('');
+    for (let up = 1; up <= 5; up++) {
+        html += `<div class="hd">${NP_STATS[up - 1]}<span class="u">↑</span></div>`;
+        for (let down = 1; down <= 5; down++) {
+            const n = natureAt(up, down);
+            if (!n) { html += '<div class="np-blank"></div>'; continue; }
+            html += `<button type="button" class="${up === down ? 'neutral' : ''} ${n === cur ? 'active' : ''}" data-nature="${n}">${n}</button>`;
+        }
+    }
+    document.getElementById('np-grid').innerHTML = html;
+    document.getElementById('naturePicker').classList.add('open');
+}
+function closeNaturePicker() { document.getElementById('naturePicker').classList.remove('open'); }
+document.getElementById('np-grid').addEventListener('click', e => {
+    const b = e.target.closest('button[data-nature]');
+    if (!b) return;
+    const sel = document.querySelector(`#pokemon-${npIdx} .nature-select`);
+    sel.value = b.dataset.nature;
+    calcStats(npIdx);
+    syncNatureButton(npIdx);
+    closeNaturePicker();
+});
 
 /* ---------- 努力値 ± / カードクリア ---------- */
 function stepEV(i, j, d) {
