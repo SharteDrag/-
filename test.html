@@ -62,7 +62,7 @@ h2, h3, h4 { margin: 0; }
 /* ---------- ヘッダー ---------- */
 .app-header {
     position: fixed; top: 0; left: 0; right: 0; height: var(--header-h); z-index: 9000;
-    display: grid; grid-template-columns: 44px auto minmax(0, 1fr) auto; align-items: center; gap: 6px;
+    display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 6px;
     padding: 0 10px; background: rgba(255,255,255,.97); border-bottom: 1px solid var(--line);
 }
 .app-header h1 { margin: 0; text-align: center; font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -144,6 +144,8 @@ h2, h3, h4 { margin: 0; }
     display: flex; align-items: center; justify-content: space-between; padding: 10px 12px 10px 14px;
     color: #fff; font-weight: 800; font-size: 17px;
 }
+.head-btns { display: flex; gap: 6px; }
+.panel-head .head-btn { white-space: nowrap; }
 .panel-head .head-btn { border: none; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 800; }
 .panel-atk .panel-head { background: var(--atk); } .panel-atk .head-btn { color: var(--atk); }
 .panel-def .panel-head { background: var(--def); } .panel-def .head-btn { color: var(--def); }
@@ -507,9 +509,7 @@ document.addEventListener('click', function(event) {
             <a href="kasouteki.html" class="nav-link">🎯 仮想敵リスト</a>
         </nav>
     </div>
-    <button type="button" class="header-link" onclick="swapAttackerDefender()">攻防交代</button>
     <h1>ダメ計 (シーテャkids)</h1>
-    <button type="button" class="header-link" onclick="resetAllSides()">リセット</button>
 </header>
 
 <div id="timer-display"><span id="time-left">20:00</span></div>
@@ -564,7 +564,10 @@ document.addEventListener('click', function(event) {
     <section id="tab-atk" class="tab-panel panel panel-atk active">
         <div class="panel-head">
             <span>攻撃</span>
-            <button type="button" class="head-btn" onclick="resetAttackerStats()">リセット</button>
+            <div class="head-btns">
+                <button type="button" class="head-btn" onclick="swapAttackerDefender()">⇄ 攻防交代</button>
+                <button type="button" class="head-btn" onclick="resetAttackerStats()">リセット</button>
+            </div>
         </div>
         <div class="panel-body">
             <div class="poke-meta">
@@ -799,7 +802,10 @@ document.addEventListener('click', function(event) {
     <section id="tab-def" class="tab-panel panel panel-def">
         <div class="panel-head">
             <span>防御</span>
-            <button type="button" class="head-btn" onclick="resetDefenderStats()">リセット</button>
+            <div class="head-btns">
+                <button type="button" class="head-btn" onclick="swapAttackerDefender()">⇄ 攻防交代</button>
+                <button type="button" class="head-btn" onclick="resetDefenderStats()">リセット</button>
+            </div>
         </div>
         <div class="panel-body">
             <div class="poke-meta">

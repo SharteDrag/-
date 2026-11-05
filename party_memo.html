@@ -76,7 +76,7 @@ h2, h3, h4 { margin: 0; }
 /* ---------- ヘッダー ---------- */
 .app-header {
     position: fixed; top: 0; left: 0; right: 0; height: var(--header-h); z-index: 9000;
-    display: grid; grid-template-columns: 44px auto minmax(0, 1fr) auto; align-items: center; gap: 6px;
+    display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 6px;
     padding: 0 10px; background: rgba(255,255,255,.97); border-bottom: 1px solid var(--line);
 }
 .app-header h1 { margin: 0; text-align: center; font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -228,15 +228,10 @@ h2, h3, h4 { margin: 0; }
 .lm-empty { padding: 30px 10px; text-align: center; color: var(--muted); }
 .lm-count { font-size: 12px; color: var(--muted); padding: 6px 4px 0; }
 
-/* ---------- パーティ欄の読込・保存 ---------- */
-.party-actions { display: grid; grid-template-columns: minmax(0, 1fr) 84px; gap: 8px; align-items: stretch; }
-.party-chips { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
-.party-chips .chip { max-width: 100%; white-space: normal; }
-.slot-btns { display: grid; gap: 8px; }
-.slot-btn { border: none; border-radius: 10px; font-size: 15px; font-weight: 800; color: #fff; min-height: 40px; }
-.slot-btn.load { background: #1f7ae0; }
-.slot-btn.save { background: var(--env); }
-.slot-btn:active { filter: brightness(.9); }
+/* ---------- パーティ欄の読込・保存（見出しの右） ---------- */
+.head-btns { display: flex; gap: 6px; }
+.panel-party .head-btn { color: var(--env); }
+.panel-head .head-btn:active { filter: brightness(.92); }
 
 /* ---------- 性格の表 ---------- */
 .nature-open-btn { width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 8px; background: #fff; text-align: left; padding: 0 12px; font-size: 16px; font-weight: 700; color: #222; display: flex; align-items: center; justify-content: space-between; }
@@ -391,9 +386,7 @@ h2, h3, h4 { margin: 0; }
             <a href="kasouteki.html" class="nav-link">🎯 仮想敵リスト</a>
         </nav>
     </div>
-    <button type="button" class="header-link" onclick="loadParty()">読込</button>
     <h1>構築メモ (シーテャkids)</h1>
-    <button type="button" class="header-link" onclick="saveParty()">保存</button>
 </header>
 
 <div class="page">
@@ -402,12 +395,19 @@ h2, h3, h4 { margin: 0; }
         <button type="button" class="tool-btn" onclick="exportPartyImage()">画像として保存</button>
         <button type="button" class="tool-btn" onclick="exportPartyCode()">URLをコピー</button>
         <button type="button" class="tool-btn" onclick="deleteParty()">スロット削除</button>
+        <button type="button" class="tool-btn" onclick="clearAllParty()">すべてクリア</button>
     </div>
 
     <div class="top-cols">
         <!-- パーティ情報 -->
         <section class="panel panel-party">
-            <div class="panel-head"><span>パーティ</span></div>
+            <div class="panel-head">
+                <span>パーティ</span>
+                <div class="head-btns">
+                    <button type="button" class="head-btn" onclick="loadParty()">読込</button>
+                    <button type="button" class="head-btn" onclick="saveParty()">保存</button>
+                </div>
+            </div>
             <div class="panel-body">
                 <div class="row">
                     <label for="partyName">名前</label>
@@ -417,15 +417,9 @@ h2, h3, h4 { margin: 0; }
                     <label for="saveSlot">スロット</label>
                     <select id="saveSlot"></select>
                 </div>
-                <div class="party-actions">
-                    <div class="party-chips">
-                        <label class="chip" title="ポケモン名の候補をチャンピオンズで使えるポケモンだけに絞る"><input type="checkbox" id="champOnly" checked>チャンピオンズ内定のみ表示</label>
-                        <label class="chip" title="技の候補をそのポケモンが覚える技だけに絞る"><input type="checkbox" id="learnOnly" checked>技候補を覚える技に限定</label>
-                    </div>
-                    <div class="slot-btns">
-                        <button type="button" class="slot-btn load" onclick="loadParty()">読込</button>
-                        <button type="button" class="slot-btn save" onclick="saveParty()">保存</button>
-                    </div>
+                <div class="meta-line">
+                    <label class="chip" title="ポケモン名の候補をチャンピオンズで使えるポケモンだけに絞る"><input type="checkbox" id="champOnly" checked>チャンピオンズ内定のみ表示</label>
+                    <label class="chip" title="技の候補をそのポケモンが覚える技だけに絞る"><input type="checkbox" id="learnOnly" checked>技候補を覚える技に限定</label>
                 </div>
             </div>
         </section>
@@ -1676,10 +1670,19 @@ function stepEV(i, j, d) {
     document.getElementById('partyGrid').addEventListener('contextmenu', e => { if (e.target.closest('.ev-step')) e.preventDefault(); });
 })();
 
-function clearCard(i) {
+// 入力中の内容をすべてクリア（保存済みスロットはそのまま）
+function clearAllParty() {
+    if (!confirm('入力中の内容をすべてクリアしますか？\n（保存済みのスロットは消えません）')) return;
+    document.getElementById('partyName').value = '';
+    document.getElementById('partyMemo').value = '';
+    for (let i = 0; i < 6; i++) clearCard(i, true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function clearCard(i, skipConfirm) {
     const card = document.getElementById(`pokemon-${i}`);
     if (!card) return;
-    if (card.querySelector('.sp-input').value && !confirm(`${i + 1}匹目をクリアしますか？`)) return;
+    if (!skipConfirm && card.querySelector('.sp-input').value && !confirm(`${i + 1}匹目をクリアしますか？`)) return;
     card.querySelectorAll('.search-input').forEach(el => { el.value = ''; delete el.dataset.selectedId; });
     card.querySelectorAll('.move-input').forEach(el => updateMoveColor(el, ''));
     card.querySelector('.ability-select').innerHTML = '<option value="">特性</option>';
