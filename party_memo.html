@@ -1626,7 +1626,7 @@ function renderLearnset() {
     const rows = list.map(m => {
         const t = String(m.type).toUpperCase();
         const [cl, cc] = catLabel[m.cat] || ['-', 'St'];
-        const pw = m.cat === 'Status' ? '—' : (m.power > 1 ? m.power : '変動');
+        const pw = m.cat === 'Status' ? '—' : (m.power > 1 ? m.power : '—');
         const stab = m.cat !== 'Status' && myTypes.includes(t) ? '一致' : '';
         return `<div class="lm-item ${chosen.has(m.name) ? 'chosen' : ''}" data-name="${m.name}">
             <span class="tb" style="background:${MEMO_TYPE_COLOR[t] || '#999'}">${MEMO_TYPE_JA[t] || t}</span>
