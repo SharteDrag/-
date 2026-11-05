@@ -109,6 +109,30 @@ h2, h3, h4 { margin: 0; }
 .import-buttons .ib-def { background: var(--def); }
 .import-buttons .ib-timer { background: #9aa0a6; }
 #move-quick-selection:empty { display: none; }
+.import-buttons button { line-height: 1.1; font-size: 13px; }
+.import-buttons button small { display: block; font-size: 11px; opacity: .85; }
+.import-summary-status { font-size: 12px; color: var(--muted); font-weight: 700; margin-left: auto; margin-right: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.import-container > summary { gap: 6px; }
+.import-party { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+@media (min-width: 560px) { .import-party { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.quick-move-btn { white-space: nowrap; padding: 6px 12px !important; margin: 0 !important; }
+.import-body > * { min-width: 0; }
+#move-quick-selection > div { flex-wrap: wrap; gap: 6px; }
+.import-party button { display: flex; align-items: center; gap: 4px; padding: 4px 6px; min-height: 48px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; font-size: 13px; font-weight: 700; text-align: left; min-width: 0; }
+.import-party button img { width: 36px; height: 36px; flex: 0 0 36px; object-fit: cover; object-position: 0 50%; }
+.import-party button .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.import-party button .no { font-size: 11px; color: var(--muted); flex: 0 0 auto; }
+.import-party button.active { border-color: #1f7ae0; background: #eaf3ff; box-shadow: 0 0 0 1px #1f7ae0; }
+.import-party button.empty { color: #aaa; }
+.import-status:empty { display: none; }
+.import-status { display: grid; gap: 4px; font-size: 13px; font-weight: 700; }
+.import-status .st { display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 8px; }
+.import-status .st img { width: 28px; height: 28px; object-fit: cover; object-position: 0 50%; }
+.import-status .st.atk { background: var(--atk-bg); } .import-status .st.def { background: var(--def-bg); }
+.toast { border-radius: 14px !important; width: max-content; position: fixed; left: 50%; bottom: calc(var(--bar-h) + var(--tabs-h) + 14px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px); opacity: 0; z-index: 9800; background: rgba(30,30,30,.92); color: #fff; padding: 10px 16px; border-radius: 999px; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; max-width: 92vw; pointer-events: none; transition: opacity .2s, transform .2s; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast img { width: 32px; height: 32px; object-fit: cover; object-position: 0 50%; background: #fff; border-radius: 8px; }
+@media (min-width: 1100px) { .toast { bottom: calc(var(--bar-h) + 14px); } }
 .quick-move-btn { margin: 3px; border: 1px solid #1f7ae0; background: #fff; color: #1f7ae0; border-radius: 999px; font-size: 13px; }
 
 /* ---------- パネル ---------- */
@@ -497,13 +521,13 @@ document.addEventListener('click', function(event) {
 
     <!-- パーティメモから読み込み -->
     <details class="import-container">
-        <summary>📂 パーティメモから読み込み</summary>
+        <summary><span style="white-space:nowrap;">📂 メモから読込</span><span id="import-summary-status" class="import-summary-status"></span></summary>
         <div class="import-body">
             <div class="import-controls">
-                <select id="import-slot">
+                <select id="import-slot" style="grid-column: 1 / -1;">
                     <option value="1">スロット 1</option>
                 </select>
-                <select id="import-pokemon-idx">
+                <select id="import-pokemon-idx" class="is-hidden">
                     <option value="0">ポケモン 1</option>
                     <option value="1">ポケモン 2</option>
                     <option value="2">ポケモン 3</option>
@@ -512,13 +536,15 @@ document.addEventListener('click', function(event) {
                     <option value="5">ポケモン 6</option>
                 </select>
             </div>
+            <div id="import-party-list" class="import-party"></div>
             <div class="import-buttons">
-                <button type="button" class="ib-atk" onclick="loadFromPartyMemo('attacker', 'Atk')" title="物理アタッカーとして読込">A</button>
-                <button type="button" class="ib-atk" onclick="loadFromPartyMemo('attacker', 'SpAtk')" title="特殊アタッカーとして読込">C</button>
-                <button type="button" class="ib-def" onclick="loadFromPartyMemo('defender', 'Def')" title="物理受けとして読込">B</button>
-                <button type="button" class="ib-def" onclick="loadFromPartyMemo('defender', 'SpDef')" title="特殊受けとして読込">D</button>
+                <button type="button" class="ib-atk" onclick="loadFromPartyMemo('attacker', 'Atk')" title="物理アタッカーとして読込">攻撃<small>A</small></button>
+                <button type="button" class="ib-atk" onclick="loadFromPartyMemo('attacker', 'SpAtk')" title="特殊アタッカーとして読込">攻撃<small>C</small></button>
+                <button type="button" class="ib-def" onclick="loadFromPartyMemo('defender', 'Def')" title="物理受けとして読込">防御<small>B</small></button>
+                <button type="button" class="ib-def" onclick="loadFromPartyMemo('defender', 'SpDef')" title="特殊受けとして読込">防御<small>D</small></button>
                 <button type="button" class="ib-timer" id="timer-start-btn" onclick="startCountdown()" title="タイマー開始/停止">⌛</button>
             </div>
+            <div id="import-status" class="import-status"></div>
             <div id="move-quick-selection"></div>
         </div>
     </details>
@@ -5176,7 +5202,7 @@ function loadFromPartyMemo(target, statType) {
         }
 
         nameInput.dispatchEvent(new Event('change'));
-        const speciesObj = db.species.find(s => s.name === speciesName);
+        const speciesObj = (typeof db !== 'undefined') ? db.species.find(s => s.name === speciesName) : null;
         if (speciesObj) updateMegaToggle('attacker', speciesObj.data);
 
     } else {
@@ -5195,7 +5221,7 @@ function loadFromPartyMemo(target, statType) {
         document.getElementById('nature_defense').value = getNatureMultiplier(pokemon.nt, targetStat);
 
         nameInput.dispatchEvent(new Event('change'));
-        const speciesObj = db.species.find(s => s.name === speciesName);
+        const speciesObj = (typeof db !== 'undefined') ? db.species.find(s => s.name === speciesName) : null;
         if (speciesObj) updateMegaToggle('defender', speciesObj.data);
     }
 
@@ -6443,6 +6469,111 @@ function calculateHPGuess() {
         resetDefenderStats();
         refreshEffectiveness();
     };
+})();
+</script>
+<script>
+/* =========================================================
+   パーティメモ読込：何を選んで・何を読み込んだかを見えるように
+   ========================================================= */
+(function () {
+    const $ = id => document.getElementById(id);
+    const STAT_LABEL = { Atk: 'A', SpAtk: 'C', Def: 'B', SpDef: 'D' };
+    const lastLoaded = { attacker: null, defender: null };
+
+    function partyOf(slot) {
+        try {
+            const raw = localStorage.getItem(`p_slot_66_v3_${slot}`);
+            if (!raw) return null;
+            const p = JSON.parse(raw);
+            return p.members || p.p || null;
+        } catch (e) { return null; }
+    }
+    function memberInfo(m) {
+        if (!m) return null;
+        const name = m.spName || m.nm || '';
+        if (!name) return null;
+        let id = m.spId || m.id || '';
+        if (!id && typeof NAME_TO_KEY_MAP !== 'undefined') {
+            const k = NAME_TO_KEY_MAP[hiraganaToKatakana(name).toUpperCase().trim()];
+            id = Array.isArray(k) ? k[0] : (k || '');
+        }
+        return { name, icon: id ? `Icons/${id.charAt(0).toUpperCase()}/${id.toUpperCase()}.png` : '' };
+    }
+    const imgTag = (src) => src ? `<img src="${src}" alt="" onerror="this.style.visibility='hidden'">` : '';
+
+    // スロット内の6匹をアイコン＋名前のボタンで表示
+    function renderPartyList() {
+        const box = $('import-party-list');
+        if (!box) return;
+        const members = partyOf($('import-slot').value) || [];
+        const cur = $('import-pokemon-idx').value;
+        box.innerHTML = [0, 1, 2, 3, 4, 5].map(i => {
+            const info = memberInfo(members[i]);
+            return `<button type="button" data-idx="${i}" class="${String(i) === cur ? 'active' : ''} ${info ? '' : 'empty'}">
+                ${info ? imgTag(info.icon) : ''}<span class="no">${i + 1}</span><span class="nm">${info ? info.name : '（空き）'}</span></button>`;
+        }).join('');
+    }
+    $('import-party-list').addEventListener('click', e => {
+        const b = e.target.closest('button[data-idx]');
+        if (!b) return;
+        $('import-pokemon-idx').value = b.dataset.idx;
+        renderPartyList();
+    });
+
+    // 読み込んだ結果を表示（パネル内・見出し・トースト）
+    function renderStatus() {
+        const rows = [];
+        const sum = [];
+        if (lastLoaded.attacker) {
+            const a = lastLoaded.attacker;
+            rows.push(`<div class="st atk">${imgTag(a.icon)}⚔️ 攻撃側：${a.name}（${a.stat}）</div>`);
+            sum.push(`攻:${a.name}`);
+        }
+        if (lastLoaded.defender) {
+            const d = lastLoaded.defender;
+            rows.push(`<div class="st def">${imgTag(d.icon)}🛡️ 防御側：${d.name}（${d.stat}）</div>`);
+            sum.push(`防:${d.name}`);
+        }
+        $('import-status').innerHTML = rows.join('');
+        $('import-summary-status').textContent = sum.join(' / ');
+    }
+    let toastTimer = null;
+    function toast(html) {
+        let t = $('app-toast');
+        if (!t) { t = document.createElement('div'); t.id = 'app-toast'; t.className = 'toast'; document.body.appendChild(t); }
+        t.innerHTML = html;
+        t.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    if (typeof window.loadFromPartyMemo === 'function') {
+        const orig = window.loadFromPartyMemo;
+        window.loadFromPartyMemo = function (target, statType) {
+            const members = partyOf($('import-slot').value) || [];
+            const info = memberInfo(members[$('import-pokemon-idx').value]);
+            let r;
+            try { r = orig.apply(this, arguments); }
+            catch (e) { console.warn('loadFromPartyMemo:', e); }
+            if (info) {
+                const stat = STAT_LABEL[statType] || (target === 'attacker' ? 'A' : 'B');
+                lastLoaded[target] = { ...info, stat };
+                renderStatus();
+                toast(`${imgTag(info.icon)}${target === 'attacker' ? '⚔️ 攻撃側' : '🛡️ 防御側'}に ${info.name}（${stat}）を読み込みました`);
+            }
+            return r;
+        };
+    }
+
+    // スロット変更時・既存の名前同期のあとに一覧を更新
+    if (typeof window.forceSyncPokemonNames === 'function') {
+        const origSync = window.forceSyncPokemonNames;
+        window.forceSyncPokemonNames = function () { const r = origSync.apply(this, arguments); renderPartyList(); return r; };
+        $('import-slot').onchange = window.forceSyncPokemonNames;
+    }
+    $('import-slot').addEventListener('change', () => { $('import-pokemon-idx').value = '0'; renderPartyList(); });
+    document.querySelector('.import-container')?.addEventListener('toggle', renderPartyList);
+    renderPartyList();
 })();
 </script>
 </body>
