@@ -228,6 +228,16 @@ h2, h3, h4 { margin: 0; }
 .lm-empty { padding: 30px 10px; text-align: center; color: var(--muted); }
 .lm-count { font-size: 12px; color: var(--muted); padding: 6px 4px 0; }
 
+/* ---------- パーティ欄の読込・保存 ---------- */
+.party-actions { display: grid; grid-template-columns: minmax(0, 1fr) 84px; gap: 8px; align-items: stretch; }
+.party-chips { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
+.party-chips .chip { max-width: 100%; white-space: normal; }
+.slot-btns { display: grid; gap: 8px; }
+.slot-btn { border: none; border-radius: 10px; font-size: 15px; font-weight: 800; color: #fff; min-height: 40px; }
+.slot-btn.load { background: #1f7ae0; }
+.slot-btn.save { background: var(--env); }
+.slot-btn:active { filter: brightness(.9); }
+
 /* ---------- 性格の表 ---------- */
 .nature-open-btn { width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 8px; background: #fff; text-align: left; padding: 0 12px; font-size: 16px; font-weight: 700; color: #222; display: flex; align-items: center; justify-content: space-between; }
 .nature-open-btn::after { content: "▼"; font-size: 11px; color: var(--muted); }
@@ -407,9 +417,15 @@ h2, h3, h4 { margin: 0; }
                     <label for="saveSlot">スロット</label>
                     <select id="saveSlot"></select>
                 </div>
-                <div class="meta-line">
-                    <label class="chip" title="ポケモン名の候補をチャンピオンズで使えるポケモンだけに絞る"><input type="checkbox" id="champOnly" checked>チャンピオンズ内定のみ表示</label>
-                    <label class="chip" title="技の候補をそのポケモンが覚える技だけに絞る"><input type="checkbox" id="learnOnly" checked>技候補を覚える技に限定</label>
+                <div class="party-actions">
+                    <div class="party-chips">
+                        <label class="chip" title="ポケモン名の候補をチャンピオンズで使えるポケモンだけに絞る"><input type="checkbox" id="champOnly" checked>チャンピオンズ内定のみ表示</label>
+                        <label class="chip" title="技の候補をそのポケモンが覚える技だけに絞る"><input type="checkbox" id="learnOnly" checked>技候補を覚える技に限定</label>
+                    </div>
+                    <div class="slot-btns">
+                        <button type="button" class="slot-btn load" onclick="loadParty()">読込</button>
+                        <button type="button" class="slot-btn save" onclick="saveParty()">保存</button>
+                    </div>
                 </div>
             </div>
         </section>
