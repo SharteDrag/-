@@ -1807,8 +1807,101 @@ document.getElementById('lm-list').addEventListener('click', e => {
     after('updateSpecies', (idx) => refreshCardMeta(idx));
     after('loadParty', () => refreshAllCards());
     after('importPartyFromCode', () => refreshAllCards());
-    after('createPartyUI', () => refreshAllCards());
+    after('createPartyUI', () => { refreshAllCards(); restoreDraft(); });
+    // 値を書き換える処理のあとは編集中データを自動保存
+    ['calcStats', 'updateMoveColor', 'refreshCardMeta', 'loadParty', 'importPartyFromCode', 'clearCard', 'syncNatureButton']
+        .forEach(n => after(n, () => saveDraft()));
 })();
+
+/* ---------- 編集中の内容を自動保存（ページを移動しても消えない） ---------- */
+const DRAFT_KEY = 'party_memo_draft_v1';
+let draftReady = false;   // 復元が終わるまでは保存しない（空の状態で上書きしないため）
+let draftTimer = null;
+
+function collectPartyData() {
+    const data = {
+        name: document.getElementById('partyName').value,
+        partyMemo: document.getElementById('partyMemo').value,
+        slot: document.getElementById('saveSlot').value,
+        champOnly: document.getElementById('champOnly').checked,
+        learnOnly: document.getElementById('learnOnly').checked,
+        members: []
+    };
+    for (let i = 0; i < 6; i++) {
+        const c = document.getElementById(`pokemon-${i}`);
+        if (!c) return null;
+        data.members.push({
+            spName: c.querySelector('.sp-input').value,
+            spId: c.querySelector('.sp-input').dataset.selectedId,
+            itName: c.querySelector('.item-input').value,
+            itId: c.querySelector('.item-input').dataset.selectedId,
+            ab: c.querySelector('.ability-select').value,
+            nt: c.querySelector('.nature-select').value,
+            ev: [...c.querySelectorAll('.ev-input')].map(el => el.value),
+            mv: [...c.querySelectorAll('.move-input')].map(el => ({ name: el.value, id: el.dataset.selectedId })),
+            memo: c.querySelector('.memo-area').value
+        });
+    }
+    return data;
+}
+function writeDraftNow() {
+    if (!draftReady) return;
+    clearTimeout(draftTimer);
+    const d = collectPartyData();
+    if (!d) return;
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(d)); } catch (e) { console.warn('下書き保存失敗', e); }
+}
+function saveDraft() {
+    if (!draftReady) return;
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(writeDraftNow, 300);
+}
+function applyPartyData(data) {
+    document.getElementById('partyName').value = data.name || '';
+    document.getElementById('partyMemo').value = data.partyMemo || '';
+    if (data.slot) document.getElementById('saveSlot').value = data.slot;
+    if (typeof data.champOnly === 'boolean') document.getElementById('champOnly').checked = data.champOnly;
+    if (typeof data.learnOnly === 'boolean') document.getElementById('learnOnly').checked = data.learnOnly;
+    (data.members || []).forEach((m, i) => {
+        const c = document.getElementById(`pokemon-${i}`);
+        if (!c || !m) return;
+        const spInp = c.querySelector('.sp-input');
+        spInp.value = m.spName || '';
+        if (m.spId) spInp.dataset.selectedId = m.spId; else delete spInp.dataset.selectedId;
+        const speciesObj = m.spId && db.species.find(s => s.id === m.spId);
+        if (speciesObj) updateSpecies(i, speciesObj.data);
+        const itInp = c.querySelector('.item-input');
+        itInp.value = m.itName || '';
+        if (m.itId) itInp.dataset.selectedId = m.itId; else delete itInp.dataset.selectedId;
+        c.querySelector('.nature-select').value = m.nt || 'まじめ';
+        c.querySelectorAll('.ev-input').forEach((el, j) => { el.value = (m.ev && m.ev[j]) || 0; });
+        validateEV(c.querySelector('.ev-input'), i);
+        if (m.ab) c.querySelector('.ability-select').value = m.ab;
+        c.querySelectorAll('.move-input').forEach((el, j) => {
+            const mv = (m.mv && m.mv[j]) || {};
+            el.value = mv.name || '';
+            if (mv.id) el.dataset.selectedId = mv.id; else delete el.dataset.selectedId;
+            const found = db.moves.find(x => x.name === el.value);
+            updateMoveColor(el, found ? found.type : '');
+        });
+        c.querySelector('.memo-area').value = m.memo || '';
+    });
+    refreshAllCards();
+}
+function restoreDraft() {
+    // URLで共有された構築を開いた時はそちらを優先
+    if (new URLSearchParams(location.search).get('party')) { draftReady = true; return; }
+    try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (raw) applyPartyData(JSON.parse(raw));
+    } catch (e) { console.warn('下書きの復元に失敗', e); }
+    draftReady = true;
+}
+// 手入力・選択の変更も保存。ページを離れる瞬間は即保存
+document.addEventListener('input', saveDraft, true);
+document.addEventListener('change', saveDraft, true);
+window.addEventListener('pagehide', writeDraftNow);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') writeDraftNow(); });
 </script>
 </body>
 </html>

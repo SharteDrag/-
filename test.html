@@ -1718,7 +1718,7 @@ function clearBattleMemoOnly() {
             memoArea.value = "";
             
             // 3. 保存されているデータも消去する
-            localStorage.removeItem('poke_memo_data');
+            localStorage.removeItem('pokemon_battle_memo');
 }
 /**
  * 攻撃側と防御側のポケモン名を入れ替え、その他の情報をリセットする
@@ -4894,12 +4894,13 @@ document.getElementById('stab').addEventListener('input', () => {
             });
 
             // ページ読み込み時に保存されたメモを復元
-document.addEventListener('DOMContentLoaded', () => {
+            // （ここは DOMContentLoaded の中なので、さらに DOMContentLoaded を待つと永遠に実行されない → 直接復元）
+{
     const savedMemo = localStorage.getItem('pokemon_battle_memo');
     if (savedMemo) {
         document.getElementById('battle-memo').value = savedMemo;
     }
-});
+}
 
 // 入力するたびに保存
 document.getElementById('battle-memo')?.addEventListener('input', (e) => {
