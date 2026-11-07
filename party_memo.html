@@ -233,6 +233,94 @@ h2, h3, h4 { margin: 0; }
 .panel-party .head-btn { color: var(--env); }
 .panel-head .head-btn:active { filter: brightness(.92); }
 
+/* ---------- 型ストレージ（ボックス画面：Storage/ の素材を使用） ---------- */
+#buildStore { position: fixed; inset: 0; z-index: 20000; background: rgba(8, 14, 28, .85); display: none; align-items: center; justify-content: center; touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+#buildStore.open { display: flex; }
+#sb-wrap { position: relative; flex: none; }
+#sb-screen { position: absolute; left: 0; top: 0; width: 512px; height: 384px; transform-origin: 0 0; overflow: hidden; color: #404040; border-radius: 6px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
+#sb-screen img { image-rendering: pixelated; -webkit-user-drag: none; pointer-events: none; }
+#sb-screen button { font-family: inherit; color: inherit; -webkit-tap-highlight-color: transparent; }
+.sb-a { position: absolute; }
+#sb-bg, #sb-overlay { left: 0; top: 0; width: 512px; height: 384px; }
+#sb-overlay { z-index: 5; }
+#sb-box { left: 184px; top: 18px; width: 324px; height: 296px; z-index: 2; }
+#sb-box img.wp { position: absolute; left: 0; top: 0; width: 324px; height: 296px; }
+#sb-boxname { position: absolute; left: 48px; top: 6px; width: 228px; height: 36px; border: none; background: none; padding: 0; font-size: 17px; font-weight: 900; color: #303030; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff; cursor: pointer; }
+.sb-arrow { position: absolute; top: 6px; width: 38px; height: 38px; border: none; background: none; padding: 0; cursor: pointer; }
+.sb-arrow.l { left: 2px; } .sb-arrow.r { left: 284px; }
+.sb-slot { position: absolute; width: 48px; height: 48px; border: none; background: none; padding: 0; cursor: pointer; }
+.sb-icon { position: absolute; left: -8px; top: -8px; width: 64px; height: 64px; overflow: hidden; pointer-events: none; }
+.sb-icon img { width: 128px; height: 64px; display: block; }
+.sb-icon.anim img { animation: sbFrame .5s steps(1) infinite; }
+@keyframes sbFrame { 0% { transform: translateX(0); } 50% { transform: translateX(-64px); } }
+/* 左の詳細 */
+#sb-screen { --sb-ink: #58585f; --sb-shadow: #c8c8d0; }
+.sb-txt { color: var(--sb-ink); text-shadow: 1px 1px 0 var(--sb-shadow), 1px 0 0 var(--sb-shadow), 0 1px 0 var(--sb-shadow); font-weight: 900; }
+#sb-name { left: 10px; top: 6px; width: 160px; height: 32px; z-index: 6; display: flex; align-items: center; font-size: 17px; white-space: nowrap; overflow: hidden; }
+#sb-sprite { left: 10px; top: 52px; width: 162px; height: 162px; z-index: 6; display: flex; align-items: center; justify-content: center; }
+#sb-sprite .big { width: 144px; height: 144px; overflow: hidden; }
+#sb-sprite .big img { width: 288px; height: 144px; display: block; animation: sbFrameBig .5s steps(1) infinite; }
+@keyframes sbFrameBig { 0% { transform: translateX(0); } 50% { transform: translateX(-144px); } }
+#sb-sprite .itm { position: absolute; left: 4px; bottom: 6px; width: 32px; height: 32px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px #fff, 0 0 0 3px #303030; }
+#sb-sprite .itm img { width: 32px; height: 32px; display: block; }
+.sb-row { left: 6px; width: 164px; height: 32px; z-index: 6; display: flex; align-items: center; justify-content: center; font-size: 15px; white-space: nowrap; overflow: hidden; }
+.sb-row > span { overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.sb-lv { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0 4px; box-sizing: border-box; }
+.sb-lv b { font-size: 10px; font-style: italic; margin-right: 1px; }
+.sb-lv .num { font-size: 16px; }
+.sb-marks { display: flex; gap: 1px; }
+.sb-mark { width: 12px; height: 12px; background: url(Storage/markings.png) no-repeat; background-size: 72px 48px; image-rendering: pixelated; }
+.sb-types { display: flex; gap: 6px; justify-content: center; width: 100%; }
+.sb-type { width: 72px; height: 22px; line-height: 20px; box-sizing: border-box; text-align: center; font-size: 13px; font-weight: 900; color: #fff; white-space: nowrap; overflow: hidden; border: 2px solid rgba(0,0,0,.35); border-radius: 3px; text-shadow: 1px 1px 0 rgba(0,0,0,.55); box-shadow: inset 0 2px 0 rgba(255,255,255,.35), inset 0 -2px 0 rgba(0,0,0,.15); }
+/* ようすをみる */
+#sb-sum { left: 188px; top: 22px; width: 316px; height: 290px; z-index: 24; display: none; background: #f8f8f8; border: 4px solid #706888; border-radius: 8px; box-shadow: inset 0 0 0 2px #c8c0d8; box-sizing: border-box; padding: 10px 12px; font-size: 13px; overflow: auto; cursor: pointer; }
+#sb-sum.show { display: block; }
+#sb-sum .ttl { font-size: 15px; margin-bottom: 4px; border-bottom: 2px solid #ddd; padding-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#sb-sum table { width: 100%; border-collapse: collapse; margin: 4px 0 6px; }
+#sb-sum td, #sb-sum th { padding: 0 4px; line-height: 17px; text-align: right; font-size: 12px; }
+#sb-sum th { text-align: left; color: #888; font-weight: 800; }
+#sb-sum td.up { color: #d04040; } #sb-sum td.dn { color: #4060d0; }
+#sb-sum .mvs { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 4px; }
+#sb-sum .mvs span { color: #fff; border-radius: 4px; padding: 2px 4px; text-align: center; font-size: 12px; font-weight: 800; text-shadow: 1px 1px 0 rgba(0,0,0,.35); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#sb-sum .memo { margin-top: 6px; white-space: pre-wrap; font-size: 12px; color: #555; font-weight: 700; }
+/* マーキング */
+#sb-markwin { position: absolute; right: 4px; bottom: 4px; width: 172px; background: #f8f8f8; border: 4px solid #706888; border-radius: 8px; box-shadow: inset 0 0 0 2px #c8c0d8; padding: 8px; box-sizing: border-box; }
+#sb-markwin .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 6px; }
+#sb-markwin .grid button { height: 30px; border: 2px solid #ccc; border-radius: 6px; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+#sb-markwin .grid .sb-mark { width: 16px; height: 16px; background-size: 96px 64px; }
+#sb-markwin > div:last-child { display: flex; gap: 6px; }
+#sb-markwin > div:last-child button { flex: 1; border: 2px solid #706888; border-radius: 6px; background: #fff; padding: 4px 0; font-size: 14px; font-weight: 900; color: var(--sb-ink); cursor: pointer; }
+/* 下のボタン */
+.sb-btn { position: absolute; z-index: 6; border: none; background: none; padding: 0; font-size: 16px; font-weight: 900; cursor: pointer; }
+#sb-partybtn { left: 188px; top: 322px; width: 164px; height: 38px; }
+#sb-closebtn { left: 388px; top: 322px; width: 116px; height: 38px; }
+.sb-btn:active { transform: translateY(1px); }
+/* てもち */
+#sb-party { left: 182px; top: 384px; width: 172px; height: 352px; z-index: 8; transition: top .2s ease-out; }
+#sb-party.show { top: 32px; }
+#sb-party > img { position: absolute; left: 0; top: 0; width: 172px; height: 352px; }
+#sb-party .sb-btn { left: 20px; top: 232px; width: 132px; height: 50px; }
+#sb-party .sb-slot .no { position: absolute; left: -6px; top: -6px; font-size: 10px; font-weight: 900; color: #999; }
+/* カーソル */
+#sb-cursor { z-index: 20; width: 64px; height: 64px; pointer-events: none; transition: left .08s, top .08s; }
+#sb-cursor .held { position: absolute; left: 0; top: 22px; width: 64px; height: 64px; overflow: hidden; }
+#sb-cursor .held img { width: 128px; height: 64px; display: block; }
+#sb-cursor .hand { position: absolute; left: 0; top: 0; width: 64px; height: 64px; }
+/* メッセージ・コマンド */
+#sb-msg { left: 4px; top: 324px; width: 336px; height: 56px; z-index: 30; display: none; align-items: center; padding: 0 12px; box-sizing: border-box; background: #f8f8f8; border: 3px solid #484848; border-radius: 8px; font-size: 15px; font-weight: 800; line-height: 1.3; pointer-events: none; box-shadow: inset 0 -3px 0 #d8d8d8; }
+#sb-msg.show { display: flex; }
+#sb-menu { left: 0; top: 0; width: 512px; height: 384px; z-index: 29; display: none; }
+#sb-menu.show { display: block; }
+#sb-cmd { position: absolute; right: 4px; bottom: 4px; min-width: 150px; background: #f8f8f8; border: 4px solid #706888; border-radius: 8px; padding: 6px 0; box-sizing: border-box; box-shadow: inset 0 0 0 2px #c8c0d8, 0 0 0 1px #3c3448; }
+#sb-cmd button { display: block; width: 100%; text-align: left; border: none; background: none; padding: 3px 14px 3px 26px; font-size: 16px; position: relative; cursor: pointer; white-space: nowrap; }
+#sb-cmd button.sel::before { content: ''; position: absolute; left: 9px; top: 50%; margin-top: -7px; border-left: 10px solid #48444f; border-top: 7px solid transparent; border-bottom: 7px solid transparent; }
+/* かべがみ */
+#sb-wp { left: 190px; top: 70px; width: 312px; height: 240px; z-index: 25; display: none; grid-template-columns: repeat(8, 1fr); gap: 2px; background: rgba(40,40,40,.85); padding: 2px; box-sizing: border-box; border-radius: 4px; }
+#sb-wp.show { display: grid; }
+#sb-wp button { border: 2px solid transparent; padding: 0; background: none; cursor: pointer; overflow: hidden; }
+#sb-wp button.cur { border-color: #ffd23f; }
+#sb-wp button img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 70%; display: block; }
+
 /* ---------- 性格の表 ---------- */
 .nature-open-btn { width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 8px; background: #fff; text-align: left; padding: 0 12px; font-size: 16px; font-weight: 700; color: #222; display: flex; align-items: center; justify-content: space-between; }
 .nature-open-btn::after { content: "▼"; font-size: 11px; color: var(--muted); }
@@ -392,6 +480,7 @@ h2, h3, h4 { margin: 0; }
 <div class="page">
     <div class="toolbar">
         <button type="button" class="tool-btn primary" onclick="openNewWindow('test.html')">ダメ計を開く</button>
+        <button type="button" class="tool-btn" onclick="openBuildStore()">型ストレージ</button>
         <button type="button" class="tool-btn" onclick="exportPartyImage()">画像として保存</button>
         <button type="button" class="tool-btn" onclick="exportPartyCode()">URLをコピー</button>
         <button type="button" class="tool-btn" onclick="deleteParty()">スロット削除</button>
@@ -461,6 +550,42 @@ h2, h3, h4 { margin: 0; }
         </div>
         <div class="lm-list" id="lm-list"></div>
     </div>
+</div>
+
+<!-- ================= 型ストレージ（ボックス） ================= -->
+<div id="buildStore" onclick="if (event.target === this) closeBuildStore()">
+    <div id="sb-wrap">
+        <div id="sb-screen">
+            <img id="sb-bg" class="sb-a" src="Storage/bg.png" alt="">
+            <div id="sb-box" class="sb-a">
+                <img class="wp" id="sb-wpimg" src="Storage/box_0.png" alt="">
+                <button type="button" class="sb-arrow l" data-act="prev" aria-label="前のボックス"></button>
+                <button type="button" id="sb-boxname" data-act="boxmenu">ボックス1</button>
+                <button type="button" class="sb-arrow r" data-act="next" aria-label="次のボックス"></button>
+                <div id="sb-slots"></div>
+            </div>
+            <img id="sb-overlay" class="sb-a" src="Storage/overlay_main.png" alt="">
+            <div id="sb-name" class="sb-a sb-txt"></div>
+            <div id="sb-sprite" class="sb-a"></div>
+            <div class="sb-a sb-row sb-txt" style="top:233px" id="sb-r1"></div>
+            <div class="sb-a sb-row sb-txt" style="top:269px" id="sb-r2"></div>
+            <div class="sb-a sb-row sb-txt" style="top:305px" id="sb-r3"></div>
+            <div class="sb-a sb-row sb-txt" style="top:341px" id="sb-r4"></div>
+            <button type="button" class="sb-btn sb-txt" id="sb-partybtn" data-act="party">てもち</button>
+            <button type="button" class="sb-btn sb-txt" id="sb-closebtn" data-act="close">とじる</button>
+            <div id="sb-sum" class="sb-a sb-txt" data-act="sumclose"></div>
+            <div id="sb-party" class="sb-a">
+                <img src="Storage/overlay_party.png" alt="">
+                <div id="sb-pslots"></div>
+                <button type="button" class="sb-btn sb-txt" data-act="party">もどる</button>
+            </div>
+            <div id="sb-wp" class="sb-a"></div>
+            <div id="sb-cursor" class="sb-a"><div class="held"></div><img class="hand" src="Storage/cursor_point_1.png" alt=""></div>
+            <div id="sb-menu" class="sb-a"><div id="sb-cmd" class="sb-txt"></div></div>
+            <div id="sb-msg" class="sb-a sb-txt"></div>
+        </div>
+    </div>
+    <input type="file" id="bs-file" accept="application/json,.json" style="display:none" onchange="importBuilds(this)">
 </div>
 
 <!-- ================= 性格の表 ================= -->
@@ -1126,7 +1251,10 @@ function createPartyUI() {
         card.innerHTML = `
             <div class="panel-head">
                 <div class="head-title"><img class="head-icon" alt="" style="visibility:hidden"><span class="head-name">${i + 1}匹目</span></div>
-                <button type="button" class="head-btn" onclick="clearCard(${i})">クリア</button>
+                <div class="head-btns">
+                    <button type="button" class="head-btn" onclick="openBuildStore(${i})">型</button>
+                    <button type="button" class="head-btn" onclick="clearCard(${i})">クリア</button>
+                </div>
             </div>
             <div class="panel-body">
                 <div class="meta-line">
@@ -1847,21 +1975,52 @@ function collectPartyData() {
         members: []
     };
     for (let i = 0; i < 6; i++) {
-        const c = document.getElementById(`pokemon-${i}`);
-        if (!c) return null;
-        data.members.push({
-            spName: c.querySelector('.sp-input').value,
-            spId: c.querySelector('.sp-input').dataset.selectedId,
-            itName: c.querySelector('.item-input').value,
-            itId: c.querySelector('.item-input').dataset.selectedId,
-            ab: c.querySelector('.ability-select').value,
-            nt: c.querySelector('.nature-select').value,
-            ev: [...c.querySelectorAll('.ev-input')].map(el => el.value),
-            mv: [...c.querySelectorAll('.move-input')].map(el => ({ name: el.value, id: el.dataset.selectedId })),
-            memo: c.querySelector('.memo-area').value
-        });
+        const m = collectMember(i);
+        if (!m) return null;
+        data.members.push(m);
     }
     return data;
+}
+// 1匹分の内容（保存スロットと同じ形式）
+function collectMember(i) {
+    const c = document.getElementById(`pokemon-${i}`);
+    if (!c) return null;
+    return {
+        spName: c.querySelector('.sp-input').value,
+        spId: cardKey(i) || c.querySelector('.sp-input').dataset.selectedId,
+        itName: c.querySelector('.item-input').value,
+        itId: c.querySelector('.item-input').dataset.selectedId,
+        ab: c.querySelector('.ability-select').value,
+        nt: c.querySelector('.nature-select').value,
+        ev: [...c.querySelectorAll('.ev-input')].map(el => el.value),
+        mv: [...c.querySelectorAll('.move-input')].map(el => ({ name: el.value, id: el.dataset.selectedId })),
+        memo: c.querySelector('.memo-area').value
+    };
+}
+function applyMember(i, m) {
+    const c = document.getElementById(`pokemon-${i}`);
+    if (!c || !m) return;
+    const spInp = c.querySelector('.sp-input');
+    spInp.value = m.spName || '';
+    if (m.spId) spInp.dataset.selectedId = m.spId; else delete spInp.dataset.selectedId;
+    const speciesObj = m.spId && db.species.find(s => s.id === m.spId);
+    if (speciesObj) updateSpecies(i, speciesObj.data);
+    const itInp = c.querySelector('.item-input');
+    itInp.value = m.itName || '';
+    if (m.itId) itInp.dataset.selectedId = m.itId; else delete itInp.dataset.selectedId;
+    c.querySelector('.nature-select').value = m.nt || 'まじめ';
+    c.querySelectorAll('.ev-input').forEach((el, j) => { el.value = (m.ev && m.ev[j]) || 0; });
+    validateEV(c.querySelector('.ev-input'), i);
+    if (m.ab) c.querySelector('.ability-select').value = m.ab;
+    c.querySelectorAll('.move-input').forEach((el, j) => {
+        const mv = (m.mv && m.mv[j]) || {};
+        el.value = mv.name || '';
+        if (mv.id) el.dataset.selectedId = mv.id; else delete el.dataset.selectedId;
+        const found = db.moves.find(x => x.name === el.value);
+        updateMoveColor(el, found ? found.type : '');
+    });
+    c.querySelector('.memo-area').value = m.memo || '';
+    refreshCardMeta(i);
 }
 function writeDraftNow() {
     if (!draftReady) return;
@@ -1881,30 +2040,7 @@ function applyPartyData(data) {
     if (data.slot) document.getElementById('saveSlot').value = data.slot;
     if (typeof data.champOnly === 'boolean') document.getElementById('champOnly').checked = data.champOnly;
     if (typeof data.learnOnly === 'boolean') document.getElementById('learnOnly').checked = data.learnOnly;
-    (data.members || []).forEach((m, i) => {
-        const c = document.getElementById(`pokemon-${i}`);
-        if (!c || !m) return;
-        const spInp = c.querySelector('.sp-input');
-        spInp.value = m.spName || '';
-        if (m.spId) spInp.dataset.selectedId = m.spId; else delete spInp.dataset.selectedId;
-        const speciesObj = m.spId && db.species.find(s => s.id === m.spId);
-        if (speciesObj) updateSpecies(i, speciesObj.data);
-        const itInp = c.querySelector('.item-input');
-        itInp.value = m.itName || '';
-        if (m.itId) itInp.dataset.selectedId = m.itId; else delete itInp.dataset.selectedId;
-        c.querySelector('.nature-select').value = m.nt || 'まじめ';
-        c.querySelectorAll('.ev-input').forEach((el, j) => { el.value = (m.ev && m.ev[j]) || 0; });
-        validateEV(c.querySelector('.ev-input'), i);
-        if (m.ab) c.querySelector('.ability-select').value = m.ab;
-        c.querySelectorAll('.move-input').forEach((el, j) => {
-            const mv = (m.mv && m.mv[j]) || {};
-            el.value = mv.name || '';
-            if (mv.id) el.dataset.selectedId = mv.id; else delete el.dataset.selectedId;
-            const found = db.moves.find(x => x.name === el.value);
-            updateMoveColor(el, found ? found.type : '');
-        });
-        c.querySelector('.memo-area').value = m.memo || '';
-    });
+    (data.members || []).forEach((m, i) => applyMember(i, m));
     refreshAllCards();
 }
 function restoreDraft() {
@@ -1921,6 +2057,523 @@ document.addEventListener('input', saveDraft, true);
 document.addEventListener('change', saveDraft, true);
 window.addEventListener('pagehide', writeDraftNow);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') writeDraftNow(); });
+
+/* =========================================================
+   型ストレージ：ボックス画面（Storage/ の素材）で1匹分の型を保存・呼び出し
+   ・ボックス40個 × 30マス。型は {id, title, savedAt, m, box, slot}
+   ・てもち（パーティの6枠）⇔ ボックスを「つかむ → 置く」でやりとり
+   ========================================================= */
+const BUILD_KEY = 'party_memo_builds_v1';
+const BOXMETA_KEY = 'party_memo_boxes_v1';
+const BOX_COUNT = 40, BOX_SLOTS = 30, WALLPAPERS = 40;
+const SB = { box: 0, cur: { a: 'box', k: 0 }, held: null, party: false, msgTimer: null, handTimer: null, frame: 0 };
+const PARTY_POS = [[50, 42], [122, 58], [50, 106], [122, 122], [50, 170], [122, 186]];
+
+function newBuildId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+// 位置の無い・重なった型は空きマスへ詰める（古い一覧形式からの移行も兼ねる）
+function normalizeBuilds(list) {
+    const used = new Set(); const loose = [];
+    list.forEach(b => {
+        const ok = Number.isInteger(b.box) && Number.isInteger(b.slot) && b.box >= 0 && b.box < BOX_COUNT && b.slot >= 0 && b.slot < BOX_SLOTS;
+        const key = b.box * BOX_SLOTS + b.slot;
+        if (ok && !used.has(key)) used.add(key); else loose.push(b);
+    });
+    let p = 0;
+    loose.forEach(b => {
+        while (used.has(p) && p < BOX_COUNT * BOX_SLOTS) p++;
+        b.box = Math.floor(p / BOX_SLOTS); b.slot = p % BOX_SLOTS; used.add(p);
+    });
+    return loose.length;
+}
+function loadBuilds() {
+    let list;
+    try { list = JSON.parse(localStorage.getItem(BUILD_KEY) || '[]') || []; } catch (e) { list = []; }
+    if (!Array.isArray(list)) list = [];
+    list = list.filter(b => b && b.m);
+    if (normalizeBuilds(list)) storeBuilds(list);
+    return list;
+}
+function storeBuilds(list) {
+    try { localStorage.setItem(BUILD_KEY, JSON.stringify(list)); return true; }
+    catch (e) { alert('保存できませんでした（端末の保存容量が不足している可能性があります）'); return false; }
+}
+function loadBoxMeta() {
+    let m;
+    try { m = JSON.parse(localStorage.getItem(BOXMETA_KEY) || '{}') || {}; } catch (e) { m = {}; }
+    m.names = Array.isArray(m.names) ? m.names : [];
+    m.wp = Array.isArray(m.wp) ? m.wp : [];
+    return m;
+}
+function storeBoxMeta(m) { try { localStorage.setItem(BOXMETA_KEY, JSON.stringify(m)); } catch (e) { } }
+function boxName(i, meta) { return (meta || loadBoxMeta()).names[i] || `ボックス${i + 1}`; }
+function boxWallpaper(i, meta) { const w = (meta || loadBoxMeta()).wp[i]; return Number.isInteger(w) ? w : i % WALLPAPERS; }
+function buildAt(list, box, slot) { return list.find(b => b.box === box && b.slot === slot); }
+
+function buildIcon(m) { return m && m.spId ? `Icons/${m.spId.charAt(0).toUpperCase()}/${m.spId.toUpperCase()}.png` : ''; }
+function evSummary(m) {
+    const ev = (m.ev || []).map(v => parseInt(v) || 0);
+    const parts = STAT_JA.map((l, j) => ev[j] ? `${l}${ev[j]}` : '').filter(Boolean);
+    return parts.length ? parts.join(' ') : '努力値なし';
+}
+function autoTitle(m) {
+    const nt = m.nt && m.nt !== 'まじめ' ? m.nt : '';
+    return [m.spName, nt, m.itName].filter(Boolean).join(' ') || '名称未設定';
+}
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function cardName(k) { const el = document.querySelector(`#pokemon-${k} .sp-input`); return el ? el.value.trim() : ''; }
+function sbIconHtml(m, anim) {
+    const src = buildIcon(m);
+    return src ? `<div class="sb-icon${anim ? ' anim' : ''}"><img src="${src}" alt="" onerror="this.style.display='none'"></div>` : '';
+}
+
+/* ---------- 開く・閉じる・拡大縮小 ---------- */
+function sbFit() {
+    const vw = Math.min(window.innerWidth, document.documentElement.clientWidth || window.innerWidth);
+    const vh = Math.min(window.innerHeight, document.documentElement.clientHeight || window.innerHeight);
+    const s = Math.min((vw - 8) / 512, (vh - 8) / 384, 2.2);
+    document.getElementById('sb-screen').style.transform = `scale(${s})`;
+    const w = document.getElementById('sb-wrap');
+    w.style.width = `${512 * s}px`; w.style.height = `${384 * s}px`;
+}
+function openBuildStore(i) {
+    SB.held = null;
+    SB.box = Math.min(BOX_COUNT - 1, Math.max(0, loadBoxMeta().cur || 0));
+    if (typeof i === 'number') { SB.party = true; SB.cur = { a: 'party', k: i }; }
+    else { SB.party = false; SB.cur = { a: 'box', k: 0 }; }
+    sbCloseMenu(); sbHideWallpaper(); sbMsg('');
+    document.getElementById('sb-sum').classList.remove('show');
+    document.getElementById('buildStore').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    sbFit();
+    renderBuildStore();
+    if (typeof i === 'number' && cardName(i)) sbMsg(`${cardName(i)}を えらんでいます`, 1600);
+    clearInterval(SB.handTimer);
+    SB.handTimer = setInterval(() => { SB.frame ^= 1; sbDrawCursor(); }, 450);
+}
+function closeBuildStore() {
+    SB.held = null;
+    clearInterval(SB.handTimer);
+    sbCloseMenu(); sbHideWallpaper();
+    document.getElementById('buildStore').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+/* ---------- 描画 ---------- */
+function renderBuildStore() {
+    const list = loadBuilds();
+    const meta = loadBoxMeta();
+    document.getElementById('sb-wpimg').src = `Storage/box_${boxWallpaper(SB.box, meta)}.png`;
+    document.getElementById('sb-boxname').textContent = boxName(SB.box, meta);
+    const heldId = SB.held && SB.held.kind === 'box' ? SB.held.id : null;
+    let html = '';
+    for (let k = 0; k < BOX_SLOTS; k++) {
+        const b = buildAt(list, SB.box, k);
+        const show = b && b.id !== heldId;
+        const sel = SB.cur.a === 'box' && SB.cur.k === k;
+        html += `<button type="button" class="sb-slot" data-act="box" data-k="${k}" style="left:${18 + 48 * (k % 6)}px;top:${38 + 48 * Math.floor(k / 6)}px" aria-label="${show ? escapeHtml(b.title) : 'あき'}">${show ? sbIconHtml(b.m, sel) : ''}</button>`;
+    }
+    document.getElementById('sb-slots').innerHTML = html;
+    document.getElementById('sb-pslots').innerHTML = PARTY_POS.map(([x, y], k) => {
+        const key = cardKey(k);
+        const sel = SB.cur.a === 'party' && SB.cur.k === k;
+        return `<button type="button" class="sb-slot" data-act="pslot" data-k="${k}" style="left:${x - 24}px;top:${y - 24}px" aria-label="${k + 1}ばんめ">${key ? sbIconHtml({ spId: key }, sel) : ''}</button>`;
+    }).join('');
+    document.getElementById('sb-party').classList.toggle('show', SB.party);
+    sbDrawPanel(list);
+    sbDrawCursor();
+}
+function sbCurrentEntry(list) {
+    if (SB.held) {
+        if (SB.held.kind === 'box') { const b = (list || loadBuilds()).find(x => x.id === SB.held.id); return { title: SB.held.title, m: SB.held.m, mark: b && b.mark }; }
+        return { title: `てもち ${SB.held.idx + 1}ばんめ`, m: SB.held.m };
+    }
+    if (SB.cur.a === 'box') {
+        const b = buildAt(list || loadBuilds(), SB.box, SB.cur.k);
+        return b ? { id: b.id, title: b.title, m: b.m, mark: b.mark } : null;
+    }
+    if (!cardName(SB.cur.k)) return null;
+    return { title: `てもち ${SB.cur.k + 1}ばんめ`, m: collectMember(SB.cur.k) };
+}
+function sbSpecies(m) { return m && m.spId ? db.species.find(s => s.id === m.spId) : null; }
+function sbAbilityName(m) { return (m.ab && db.abilities && db.abilities[m.ab] && db.abilities[m.ab].name) || m.ab || ''; }
+// マーキング：0=なし（灰） 1=青 2=赤
+function sbMarkSpan(j, v, s) {
+    const row = v === 1 ? 2 : v === 2 ? 3 : 0;
+    return `<span class="sb-mark" style="background-position:${-j * s}px ${-row * s}px"></span>`;
+}
+function sbMarksHtml(mark) { return [0, 1, 2, 3, 4, 5].map(j => sbMarkSpan(j, (mark && mark[j]) || 0, 12)).join(''); }
+function sbDrawPanel(list) {
+    const e = sbCurrentEntry(list);
+    const r = k => document.getElementById(`sb-r${k}`);
+    if (!e) {
+        document.getElementById('sb-name').textContent = '';
+        document.getElementById('sb-sprite').innerHTML = '';
+        [1, 2, 3, 4].forEach(k => { r(k).innerHTML = ''; });
+        return;
+    }
+    const m = e.m;
+    document.getElementById('sb-name').textContent = m.spName || '';
+    const src = buildIcon(m);
+    const itId = m.itName ? (m.itId || ((db.items || []).find(x => x.name === m.itName) || {}).id) : '';
+    const itm = itId ? `<div class="itm"><img src="Items/${itId}.png" alt="" onerror="this.parentElement.style.display='none'"></div>` : '';
+    document.getElementById('sb-sprite').innerHTML =
+        (src ? `<div class="big"><img src="${src}" alt="" onerror="this.style.display='none'"></div>` : '') + itm;
+    r(1).innerHTML = `<div class="sb-lv"><span><b>Lv.</b><span class="num">50</span></span><span class="sb-marks">${sbMarksHtml(e.mark)}</span></div>`;
+    const sp = sbSpecies(m);
+    const types = sp ? sp.data.Types.filter(t => t).map(t => String(t).toUpperCase()) : [];
+    r(2).innerHTML = `<div class="sb-types">${types.map(t => `<span class="sb-type" style="background:${MEMO_TYPE_COLOR[t] || '#999'}">${MEMO_TYPE_JA[t] || t}</span>`).join('')}</div>`;
+    r(3).innerHTML = `<span>${escapeHtml(sbAbilityName(m))}</span>`;
+    r(4).innerHTML = `<span>${escapeHtml(m.itName || 'もちものなし')}</span>`;
+}
+// ようすをみる：型の名前・性格・努力値と実数値・技・メモ
+function sbShowSummary(e) {
+    const m = e.m;
+    const sp = sbSpecies(m);
+    const nat = NATURES[m.nt] || { up: 0, down: 0 };
+    const keys = ['HP', 'Atk', 'Def', 'SpAtk', 'SpDef', 'Speed'];
+    const rows = STAT_JA.map((l, j) => {
+        const base = sp ? sp.data[keys[j]] || 0 : 0;
+        const evv = parseInt((m.ev || [])[j]) || 0;
+        let v;
+        if (j === 0) v = base ? Math.floor((base * 2 + 31) * 50 / 100) + 60 + evv : '-';
+        else {
+            v = Math.floor((base * 2 + 31) * 50 / 100) + 5 + evv;
+            if (nat.up === j) v = Math.floor(v * 1.1); else if (nat.down === j) v = Math.floor(v * 0.9);
+            if (!base) v = '-';
+        }
+        const cls = j && nat.up === j && nat.up !== nat.down ? 'up' : j && nat.down === j && nat.up !== nat.down ? 'dn' : '';
+        return `<tr><th>${l}</th><td>${base || '-'}</td><td>${evv}</td><td class="${cls}">${v}</td></tr>`;
+    }).join('');
+    const mv = (m.mv || []).filter(x => x && x.name).map(x => {
+        const f = db.moves.find(d => d.name === x.name);
+        const t = f ? String(f.type).toUpperCase() : '';
+        return `<span style="background:${MEMO_TYPE_COLOR[t] || '#999'}">${escapeHtml(x.name)}</span>`;
+    }).join('');
+    const el = document.getElementById('sb-sum');
+    el.innerHTML = `<div class="ttl">${escapeHtml(e.title)}</div>
+        <div>${escapeHtml(m.spName || '')}　Lv.50　${escapeHtml(m.nt || 'まじめ')}（${natureLabel(m.nt || 'まじめ')}）</div>
+        <table><tr><th></th><th style="text-align:right">種族</th><th style="text-align:right">努力</th><th style="text-align:right">実数値</th></tr>${rows}</table>
+        <div class="mvs">${mv || '<span style="background:#bbb">わざなし</span>'}</div>
+        ${m.memo ? `<div class="memo">${escapeHtml(m.memo)}</div>` : ''}`;
+    el.classList.add('show');
+    sbMsg('タップで もどる', 1600);
+}
+function sbMarking(id) {
+    const list = loadBuilds();
+    const b = list.find(x => x.id === id);
+    if (!b) return;
+    const mk = (b.mark || [0, 0, 0, 0, 0, 0]).slice();
+    sbMsg('マーキングを えらんでください');
+    const cmd = document.getElementById('sb-cmd');
+    const draw = () => {
+        cmd.className = 'sb-txt';
+        cmd.innerHTML = '';
+        const w = document.createElement('div');
+        w.id = 'sb-markwin';
+        w.innerHTML = `<div class="grid">${[0, 1, 2, 3, 4, 5].map(j => `<button type="button" data-j="${j}">${sbMarkSpan(j, mk[j] || 0, 16)}</button>`).join('')}</div>`;
+        const ok = document.createElement('div');
+        ok.innerHTML = '<button type="button" data-ok="1">けってい</button><button type="button" data-ok="0">やめる</button>';
+        w.appendChild(ok);
+        cmd.appendChild(w);
+        cmd.style.cssText = 'background:none;border:none;box-shadow:none;padding:0;right:0;bottom:0';
+    };
+    draw();
+    cmd.onclick = ev => {
+        ev.stopPropagation();
+        const g = ev.target.closest('[data-j]');
+        if (g) { const j = +g.dataset.j; mk[j] = ((mk[j] || 0) + 1) % 3; draw(); return; }
+        const o = ev.target.closest('[data-ok]');
+        if (!o) return;
+        if (o.dataset.ok === '1') { b.mark = mk; storeBuilds(list); }
+        sbCloseMenu(); renderBuildStore();
+    };
+    document.getElementById('sb-menu').classList.add('show');
+}
+function sbSlotPos(c) {
+    if (c.a === 'party') {
+        const [x, y] = PARTY_POS[c.k];
+        return [182 + x - 32, 32 + y - 32];
+    }
+    return [184 + 10 + 48 * (c.k % 6), 18 + 30 + 48 * Math.floor(c.k / 6)];
+}
+function sbDrawCursor() {
+    const cur = document.getElementById('sb-cursor');
+    if (!cur) return;
+    const [x, y] = sbSlotPos(SB.cur);
+    cur.style.left = `${x}px`;
+    cur.style.top = `${y - (SB.held ? 46 : 34) + (SB.held ? 0 : SB.frame * 3)}px`;
+    const hand = SB.held ? 'cursor_grab' : `cursor_point_${SB.frame + 1}`;
+    const img = cur.querySelector('.hand');
+    if (!img.src.endsWith(`${hand}.png`)) img.src = `Storage/${hand}.png`;
+    const held = cur.querySelector('.held');
+    const want = SB.held ? buildIcon(SB.held.m) : '';
+    if (held.dataset.src !== want) {
+        held.dataset.src = want;
+        held.innerHTML = want ? `<img src="${want}" alt="">` : '';
+    }
+}
+
+/* ---------- メッセージ・コマンド ---------- */
+function sbMsg(text, ms) {
+    const el = document.getElementById('sb-msg');
+    clearTimeout(SB.msgTimer);
+    el.textContent = text || '';
+    el.classList.toggle('show', !!text);
+    if (text && ms) SB.msgTimer = setTimeout(() => el.classList.remove('show'), ms);
+}
+function sbMenu(text, cmds) {
+    sbMsg(text);
+    const box = document.getElementById('sb-cmd');
+    box.onclick = null; box.style.cssText = ''; box.className = 'sb-txt';
+    box.innerHTML = '';
+    cmds.forEach(([label, fn], n) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.textContent = label;
+        if (n === 0) b.classList.add('sel');
+        b.addEventListener('mouseenter', () => sbMenuSel(b));
+        b.addEventListener('click', ev => { ev.stopPropagation(); sbCloseMenu(); if (fn) fn(); });
+        box.appendChild(b);
+    });
+    document.getElementById('sb-menu').classList.add('show');
+}
+function sbMenuSel(b) {
+    document.querySelectorAll('#sb-cmd button.sel').forEach(x => x.classList.remove('sel'));
+    if (b) b.classList.add('sel');
+}
+function sbCloseMenu() {
+    document.getElementById('sb-menu').classList.remove('show');
+    sbMsg('');
+}
+
+/* ---------- 操作 ---------- */
+function sbHold(b) { SB.held = { kind: 'box', id: b.id, title: b.title, m: b.m }; }
+function sbTapBox(k) {
+    SB.cur = { a: 'box', k };
+    const list = loadBuilds();
+    const b = buildAt(list, SB.box, k);
+    if (SB.held && SB.held.kind === 'box') {
+        // ボックス内の移動（相手がいれば入れ替え）
+        const src = list.find(x => x.id === SB.held.id);
+        if (src && b !== src) {
+            if (b) { b.box = src.box; b.slot = src.slot; }
+            src.box = SB.box; src.slot = k;
+            storeBuilds(list);
+        }
+        SB.held = null; renderBuildStore(); return;
+    }
+    if (SB.held && SB.held.kind === 'party') {
+        const m = SB.held.m;
+        const put = () => {
+            if (b) { b.m = m; b.title = autoTitle(m); b.savedAt = Date.now(); }
+            else list.push({ id: newBuildId(), title: autoTitle(m), savedAt: Date.now(), m, box: SB.box, slot: k });
+            if (storeBuilds(list)) sbMsg(`${m.spName}を ボックスに あずけた！`, 1800);
+            SB.held = null; renderBuildStore();
+        };
+        if (b) { renderBuildStore(); sbMenu(`「${b.title}」に うわがきしますか？`, [['うわがきする', put], ['やめる', null]]); }
+        else put();
+        return;
+    }
+    renderBuildStore();
+    if (!b) return;
+    sbMenu(`「${b.title}」を どうする？`, [
+        ['いどうする', () => { sbHold(b); renderBuildStore(); sbMsg('おく ばしょを えらんでください'); }],
+        ['ようすをみる', () => sbShowSummary({ title: b.title, m: b.m })],
+        ['つれていく', () => { sbHold(b); SB.party = true; renderBuildStore(); sbMsg('くわえる わくを えらんでください'); }],
+        ['マーキング', () => sbMarking(b.id)],
+        ['なまえをかえる', () => sbRename(b.id)],
+        ['にがす', () => sbRelease(b.id)],
+        ['やめる', null]
+    ]);
+}
+function sbTapParty(k) {
+    SB.cur = { a: 'party', k };
+    const name = cardName(k);
+    if (SB.held && SB.held.kind === 'box') {
+        const h = SB.held;
+        const put = () => {
+            clearCard(k, true);
+            applyMember(k, JSON.parse(JSON.stringify(h.m)));
+            saveDraft();
+            SB.held = null; renderBuildStore();
+            sbMsg(`${h.m.spName}を ${k + 1}ばんめに くわえた！`, 1800);
+        };
+        if (name) { renderBuildStore(); sbMenu(`${k + 1}ばんめの ${name}と いれかえますか？`, [['いれかえる', put], ['やめる', null]]); }
+        else put();
+        return;
+    }
+    if (SB.held) { SB.held = null; renderBuildStore(); return; }
+    renderBuildStore();
+    if (!name) return;
+    sbMenu(`${name}を どうする？`, [
+        ['あずける', () => sbDepositAuto(k)],
+        ['いどうする', () => { SB.held = { kind: 'party', idx: k, m: collectMember(k) }; SB.party = false; renderBuildStore(); sbMsg('あずける ばしょを えらんでください'); }],
+        ['ようすをみる', () => sbShowSummary({ title: `てもち ${k + 1}ばんめ`, m: collectMember(k) })],
+        ['やめる', null]
+    ]);
+}
+// 今のボックスから順に最初の空きマスへ保存
+function sbDepositAuto(k) {
+    const m = collectMember(k);
+    const list = loadBuilds();
+    const used = new Set(list.map(b => b.box * BOX_SLOTS + b.slot));
+    for (let n = 0; n < BOX_COUNT * BOX_SLOTS; n++) {
+        const p = (SB.box * BOX_SLOTS + n) % (BOX_COUNT * BOX_SLOTS);
+        if (used.has(p)) continue;
+        list.push({ id: newBuildId(), title: autoTitle(m), savedAt: Date.now(), m, box: Math.floor(p / BOX_SLOTS), slot: p % BOX_SLOTS });
+        if (!storeBuilds(list)) return;
+        const meta = loadBoxMeta();
+        SB.box = Math.floor(p / BOX_SLOTS); meta.cur = SB.box; storeBoxMeta(meta);
+        SB.cur = { a: 'box', k: p % BOX_SLOTS };
+        renderBuildStore();
+        sbMsg(`${m.spName}を ${boxName(SB.box)}に あずけた！`, 1800);
+        return;
+    }
+    sbMsg('ボックスが いっぱいです', 1800);
+}
+function sbRename(id) {
+    const list = loadBuilds();
+    const b = list.find(x => x.id === id);
+    if (!b) return;
+    const t = prompt('型の名前', b.title);
+    if (t === null) return;
+    b.title = t.trim() || autoTitle(b.m);
+    storeBuilds(list); renderBuildStore();
+}
+function sbRelease(id) {
+    const list = loadBuilds();
+    const b = list.find(x => x.id === id);
+    if (!b) return;
+    sbMenu(`「${b.title}」を ほんとうに にがしますか？`, [
+        ['にがす', () => { storeBuilds(list.filter(x => x.id !== id)); renderBuildStore(); sbMsg(`「${b.title}」を にがした`, 1600); }],
+        ['やめる', null]
+    ]);
+}
+function sbChangeBox(d) {
+    SB.box = (SB.box + d + BOX_COUNT) % BOX_COUNT;
+    const meta = loadBoxMeta(); meta.cur = SB.box; storeBoxMeta(meta);
+    if (SB.cur.a === 'box') SB.cur = { a: 'box', k: SB.cur.k };
+    renderBuildStore();
+}
+function sbBoxMenu() {
+    sbMenu(`${boxName(SB.box)}を どうする？`, [
+        ['なまえを かえる', () => {
+            const meta = loadBoxMeta();
+            const t = prompt('ボックスの名前', boxName(SB.box, meta));
+            if (t === null) return;
+            meta.names[SB.box] = t.trim(); storeBoxMeta(meta); renderBuildStore();
+        }],
+        ['かべがみ', sbShowWallpaper],
+        ['ファイルに かきだす', exportBuilds],
+        ['ファイルから よみこむ', () => document.getElementById('bs-file').click()],
+        ['やめる', null]
+    ]);
+}
+function sbShowWallpaper() {
+    const cur = boxWallpaper(SB.box);
+    const el = document.getElementById('sb-wp');
+    el.innerHTML = Array.from({ length: WALLPAPERS }, (_, w) =>
+        `<button type="button" data-act="wp" data-k="${w}" class="${w === cur ? 'cur' : ''}"><img src="Storage/box_${w}.png" alt=""></button>`).join('');
+    el.classList.add('show');
+    sbMsg('かべがみを えらんでください');
+}
+function sbHideWallpaper() { document.getElementById('sb-wp').classList.remove('show'); }
+
+function exportBuilds() {
+    const list = loadBuilds();
+    if (!list.length) { sbMsg('あずけている型が ありません', 1800); return; }
+    const blob = new Blob([JSON.stringify({ type: 'party_memo_builds', version: 2, builds: list, boxes: loadBoxMeta() }, null, 1)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `型ストレージ_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function importBuilds(input) {
+    const f = input.files && input.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+        try {
+            const j = JSON.parse(r.result);
+            const incoming = Array.isArray(j) ? j : j.builds;
+            if (!Array.isArray(incoming)) throw new Error('形式が違います');
+            const list = loadBuilds();
+            const ids = new Set(list.map(b => b.id));
+            let added = 0;
+            incoming.forEach(b => {
+                if (!b || !b.m || typeof b.title !== 'string' || ids.has(b.id)) return;
+                list.push({ id: String(b.id || newBuildId()), title: b.title, savedAt: b.savedAt || Date.now(), m: b.m, box: b.box, slot: b.slot });
+                added++;
+            });
+            normalizeBuilds(list);   // 位置が重なる型は空きマスへ
+            if (j.boxes && !Array.isArray(j)) {
+                const meta = loadBoxMeta();
+                (j.boxes.names || []).forEach((n, i) => { if (n && !meta.names[i]) meta.names[i] = n; });
+                (j.boxes.wp || []).forEach((w, i) => { if (Number.isInteger(w) && !Number.isInteger(meta.wp[i])) meta.wp[i] = w; });
+                storeBoxMeta(meta);
+            }
+            if (storeBuilds(list)) { renderBuildStore(); sbMsg(`${added}けんの 型を よみこんだ！`, 2000); }
+        } catch (e) { alert('読み込めませんでした：' + e.message); }
+        input.value = '';
+    };
+    r.readAsText(f);
+}
+
+/* ---------- イベント ---------- */
+document.getElementById('sb-screen').addEventListener('click', e => {
+    const t = e.target.closest('[data-act]');
+    if (!t) return;
+    const k = +t.dataset.k;
+    switch (t.dataset.act) {
+        case 'box': return sbTapBox(k);
+        case 'pslot': return sbTapParty(k);
+        case 'prev': return sbChangeBox(-1);
+        case 'next': return sbChangeBox(1);
+        case 'boxmenu': return sbBoxMenu();
+        case 'party':
+            SB.party = !SB.party;
+            if (SB.party && SB.cur.a === 'box' && !SB.held) SB.cur = { a: 'party', k: 0 };
+            if (!SB.party && SB.cur.a === 'party') SB.cur = { a: 'box', k: 0 };
+            return renderBuildStore();
+        case 'close': return closeBuildStore();
+        case 'sumclose': document.getElementById('sb-sum').classList.remove('show'); return sbMsg('');
+        case 'wp': {
+            const meta = loadBoxMeta(); meta.wp[SB.box] = k; storeBoxMeta(meta);
+            sbHideWallpaper(); sbMsg(''); return renderBuildStore();
+        }
+    }
+});
+// メニューの外をタップ → やめる
+document.getElementById('sb-menu').addEventListener('click', e => { if (e.target.id === 'sb-menu') sbCloseMenu(); });
+// マウスではカーソルが指す先の型を左に表示
+document.getElementById('sb-screen').addEventListener('mouseover', e => {
+    if (!window.matchMedia('(hover: hover)').matches) return;
+    if (document.getElementById('sb-menu').classList.contains('show')) return;
+    const t = e.target.closest('.sb-slot');
+    if (!t) return;
+    const c = { a: t.dataset.act === 'pslot' ? 'party' : 'box', k: +t.dataset.k };
+    if (c.a === SB.cur.a && c.k === SB.cur.k) return;
+    SB.cur = c; renderBuildStore();
+});
+document.addEventListener('keydown', e => {
+    if (!document.getElementById('buildStore').classList.contains('open')) return;
+    const menuOpen = document.getElementById('sb-menu').classList.contains('show');
+    if (menuOpen && ['ArrowUp', 'ArrowDown', 'Enter'].includes(e.key)) {
+        const bs = [...document.querySelectorAll('#sb-cmd > button')];
+        if (!bs.length) return;
+        e.preventDefault();
+        const n = Math.max(0, bs.findIndex(b => b.classList.contains('sel')));
+        if (e.key === 'Enter') return bs[n].click();
+        return sbMenuSel(bs[(n + (e.key === 'ArrowDown' ? 1 : bs.length - 1)) % bs.length]);
+    }
+    if (e.key !== 'Escape') return;
+    if (menuOpen) return sbCloseMenu();
+    if (document.getElementById('sb-sum').classList.contains('show')) { document.getElementById('sb-sum').classList.remove('show'); return sbMsg(''); }
+    if (document.getElementById('sb-wp').classList.contains('show')) { sbHideWallpaper(); return sbMsg(''); }
+    if (SB.held) { SB.held = null; return renderBuildStore(); }
+    closeBuildStore();
+});
+window.addEventListener('resize', () => { if (document.getElementById('buildStore').classList.contains('open')) sbFit(); });
 </script>
 </body>
 </html>
