@@ -314,6 +314,19 @@ details.member.side-opp { box-shadow: inset 4px 0 0 var(--atk); }
 details.box.env .seg > button { font-size: 12px; padding: 7px 1px; text-overflow: clip; }
 .box > *, details.more > .more-body > * { min-width: 0; }
 
+/* ---------- 型（複数） ---------- */
+.vtabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
+.vtabs button { border: 1.5px solid var(--line); background: #fff; border-radius: 999px; padding: 4px 11px; font-size: 13px; font-weight: 800; color: #555; }
+.vtabs button.active { background: #343a40; border-color: #343a40; color: #fff; }
+.side-opp .vtabs button.active { background: var(--atk); border-color: var(--atk); }
+.side-my .vtabs button.active { background: var(--def); border-color: var(--def); }
+.vtabs button.add { border-style: dashed; color: #6f42c1; }
+.vname { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; margin-bottom: 6px; }
+.vname input { height: 36px; font-size: 14px; }
+.vname .rm { border: none; background: #f1f3f5; border-radius: 8px; padding: 0 10px; color: #c0392b; font-weight: 800; font-size: 12px; }
+.fc-side .vl.unk { background: #f08c00; }
+.fc-side .vl { flex: none; font-size: 9px; font-weight: 900; color: #fff; background: #6f42c1; border-radius: 4px; padding: 1px 4px; margin-left: 2px; }
+
 /* ---------- メモ ---------- */
 .memo-area { min-height: 58vh; font-size: 15px; line-height: 1.7; background: #fff; }
 .fc.dbl { width: 300px; }
@@ -373,11 +386,12 @@ details.box.env .seg > button { font-size: 12px; padding: 7px 1px; text-overflow
                 <button type="button" class="mini-btn" style="height:42px" onclick="fcNewPlan()">＋ 新規</button>
             </div>
             <div class="row"><span class="lbl">形式</span><div class="seg" id="fc-format"></div></div>
+            <div class="chips" id="fc-autovari"></div>
             <div class="teams">
                 <div class="team my"><div class="team-head"><span>自分のチーム</span><button type="button" class="mini-btn" onclick="fcOpenTeam('my')">編集</button></div><div class="team-icons" id="fc-team-my"></div></div>
                 <div class="team opp"><div class="team-head"><span>相手のチーム</span><button type="button" class="mini-btn" onclick="fcOpenTeam('opp')">編集</button></div><div class="team-icons" id="fc-team-opp"></div></div>
             </div>
-            <div class="hint">カードの <b>＋</b> で次の展開、<b>✎</b> で行動を入力。ダメージはダメ計と同じ式で自動計算され、HP（乱数の分布ごと）・ランク・状態異常・天候・壁・ステロ・ターン数を引き継ぎます。きあいのタスキ・がんじょう・こらえる・ばけのかわ・オボンのみ・ゴツゴツメット等も自動で反映。✎ の「分岐を作る」で、行動ごと・倒した/耐えた・急所/外れ/ひるみの分岐を確率つきで作れます。</div>
+            <div class="hint">カードの <b>＋</b> で次の展開、<b>✎</b> で行動を入力。ダメージはダメ計と同じ式で自動計算され、HP（乱数の分布ごと）・ランク・状態異常・天候・壁・ステロ・ターン数を引き継ぎます。きあいのタスキ・がんじょう・こらえる・ばけのかわ・オボンのみ・ゴツゴツメット等も自動で反映。先発カードの ✎ で「初手ごと」「型ごと」に、各カードの ✎ の「分岐を作る」で行動ごと・倒した/耐えた・急所/外れ/ひるみ・型ごとの分岐を確率つきで作れます。型はチームの「編集」で ＋型を追加（仮想敵リストの想定持ち物からも自動で作成）。</div>
             <div class="flow-scroll"><div class="flow-tree" id="fc-tree"></div></div>
         </div>
     </section>
@@ -986,7 +1000,7 @@ function blankPlan(name, format) {
     r.label = '選出・先発'; r.turnInc = 0; r.lead = { my: 0, opp: 0, my2: 1, opp2: 1 }; r.field = { weather: '', terrain: '' };
     return { id: fid(), name: name || '新しいプラン', format: format || 'single', my: [], opp: [], nodes: { [r.id]: r }, root: r.id };
 }
-function normMember(m) {
+function normBuild(m) {
     const sp = DB.sp[m.spId];
     const abs = sp ? [...(sp.Abilities || []), ...(sp.HiddenAbilities || [])] : [];
     const nat = NATURES[m.nt];
@@ -998,6 +1012,44 @@ function normMember(m) {
         item: m.item || '', ab: m.ab || abs[0] || '',
         moves: (m.moves || []).filter(Boolean).slice(0, 4)
     };
+}
+// メンバー＝基本の型 ＋ 別の型（alts）。alts は差分ではなく型1つ分を丸ごと持つ
+function normMember(m) {
+    const b = normBuild(m);
+    b.label = m.label || '';
+    b.p = m.p != null ? m.p : '';
+    b.alts = (m.alts || []).map((a, i) => {
+        const x = normBuild({ ...m, ...a, spId: m.spId, name: m.name });
+        return { label: a.label || `型${i + 2}`, p: a.p != null ? a.p : '', nu: x.nu, nd: x.nd, nt: x.nt, ev: x.ev, item: x.item, ab: x.ab, moves: x.moves };
+    });
+    return b;
+}
+function variantWeights(member) {
+    const n = variantCount(member);
+    const raw = [...Array(n).keys()].map(v => parseFloat(v ? (member.alts[v - 1] || {}).p : member.p));
+    const given = raw.filter(x => isFinite(x) && x > 0);
+    if (!given.length) return raw.map(() => 100 / n);
+    const rest = Math.max(0, 100 - given.reduce((a, b) => a + b, 0));
+    const blanks = raw.filter(x => !(isFinite(x) && x > 0)).length;
+    return raw.map(x => isFinite(x) && x > 0 ? x : (blanks ? rest / blanks : 0));
+}
+// 型が決まっていない相手（場にいて、型が2つ以上あり、この道筋でまだ仮定していない）
+function unknownBuilds(plan, s) {
+    const out = [];
+    ukeys(plan).filter(k => sideOf(k) === 'opp').forEach(k => {
+        const j = s.act[k], m = actv(s, k), member = plan.opp[j];
+        if (m && !dead(m) && member && variantCount(member) > 1 && !(s.fixed && s.fixed.opp[j]) && !out.includes(j)) out.push(j);
+    });
+    return out;
+}
+function variantCount(member) { return 1 + ((member && member.alts) || []).length; }
+function variantLabel(member, vi) { return vi ? ((member.alts[vi - 1] || {}).label || `型${vi + 1}`) : (member.label || '基本型'); }
+function buildOf(member, vi) {
+    vi = +vi || 0;
+    const a = vi && member.alts && member.alts[vi - 1];
+    const b = a ? { ...member, ...a } : { ...member };
+    b.vlabel = variantCount(member) > 1 ? variantLabel(member, a ? vi : 0) : '';
+    return b;
 }
 function fcPlan() { return FC.plans[FC.cur]; }
 function fcSave() { try { localStorage.setItem(FLOW_KEY, JSON.stringify({ plans: FC.plans, cur: FC.cur })); } catch (e) { console.warn(e); } }
@@ -1031,14 +1083,39 @@ function allyOf(plan, k) { return ukeys(plan).find(x => x !== k && sideOf(x) ===
 /* =========================================================
    状態の計算
    ========================================================= */
-function mkMon(b) {
+function mkMon(member) {
+    const b = buildOf(member, 0);
     const st = statsOf(b) || [100, 50, 50, 50, 50, 50];
-    return { b, st, max: st[0], dist: dNew(st[0], st[0]), status: '', tox: 0, noItem: false, broken: false, hitsTaken: 0, ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 } };
+    return { vi: 0, b, st, max: st[0], dist: dNew(st[0], st[0]), status: '', tox: 0, noItem: false, broken: false, hitsTaken: 0, ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 } };
+}
+function applyVariant(plan, s, side, j, vi, L, quiet) {
+    const m = s.mon[side][j], member = plan[side][j];
+    if (!m || !member || vi >= variantCount(member)) return;
+    if ((m.vi || 0) === vi) return;
+    const b = buildOf(member, vi);
+    const st = statsOf(b);
+    if (!st) return;
+    if (st[0] !== m.max) {
+        const nd = new Float64Array(st[0] + 1);
+        for (let h = 0; h < m.dist.length; h++) if (m.dist[h]) nd[h === 0 ? 0 : Math.max(1, Math.round(h * st[0] / m.max))] += m.dist[h];
+        m.dist = nd;
+    }
+    m.vi = vi; m.b = b; m.st = st; m.max = st[0];
+    if (!quiet) L(side, `${b.name} は「${b.vlabel}」と仮定（${buildLabel(b)}）`, 'sub');
+}
+// 初手の分岐：先祖をさかのぼって初手・型の指定をまとめる
+function setupChain(plan, n) {
+    const chain = [];
+    for (let x = n; x; x = x.parent ? plan.nodes[x.parent] : null) chain.unshift(x);
+    const lead = { ...(plan.nodes[plan.root].lead || {}) };
+    const vsets = [];
+    chain.forEach(x => { if (x.leadSet) Object.keys(x.leadSet).forEach(k => { if (x.leadSet[k] !== '' && x.leadSet[k] != null) lead[k] = +x.leadSet[k]; }); if (x.vset && x !== n) vsets.push(x.vset); });
+    return { lead, vsets };
 }
 function cloneState(s) {
     const cm = m => ({ ...m, dist: m.dist.slice(), ranks: { ...m.ranks } });
     return {
-        plan: s.plan, turn: s.turn, act: { ...s.act },
+        plan: s.plan, turn: s.turn, act: { ...s.act }, fixed: { my: { ...((s.fixed || {}).my || {}) }, opp: { ...((s.fixed || {}).opp || {}) } },
         mon: { my: s.mon.my.map(cm), opp: s.mon.opp.map(cm) },
         field: { ...s.field },
         side: { my: { ...s.side.my }, opp: { ...s.side.opp } },
@@ -1238,7 +1315,7 @@ function initState(plan, root) {
     const act = { my: pick('my', lead.my), opp: pick('opp', lead.opp) };
     if (isDbl(plan)) { act.my2 = pick('my', lead.my2, act.my); act.opp2 = pick('opp', lead.opp2, act.opp); }
     const s = {
-        plan, turn: 0, act,
+        plan, turn: 0, act, fixed: { my: {}, opp: {} },
         mon: { my: plan.my.map(mkMon), opp: plan.opp.map(mkMon) },
         field: { weather: f.weather || '', wT: f.weather ? (parseInt(f.wT) || -1) : 0, terrain: f.terrain || '', tT: f.terrain ? (parseInt(f.tT) || -1) : 0, trick: f.trick ? (parseInt(f.trT) || 5) : 0, gravity: f.gravity ? 5 : 0, mud: f.mud ? 5 : 0, water: f.water ? 5 : 0, magic: f.magic ? 5 : 0, wonder: f.wonder ? 5 : 0, lock: 0 },
         side: {},
@@ -1615,6 +1692,26 @@ function stepState(plan, prev, n) {
         L('sys', `前提：${m.b.name} が${c === 'ko' ? '倒れた' : '耐えた'}（${pct(r.mass)}）`);
     });
     s.mass = mass;
+    // 1.2 初手の指定（先発からやり直す）
+    if (n.leadSet && Object.values(n.leadSet).some(v => v !== '' && v != null)) {
+        const { lead, vsets } = setupChain(plan, n);
+        const root = plan.nodes[plan.root];
+        const fresh = initState(plan, { ...root, lead });
+        vsets.forEach(vs => SIDES.forEach(sd => Object.keys(vs[sd] || {}).forEach(j => { const vi = vs[sd][j]; if (vi !== '' && vi != null) { applyVariant(plan, fresh, sd, +j, +vi, () => { }, true); fresh.fixed[sd][j] = true; } })));
+        s.act = fresh.act; s.fixed = fresh.fixed; s.mon = fresh.mon; s.field = fresh.field; s.side = fresh.side;
+        const names = sd => ukeys(plan).filter(k => sideOf(k) === sd && actv(s, k)).map(k => actv(s, k).b.name).join('・');
+        L('sys', `初手：自分 ${names('my')} / 相手 ${names('opp')}`);
+        fresh.log.forEach(x => s.log.push(x));
+    }
+    // 1.3 型の仮定
+    if (n.vset) SIDES.forEach(sd => Object.keys(n.vset[sd] || {}).forEach(j => {
+        const vi = n.vset[sd][j];
+        if (vi === '' || vi == null) return;
+        const was = s.mon[sd][+j] && s.mon[sd][+j].vi;
+        applyVariant(plan, s, sd, +j, +vi, L);
+        if (was === +vi && !s.fixed[sd][j] && s.mon[sd][+j]) L(sd, `${s.mon[sd][+j].b.name} は「${s.mon[sd][+j].b.vlabel}」と仮定`, 'sub');
+        s.fixed[sd][j] = true;
+    }));
     // 1.5 手で決めた場の変更（途中から天候・フィールド・壁・設置物が変わる等）
     applyFieldSet(s, n.fieldSet, L);
     // 2. 交代（すばやい順）
@@ -1689,7 +1786,7 @@ function unitHtml(plan, s, k) {
     if (!m) return `<div class="fc-side ${side}"><span class="who">${uja(plan, k)}</span><span class="hint">${plan[side].length ? 'いない' : 'チーム未設定'}</span></div>`;
     const h = hpHtml(m);
     return `<div class="fc-side ${side}"><span class="who">${uja(plan, k)}</span><img class="ic" src="${iconOf(m.b.spId)}" alt="" onerror="this.style.visibility='hidden'">
-        <div class="col"><div class="top"><span class="nm">${esc(m.b.name)}</span></div><div class="bl">${esc(buildLabel(m.b))}</div>${h.txt}${h.bar}${tagsHtml(m)}</div></div>`;
+        <div class="col"><div class="top"><span class="nm">${esc(m.b.name)}</span>${side === 'opp' && variantCount(plan.opp[s.act[k]] || {}) > 1 && !(s.fixed && s.fixed.opp[s.act[k]]) ? '<span class="vl unk" title="型が分からないので基本型で計算中。＋で型ごとに分かれます">型未確定</span>' : m.b.vlabel ? `<span class="vl">${esc(m.b.vlabel)}</span>` : ''}</div><div class="bl">${esc(buildLabel(m.b))}</div>${h.txt}${h.bar}${tagsHtml(m)}</div></div>`;
 }
 function benchHtml(s, side) {
     const bench = s.mon[side].map((x, j) => {
@@ -1725,6 +1822,13 @@ function fieldHtml(s) {
     });
     return f.length ? `<div class="fc-field">🌍 ${f.join(' / ')}</div>` : '';
 }
+// 行動のない「初手」「型の仮定」だけのカードは、ターン数の代わりにそう表示する
+function nodeBadge(plan, n, s) {
+    const acts = ukeys(plan).some(k => n[k] && n[k].act !== 'none');
+    if (!n.turnInc && !acts && n.leadSet && Object.values(n.leadSet).some(v => v !== '' && v != null)) return '初手';
+    if (!n.turnInc && !acts && n.vset && SIDES.some(sd => Object.values(n.vset[sd] || {}).some(v => v !== '' && v != null))) return '型';
+    return 'T' + s.turn;
+}
 function cardHtml(plan, n, C, opts) {
     const s = C.st[n.id];
     const isRoot = n.id === plan.root;
@@ -1735,7 +1839,7 @@ function cardHtml(plan, n, C, opts) {
     const ks = ukeys(plan);
     const sideBlock = side => ks.filter(k => sideOf(k) === side).map(k => unitHtml(plan, s, k)).join('') + benchHtml(s, side);
     return `<div class="fc${isRoot ? ' root' : ''}${FC.sel === n.id && !pv ? ' sel' : ''}${isDbl(plan) ? ' dbl' : ''}" data-id="${n.id}">
-        <div class="fc-h"><span class="fc-turn${!isRoot && !n.turnInc ? ' same' : ''}">${isRoot ? '先発' : 'T' + s.turn}</span>
+        <div class="fc-h"><span class="fc-turn${!isRoot && !n.turnInc ? ' same' : ''}">${isRoot ? '先発' : nodeBadge(plan, n, s)}</span>
         <span class="fc-lbl${n.label ? '' : ' none'}">${esc(n.label || (isRoot ? '' : '（名前なし）'))}</span>${prob}${ops}</div>
         ${logs ? `<div class="fc-logs">${logs}</div>` : ''}
         ${sideBlock('opp')}${sideBlock('my')}${fieldHtml(s)}
@@ -1750,7 +1854,14 @@ function fcRenderTeams() {
             : '「編集」から追加';
     });
     $('fc-format').innerHTML = [['single', 'シングル'], ['double', 'ダブル']].map(([v, l]) => `<button type="button" data-format="${v}" class="${plan.format === v ? 'active' : ''}">${l}</button>`).join('');
+    $('fc-autovari').innerHTML = `<span class="chip env ${plan.autoVari === false ? '' : 'on'}" data-autovari="1">相手の型が分からない時は ＋ で型ごとに場合分け</span>`;
 }
+$('fc-autovari').addEventListener('click', e => {
+    if (!e.target.closest('[data-autovari]')) return;
+    const plan = fcPlan();
+    plan.autoVari = plan.autoVari === false;
+    fcChanged();
+});
 $('fc-format').addEventListener('click', e => {
     const b = e.target.closest('[data-format]');
     if (!b) return;
@@ -1805,9 +1916,33 @@ function insertNode(plan, n, afterId) {
     const i = afterId ? p.kids.indexOf(afterId) : -1;
     if (i >= 0) p.kids.splice(i + 1, 0, n.id); else p.kids.push(n.id);
 }
-function fcAddChild(pid) {
+function splitByBuild(plan, pid, j) {
+    const m = plan.opp[j];
+    const w = variantWeights(m);
+    const ids = [];
+    [...Array(variantCount(m)).keys()].forEach(v => {
+        const ch = newNode(pid);
+        ch.turnInc = 0;
+        ch.vset = { opp: { [j]: v } };
+        ch.prob = String(+w[v].toFixed(2));
+        ch.label = `${m.name}が${variantLabel(m, v)}なら`;
+        insertNode(plan, ch); ids.push(ch.id);
+    });
+    return ids;
+}
+function fcAddChild(pid, force) {
     const plan = fcPlan();
-    const n = makeChild(plan, pid, computeAll(plan));
+    const C0 = computeAll(plan);
+    const unk = plan.autoVari === false || force ? [] : unknownBuilds(plan, C0.st[pid]);
+    const pdown = ukeys(plan).some(k => actv(C0.st[pid], k) && dead(actv(C0.st[pid], k)));
+    if (unk.length && !pdown) {
+        const ids = splitByBuild(plan, pid, unk[0]);
+        FC.sel = ids[0];
+        fcSave(); fcRender();
+        toast(`${plan.opp[unk[0]].name}の型が分からないので、型ごとに ${ids.length} つに分けました。それぞれの枝の ＋ で続きを作ってください`);
+        return;
+    }
+    const n = makeChild(plan, pid, C0);
     insertNode(plan, n);
     FC.sel = n.id;
     fcSave(); fcRender();
@@ -1904,6 +2039,7 @@ function fcRenderSheet() {
                 <div><div class="lbl2">どくびし</div>${seg(`field.side.${sd}.tspikes`, f.side[sd].tspikes || 0, [[0, 'なし'], [1, '1'], [2, '2']])}</div></div>`).join('')}
             <div class="hint">特性（いかく・ひでり・すなおこし等）や技（ステロ・まきびし・あまごい・リフレクター・きりばらい等）による変化は、展開の中で自動で反映されます。</div></div>`;
         h += `<div class="box"><div class="lbl2">メモ（選出理由など）</div><textarea data-f="memo" rows="3">${esc(n.memo)}</textarea></div>`;
+        h += rootGenHtml(plan, n, C);
         h += `<button type="button" class="wide-btn" style="background:#1f7ae0" onclick="fcCloseSheet();fcAddChild('${n.id}')">1ターン目を追加</button>`;
         $('fc-sheet-body').innerHTML = h;
         fcRender();
@@ -1929,7 +2065,11 @@ function fcRenderSheet() {
         const md = DB.mv[a.move];
         h += `<div class="box side-${side}"><div class="box-title"><img class="ic" src="${iconOf(pm.b.spId)}" alt="">${uja(plan, k)}：${esc(pm.b.name)}${dead(pm) ? '（ひんし）' : ''}</div>`;
         h += `<div class="hint">実数値 ${pm.st.join('-')}　S${speedOf(prev, k)}（ランク・道具込み）</div>`;
-        h += `<details class="member side-${side}" data-side="${side}" data-unit="${k}" data-j="${cur}" ${FC.beOpen === k ? 'open' : ''}><summary class="member-top" style="grid-template-columns:minmax(0,1fr)"><div><b>型を編集</b><div class="hint be-sum">${esc(buildLabel(plan[side][cur]))}</div></div></summary>${buildEditorHtml(plan[side][cur])}</details>`;
+        h += `<details class="member side-${side}" data-side="${side}" data-unit="${k}" data-j="${cur}" data-vi="${pm.vi || 0}" ${FC.beOpen === k ? 'open' : ''}><summary class="member-top" style="grid-template-columns:minmax(0,1fr)"><div><b>型を編集${pm.b.vlabel ? `（${esc(pm.b.vlabel)}）` : ''}</b><div class="hint be-sum">${esc(buildLabel(pm.b))}</div></div></summary>${buildEditorHtml(buildOf(plan[side][cur], pm.vi || 0))}</details>`;
+        if (variantCount(plan[side][cur]) > 1) {
+            const vcur = n.vset && n.vset[side] && n.vset[side][cur] != null ? n.vset[side][cur] : '';
+            h += `<div><div class="lbl2">この展開から型を仮定</div>${seg(`vset.${side}.${cur}`, vcur, [['', 'そのまま'], ...[...Array(variantCount(plan[side][cur])).keys()].map(v => [v, esc(variantLabel(plan[side][cur], v))])])}</div>`;
+        }
         const rk = Object.keys(RANK_JA).filter(x => pm.ranks[x]).map(x => `${RANK_JA[x]}${pm.ranks[x] > 0 ? '+' : ''}${pm.ranks[x]}`);
         if (rk.length || pm.status || pm.noItem || pm.broken) h += `<div class="hint">この時点：${[pm.status ? STATUS_JA[pm.status] : '', ...rk, pm.noItem && pm.b.item ? pm.b.item + '消費' : '', pm.broken ? 'ばけのかわ済' : ''].filter(Boolean).join(' ')}</div>`;
         h += seg(`${k}.act`, a.act, [['none', 'なし'], ['move', '技'], ['switch', '交代']]);
@@ -2017,6 +2157,51 @@ function fieldSetHtml(n, prev) {
     </div></details>`;
 }
 
+/* ---------- 初手・型の分岐 ---------- */
+function leadOptions(plan, side) {
+    const n = plan[side].length;
+    if (!isDbl(plan)) return [...Array(n).keys()].map(i => ({ key: String(i), set: { [side]: i }, name: plan[side][i].name }));
+    const out = [];
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) out.push({ key: `${i}-${j}`, set: { [side]: i, [side + '2']: j }, name: `${plan[side][i].name}・${plan[side][j].name}` });
+    return out;
+}
+function rootGenHtml(plan, n, C) {
+    let h = `<div class="box" style="box-shadow: inset 4px 0 0 #6f42c1"><div class="box-title" style="color:#6f42c1">初手・型で分ける（確率つき）</div>
+        <div class="gen-btns"><button type="button" data-gen="lead">初手ごとに分ける</button><button type="button" data-gen="vari" class="alt">相手・自分の型で分ける</button></div>`;
+    if (FC.gen === 'lead') {
+        const my = leadOptions(plan, 'my'), op = leadOptions(plan, 'opp');
+        if (!my.length || !op.length) h += '<div class="hint">先にチームを設定してください</div>';
+        else {
+            const w = Math.round(100 / op.length * 10) / 10;
+            h += `<div class="gen-form"><div class="lbl2">自分の初手の候補（選んだ数だけ枝を作ります）</div>
+                ${my.map((o, i) => `<label class="gen-row" style="grid-template-columns:auto minmax(0,1fr)"><input type="checkbox" data-lm="${o.key}" ${i === 0 ? 'checked' : ''}> ${esc(o.name)}</label>`).join('')}
+                <div class="lbl2">相手の初手（予想の確率%）</div>
+                ${op.map(o => `<label class="gen-row"><input type="checkbox" data-lo="${o.key}" checked> ${esc(o.name)}<input type="number" data-lop="${o.key}" value="${w}"></label>`).join('')}
+                <div class="hint">自分の初手が1つなら、相手の初手ごとの枝を先発の直後に作ります。2つ以上なら「自分の初手」の枝の下に、相手の初手を並べます。</div>
+                <button type="button" class="wide-btn" data-gen-run="lead">作成</button></div>`;
+        }
+    }
+    if (FC.gen === 'vari') h += variGenHtml(plan, C.st[n.id]);
+    return h + '</div>';
+}
+function variGenHtml(plan, s) {
+    const list = [];
+    SIDES.forEach(sd => plan[sd].forEach((m, j) => { if (variantCount(m) > 1) list.push({ sd, j, m }); }));
+    if (!list.length) return '<div class="gen-form"><div class="hint">型が2つ以上あるポケモンがいません。チームの「編集」で ＋型を追加 してください（仮想敵リストの「想定持ち物（候補）」からも自動で作られます）。</div></div>';
+    const keyOf = x => `${x.sd}:${x.j}`;
+    if (!list.some(x => keyOf(x) === FC.variKey)) {
+        const act = list.find(x => ukeys(plan).some(k => sideOf(k) === x.sd && s.act[k] === x.j && x.sd === 'opp'));
+        FC.variKey = keyOf(act || list[0]);
+    }
+    const cur = list.find(x => keyOf(x) === FC.variKey);
+    const vc = variantCount(cur.m);
+    return `<div class="gen-form"><div class="lbl2">どのポケモンの型で分けるか</div>
+        <div class="pick">${list.map(x => `<button type="button" class="${keyOf(x) === FC.variKey ? 'active' : ''}" data-varikey="${keyOf(x)}"><img class="ic" src="${iconOf(x.m.spId)}" alt="">${SIDE_JA[x.sd]}：${esc(x.m.name)}</button>`).join('')}</div>
+        <div class="lbl2">型（確率%）</div>
+        ${[...Array(vc).keys()].map(v => `<label class="gen-row"><input type="checkbox" data-vv="${v}" checked> ${esc(variantLabel(cur.m, v))}<span class="hint" style="grid-column:2">${esc(buildLabel(buildOf(cur.m, v)))}</span><input type="number" data-vvp="${v}" value="${r1(variantWeights(cur.m)[v])}"></label>`).join('')}
+        <button type="button" class="wide-btn" data-gen-run="vari">作成（この展開の次に並べる）</button></div>`;
+}
+
 /* ---------- 分岐をまとめて作る ---------- */
 function koUnits(plan, s) { return ukeys(plan).filter(k => { const m = actv(s, k); if (!m) return false; const x = dKO(m.dist); return x > 1e-6 && x < 0.9999; }); }
 function actOptions(plan, s, k) {
@@ -2034,7 +2219,9 @@ function genSection(plan, n, C) {
             <button type="button" data-gen="act-my" class="alt">次のターン：自分の行動ごと</button>
             <button type="button" data-gen="ko" ${kos.length ? '' : 'disabled style="opacity:.4"'}>この結果で分ける（倒した/耐えた）</button>
             <button type="button" data-gen="var" class="alt">この展開を 急所・外れ・ひるみ で分ける</button>
+            <button type="button" data-gen="vari">相手・自分の型で分ける</button>
         </div>`;
+    if (FC.gen === 'vari') h += variGenHtml(plan, s);
     if (FC.gen === 'act-opp' || FC.gen === 'act-my') {
         const side = FC.gen === 'act-opp' ? 'opp' : 'my';
         const mine = ukeys(plan).filter(k => sideOf(k) === side && actv(s, k) && !dead(actv(s, k)));
@@ -2077,7 +2264,45 @@ function genRun(kind) {
     const C = computeAll(plan);
     const s = C.st[n.id];
     const body = $('fc-sheet-body');
-    if (kind === 'ko') {
+    if (kind === 'lead') {
+        const my = leadOptions(plan, 'my').filter(o => body.querySelector(`[data-lm="${o.key}"]`)?.checked);
+        const op = leadOptions(plan, 'opp').filter(o => body.querySelector(`[data-lo="${o.key}"]`)?.checked);
+        if (!my.length || !op.length) return toast('初手を選んでください');
+        let made = 0;
+        const addOpp = (parentId, myOpt) => op.forEach(o => {
+            const ch = newNode(parentId);
+            ch.turnInc = 0;
+            ch.leadSet = { ...myOpt.set, ...o.set };
+            ch.prob = body.querySelector(`[data-lop="${o.key}"]`).value;
+            ch.label = `相手の初手：${o.name}`;
+            insertNode(plan, ch); made++;
+        });
+        if (my.length === 1) addOpp(n.id, my[0]);
+        else my.forEach(m0 => {
+            const mid = newNode(n.id);
+            mid.turnInc = 0; mid.leadSet = { ...m0.set }; mid.prob = '100';
+            mid.label = `自分の初手：${m0.name}`;
+            insertNode(plan, mid); made++;
+            addOpp(mid.id, m0);
+        });
+        toast(`${made}つの分岐を作りました`);
+    } else if (kind === 'vari') {
+        const [sd, j] = (FC.variKey || '').split(':');
+        const m = plan[sd] && plan[sd][+j];
+        if (!m) return;
+        let made = 0;
+        body.querySelectorAll('[data-vv]').forEach(cb => {
+            if (!cb.checked) return;
+            const v = +cb.dataset.vv;
+            const ch = newNode(n.id);
+            ch.turnInc = 0;
+            ch.vset = { [sd]: { [j]: v } };
+            ch.prob = body.querySelector(`[data-vvp="${v}"]`).value;
+            ch.label = `${m.name}：${variantLabel(m, v)}`;
+            insertNode(plan, ch); made++;
+        });
+        toast(`${made}つの分岐を作りました`);
+    } else if (kind === 'ko') {
         const kos = koUnits(plan, s).slice(0, 3);
         const combos = kos.reduce((acc, k) => acc.flatMap(c => [{ ...c, [k]: 'ko' }, { ...c, [k]: 'live' }]), [{}]);
         combos.forEach(c => {
@@ -2147,6 +2372,8 @@ $('fc-sheet-body').addEventListener('click', e => {
     if (FC.team) return;
     const plan = fcPlan(), n = plan.nodes[FC.edit];
     if (!n) return;
+    const vk = e.target.closest('[data-varikey]');
+    if (vk) { FC.variKey = vk.dataset.varikey; return fcRenderSheet(); }
     const gu = e.target.closest('[data-genunit]');
     if (gu) { FC.genUnit = gu.dataset.genunit; return fcRenderSheet(); }
     const g = e.target.closest('[data-gen]');
@@ -2205,8 +2432,24 @@ function memberEditor(side, m, j, open) {
         <summary class="member-top"><img class="poke-icon" style="width:40px;height:40px" src="${iconOf(m.spId)}" alt="" onerror="this.style.visibility='hidden'">
             <div style="min-width:0"><b>${esc(m.name)}</b> <span class="type-row" style="display:inline-flex">${typeBadges(m.spId)}</span><div class="hint be-sum">${esc(buildLabel(m))}</div></div>
             <div class="ops">${j ? `<button type="button" data-up="${j}">↑</button>` : ''}<button type="button" class="rm" data-rm="${j}">×</button></div></summary>
-        ${buildEditorHtml(m)}
+        ${variantTabs(side, m, j)}
+        ${buildEditorHtml(buildOf(m, vtabOf(side, j, m)))}
     </details>`;
+}
+function vtabOf(side, j, m) { const v = (FC.vtab || {})[side + j] || 0; return v < variantCount(m) ? v : 0; }
+function variantTabs(side, m, j) {
+    const v = vtabOf(side, j, m);
+    return `<div class="vtabs">${[...Array(variantCount(m)).keys()].map(i => `<button type="button" class="${i === v ? 'active' : ''}" data-vtab="${j}:${i}">${esc(variantLabel(m, i))}</button>`).join('')}<button type="button" class="add" data-vadd="${j}">＋型を追加</button></div>
+        <div class="vname"><input type="text" data-vlabel="${j}:${v}" value="${esc(v ? m.alts[v - 1].label : (m.label || ''))}" placeholder="${v ? '型の名前' : '基本型（名前は任意）'}">${v ? `<button type="button" class="rm" data-vdel="${j}:${v}">この型を削除</button>` : ''}</div>
+        ${variantCount(m) > 1 && side === 'opp' ? `<div class="row"><label>出現率</label><div class="row-inline"><input type="number" data-vprob="${j}:${v}" value="${esc(v ? m.alts[v - 1].p : m.p)}" placeholder="${r1(variantWeights(m)[v])}（空欄＝残りを均等）"><span class="hint">%</span></div></div>` : ''}`;
+}
+// 型を削除した時、展開の「型の仮定」の番号を付け替える
+function remapVariant(side, j, removed) {
+    Object.values(fcPlan().nodes).forEach(n => {
+        const vs = n.vset && n.vset[side];
+        if (!vs || vs[j] === '' || vs[j] == null) return;
+        if (+vs[j] === removed) vs[j] = ''; else if (+vs[j] > removed) vs[j] = +vs[j] - 1;
+    });
 }
 // 型エディタの変更 → プランのメンバーに反映（チーム編集・展開の編集の両方）
 function onMemberEdit(e) {
@@ -2215,8 +2458,13 @@ function onMemberEdit(e) {
     const plan = fcPlan(), side = el.dataset.side, j = +el.dataset.j;
     const m = plan[side][j];
     if (!m) return;
-    const nb = readBuild(el, m);
-    plan[side][j] = nb;
+    const vi = el.dataset.vi != null ? +el.dataset.vi : vtabOf(side, j, m);
+    let nb;
+    if (!vi) { nb = readBuild(el, m); nb.alts = m.alts; nb.label = m.label; plan[side][j] = nb; }
+    else {
+        nb = readBuild(el, buildOf(m, vi));
+        m.alts[vi - 1] = { label: m.alts[vi - 1].label, nu: nb.nu, nd: nb.nd, nt: nb.nt, ev: nb.ev, item: nb.item, ab: nb.ab, moves: nb.moves };
+    }
     refreshBuildEditor(el, nb);
     const sum = el.querySelector('.be-sum');
     if (sum) sum.textContent = buildLabel(nb);
@@ -2227,6 +2475,26 @@ function onMemberEdit(e) {
     }
 }
 $('fc-sheet-body').addEventListener('input', onMemberEdit);
+// 型の出現率
+$('fc-sheet-body').addEventListener('input', e => {
+    const t = e.target.closest('[data-vprob]');
+    if (!t || !FC.team) return;
+    const [j, v] = t.dataset.vprob.split(':').map(Number), m = fcPlan()[FC.team][j];
+    if (!m) return;
+    if (v) m.alts[v - 1].p = t.value; else m.p = t.value;
+    fcSave();
+});
+// 型の名前
+$('fc-sheet-body').addEventListener('input', e => {
+    const t = e.target.closest('[data-vlabel]');
+    if (!t || !FC.team) return;
+    const [j, v] = t.dataset.vlabel.split(':').map(Number), m = fcPlan()[FC.team][j];
+    if (!m) return;
+    if (v) m.alts[v - 1].label = t.value.trim() || `型${v + 1}`; else m.label = t.value.trim();
+    const tab = t.closest('.member').querySelector(`[data-vtab="${j}:${v}"]`);
+    if (tab) tab.textContent = variantLabel(m, v);
+    fcSave(); fcRender();
+});
 $('fc-sheet-body').addEventListener('change', onMemberEdit);
 function fcRenderTeamSheet() {
     const side = FC.team, plan = fcPlan(), team = plan[side];
@@ -2289,6 +2557,25 @@ $('fc-sheet-body').addEventListener('click', e => {
         [plan[side][j - 1], plan[side][j]] = [plan[side][j], plan[side][j - 1]];
         remapIdx(side, x => x === j ? j - 1 : x === j - 1 ? j : x);
         fcChanged(); fcRenderTeamSheet(); return;
+    }
+    const vt = e.target.closest('[data-vtab]');
+    if (vt) { const [j, v] = vt.dataset.vtab.split(':').map(Number); FC.vtab = FC.vtab || {}; FC.vtab[side + j] = v; FC.openMember = j; return fcRenderTeamSheet(); }
+    const va = e.target.closest('[data-vadd]');
+    if (va) {
+        const j = +va.dataset.vadd, m = plan[side][j];
+        const cur = buildOf(m, vtabOf(side, j, m));
+        m.alts.push({ label: `型${m.alts.length + 2}`, nu: cur.nu, nd: cur.nd, nt: cur.nt, ev: cur.ev.slice(), item: cur.item, ab: cur.ab, moves: cur.moves.slice() });
+        FC.vtab = FC.vtab || {}; FC.vtab[side + j] = m.alts.length; FC.openMember = j;
+        fcChanged(); return fcRenderTeamSheet();
+    }
+    const vd = e.target.closest('[data-vdel]');
+    if (vd) {
+        const [j, v] = vd.dataset.vdel.split(':').map(Number), m = plan[side][j];
+        if (!confirm(`「${variantLabel(m, v)}」を削除しますか？`)) return;
+        m.alts.splice(v - 1, 1);
+        remapVariant(side, j, v);
+        FC.vtab[side + j] = 0; FC.openMember = j;
+        fcChanged(); return fcRenderTeamSheet();
     }
     const tg = e.target.closest('[data-tg]');
     if (tg) { const t = targetBuilds()[+tg.dataset.tg]; if (t) addMember(side, t); return; }
@@ -2385,7 +2672,14 @@ function tcBuild(card) {
     const box = card.querySelector('.tc-be');
     return box && box.querySelector('.be') ? readBuild(box, base) : normMember(base);
 }
-function targetBuilds() { return [...document.querySelectorAll('.target-card')].map(tcBuild).filter(b => b.spId && b.name); }
+function targetBuilds() {
+    return [...document.querySelectorAll('.target-card')].map(card => {
+        const b = tcBuild(card);
+        const cands = [...new Set([...card.querySelectorAll('.item-input')].map(x => x.value.trim()).filter(x => x && x !== b.item))];
+        if (cands.length) { b.label = b.item ? `${b.item}型` : '基本型'; b.alts = cands.map(it => ({ label: `${it}型`, item: it })); }
+        return normMember(b);
+    }).filter(b => b.spId && b.name);
+}
 function createTargetCard(saved) {
     saved = saved || {};
     const card = document.createElement('div');
